@@ -198,6 +198,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .gpb{height:.8rem;margin:.45rem 0 .35rem}.gdt{margin:.4rem 0 .3rem;border-top:1px solid var(--line)}.gdt div{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--line)}.gdt span{color:var(--mute);font-size:.92rem}.gdt b{white-space:nowrap}
 .wk.ms4{grid-template-columns:repeat(2,minmax(0,1fr))}.msl li{margin:.3rem 0}.msl li b{color:var(--acc)}.msl .hint{margin-left:.3rem;font-size:.85rem}.lpm{margin:.5rem 0 .2rem}
 .msb{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin:.1rem 0 .7rem;padding:.6rem .8rem;border:1px solid var(--acc);border-radius:.8rem;background:var(--card)}.msb .edit{padding:0;white-space:nowrap}
+.tabs .tgear{position:relative}.tabs .tgear.up::after{content:'';position:absolute;top:.35rem;right:.15rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--warn)}
 </style>
 </head>
 <body>
@@ -1662,6 +1663,26 @@ try{sessionStorage.setItem('gym-sa-hi','1')}catch(e){}
 try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
+// ===== Standalone: app version, updates, evening sync time =====
+const APP_V={h:'1de65eced5',d:'Oct 22, 2026 at 7:01 PM'};
+let updAvail=null,updMsg='',updBusy=false;
+const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
+async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
+async function updCheck(silent){if(!window.__SA||updBusy||/^__/.test(APP_V.h))return;if(!silent){updMsg='Checking…';render()}
+let v=null;try{v=await updLatest()}catch(e){if(!silent){updMsg='Couldn’t check. Make sure you’re online, then try again.';render()}return}
+const was=updAvail;updAvail=v!==APP_V.h?v:null;if(!silent)updMsg=updAvail?'':'You have the latest version.';if(!silent||was!==updAvail)render()}
+async function updGo(){if(updBusy)return;updBusy=true;updMsg='Updating…';render();
+try{const v=updAvail||await updLatest();const r=await fetch('index.html?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const body=await r.text();
+if(!body.includes("h:'"+v+"'")){updBusy=false;updMsg='The update is still on its way to your phone. Try again in a few minutes.';render();return}
+if(window.caches)for(const k of await caches.keys())if(/^gym-/.test(k)){const c=await caches.open(k);await c.put('index.html',new Response(body,{headers:{'content-type':'text/html; charset=utf-8'}}))}
+try{const g=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(g)g.update().catch(()=>{})}catch(e){}
+try{sessionStorage.setItem('gym-sa-up','1')}catch(e){}location.reload()}
+catch(e){updBusy=false;updMsg='Couldn’t download the update. Make sure you’re online, then try again.';render()}}
+function setVer(){const pr=S.prof||{};
+return `<section class="ex" id="setev"><h2>Evening sync</h2><div class="chips">${[18,19,20,21].map(h=>`<button class="chip" aria-pressed="${evH()===h}" data-a="evset" data-v="${h}">${h-12} pm</button>`).join('')}</div><p class="hint">Today’s food and steps are only saved when you paste after this time, so a half-finished day doesn’t count against you. Pick when you’re usually done eating for the day. Any earlier paste still brings in everything else, and the next morning’s paste fills in the full day.</p></section>`
++`<section class="ex" id="setv"><h2>App version</h2><p class="hint">Published ${E(APP_V.d)} · ${E(APP_V.h.slice(0,7))}</p>${updAvail?`<p><b>A new version is ready.</b></p><button class="fin" data-a="upgo" style="margin:.4rem 0 .2rem"${updBusy?' disabled':''}>Update now</button>`:`<button class="fin fin2" data-a="upchk" style="margin:.4rem 0 .2rem"${updBusy?' disabled':''}>Check for update</button>`}${updMsg?`<p class="hint">${E(updMsg)}</p>`:''}</section>`}
+if(window.__SA&&typeof fetch==='function')setTimeout(()=>{updCheck(true)},4000);
+try{if(window.__SA&&sessionStorage.getItem('gym-sa-up')){sessionStorage.removeItem('gym-sa-up');setTimeout(()=>say('Updated to the latest version'),600)}}catch(e){}
 // ===== Standalone: Settings =====
 const hkGuide=()=>`<details class="mf"><summary>Setup steps</summary><ol class="tl hint hkg">
 <li>Open the Shortcuts app, tap <b>+</b> and name the new shortcut <b>Gym Health</b>.</li>
@@ -1677,6 +1698,7 @@ function setHtml(){const pr=S.prof||{};
 return `<h1>Settings</h1><p class="sub">How the app looks, and your backup. Your phase and targets are under Plan.</p>`
 +`<section class="ex" id="setth"><h2>Theme</h2><div class="chips">${[['','Match phone'],['light','Light'],['dark','Dark']].map(([k,l])=>`<button class="chip" aria-pressed="${((pr.th||'')===k)}" data-a="thset" data-v="${k}">${l}</button>`).join('')}</div></section>`
 +`<section class="ex" id="setac"><h2>App colour</h2><div class="chips">${ACS.map(([k,l,c])=>`<button class="chip acs" aria-pressed="${((pr.ac||'')===k)}" data-a="acset" data-v="${k}"><i style="background:${c}"></i>${l}</button>`).join('')}</div></section>`
++setVer()
 +`<section class="ex" id="setsc"><h2>Gym Health shortcut</h2><p class="hint">The iPhone shortcut behind Run Gym Health on the Upload page. You only need these steps to set it up again, for example on a new phone.</p>${hkGuide()}</section>`
 +(scans().length?'':`<section class="ex" id="about"><h2>About you</h2><p class="hint">Until you upload a DEXA scan, your calories are estimated from your height, age and weight. A scan fills these in from its report, and this section goes away.</p>${selH('pby','Birth year',BYO(),pr.by)}${selH('pht','Height',HTO,pr.ht)}</section>`)+bkSec()}
 function aboutSec(){
@@ -1959,7 +1981,7 @@ let k=HKC[a[0]]?a[0]:null;if(!k)for(const[re,kk]of HK_KIND)if(re.test(a[0])){k=k
 if(!k){unk++;continue}const s=hkDate(a[1]),e=hkDate(a[2])||s;if(!s||isNaN(s)){badDate++;continue}
 rows.push({k,s,e:e<s?s:e,v:a[3],u:(a[4]||'')+' '+a[3]});seen[k]=(seen[k]||0)+1}
 if(!rows.length)return{err:badDate?'The dates from the shortcut aren’t in a format the app reads. In the shortcut’s Text step, set both dates to the custom format yyyy-MM-dd HH:mm.':'The shortcut didn’t find any Health data for the last 3 days. Check that it’s allowed to read Health (Settings › Health › Data Access & Devices › Shortcuts).'};
-const td=today(),late=new Date().getHours()>=20,D={},day=t=>D[t]||(D[t]={t}),WT={};
+const td=today(),late=new Date().getHours()>=evH(),D={},day=t=>D[t]||(D[t]={t}),WT={};
 for(const r of rows){
 if(['st','c','p','cb','f','fb'].includes(r.k)){let n=hkNum(r.v);if(n==null||n<0)continue;if(r.k==='c'&&/kj/i.test(r.u)&&!/kcal/i.test(r.u))n/=4.184;const t=hkDay(r.s);day(t)[r.k]=(day(t)[r.k]||0)+n}
 else if(r.k==='wt'){let n=hkNum(r.v);if(n==null||n<=0)continue;if(/kg/i.test(r.u))n*=2.20462;const t=hkDay(r.s);if(!WT[t]||r.s<WT[t].s)WT[t]={s:r.s,w:n}}}
@@ -1991,15 +2013,15 @@ const day0=t===td&&!late;
 if(x.st!=null&&x.st>0&&x.st<=100000){if(day0)skipT=true;else o.st=Math.round(x.st)}
 if(x.c!=null&&x.c>0&&x.c<15000){if(day0)skipT=true;else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}}}
 if(Object.keys(o).length>1)out.push(o)}
-if(!out.length)return{err:skipT?'Only today’s food and steps were found. They come in after 8 pm, or with tomorrow morning’s paste.':'Nothing from the last 3 days to add yet.'};
+if(!out.length)return{err:skipT?'Only today’s food and steps were found. They come in after '+evT()+', or with tomorrow morning’s paste.':'Nothing from the last 3 days to add yet.'};
 return{days:out,seen,skipT,badDate}}
 // ===== Standalone: the Sync page (Apple Health, twice a day) =====
 const hkT=k=>S.hkt&&S.hkt.d===today()?S.hkt[k]||null:null;
 const hkMorn=()=>!!(hkT('m')||(wtList().some(x=>x.t===today())&&(hlList().find(x=>x.t===today())||{}).sl!=null));
 const hkEve=()=>!!(hkT('e')||(fdList().some(x=>x.t===today()&&x.hk)&&(hlList().find(x=>x.t===today())||{}).st!=null));
 const hkTm=t=>{const[h,m]=String(t).split(':').map(Number),d=new Date();d.setHours(h,m,0,0);return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};
-function syncHtml(){const late=new Date().getHours()>=20,row=(lab,sub,ok,tm,wait)=>`<div class="syr"><div><b>${lab}</b><small>${sub}</small></div><span class="${ok?'ok':''}">${ok?'✓ '+(tm?E(hkTm(tm)):'Done'):wait?'After 8 pm':'Not yet'}</span></div>`;
-return `<h1>Upload</h1><p class="sub">Everything that comes into the app comes in here. Apple Health: sync each morning, and again after 8 pm if you want today’s food and steps the same day. DEXA and blood work: upload the report PDF when you get a new one.</p>${hkPend?hkConfirm():''}<section class="ex" id="hksync"><h2>Apple Health today</h2>${row('Morning','Weigh-in, last night’s sleep and heart rate, yesterday’s food and steps',hkMorn(),hkT('m'),false)}${row('Evening','Today’s food and steps',hkEve(),hkT('e'),!late)}</section>${hkCard()}${upReports()}`}
+function syncHtml(){const late=new Date().getHours()>=evH(),row=(lab,sub,ok,tm,wait)=>`<div class="syr"><div><b>${lab}</b><small>${sub}</small></div><span class="${ok?'ok':''}">${ok?'✓ '+(tm?E(hkTm(tm)):'Done'):wait?'After '+evT():'Not yet'}</span></div>`;
+return `<h1>Upload</h1><p class="sub">Everything that comes into the app comes in here. Apple Health: sync each morning, and again after ${evT()} if you want today’s food and steps the same day. DEXA and blood work: upload the report PDF when you get a new one.</p>${hkPend?hkConfirm():''}<section class="ex" id="hksync"><h2>Apple Health today</h2>${row('Morning','Weigh-in, last night’s sleep and heart rate, yesterday’s food and steps',hkMorn(),hkT('m'),false)}${row('Evening','Today’s food and steps',hkEve(),hkT('e'),!late)}</section>${hkCard()}${upReports()}`}
 // the DEXA and lab uploaders, under Apple Health, each with the latest one on file
 function upReports(){const sc=scans(),c=sc[sc.length-1],L=(S.labs||[]).slice().sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0),l=L[L.length-1];
 const see='<button class="edit" data-a="tab" data-d="p" style="padding:0">See it in Progress</button>',yr=t=>E(wtLong(t))+', '+t.slice(0,4);
@@ -2017,7 +2039,7 @@ async function hkPaste(){hkErr='';try{if(!navigator.clipboard||!navigator.clipbo
 const hkSl=m=>Math.floor(m/60)+'h '+String(Math.round(m%60)).padStart(2,'0')+'m';
 function hkCard(w){
 if(w&&!hkBox&&!hkErr){const td=today(),h=hlList().find(x=>x.t===td);if(wtList().some(x=>x.t===td)&&h&&h.sl!=null)return `<p class="hint" style="margin:-.3rem 0 .7rem">This morning’s weigh-in and sleep are in from Apple Health. <button class="edit" data-a="hkpaste" style="padding:0">Paste again</button></p>`}
-return `<section class="ex" id="hk"><h2>Add from Apple Health</h2><p class="hint">Tap <b>Run Gym Health</b>, come back here when it finishes, then tap <b>Paste from Health</b>. It saves on its own unless something needs a look. In the morning it brings in your weigh-in, last night’s sleep and lowest heart rate, and yesterday’s food and steps. After 8 pm, today’s food and steps come in too.</p><a class="fin fin2" href="shortcuts://run-shortcut?name=Gym%20Health" style="margin:.4rem 0 .5rem">Run Gym Health</a><button class="fin" data-a="hkpaste" style="margin:0 0 .2rem">Paste from Health</button>${hkBox?`<textarea class="sel hkta" id="hkta" rows="2" placeholder="Long-press here and tap Paste" aria-label="Paste the shortcut’s text here"></textarea><p class="hint">Your phone didn’t let the app read the clipboard directly. Long-press the box and tap Paste.</p>`:''}${hkErr?`<p class="hint dn">${E(hkErr)}</p>`:''}</section>`}
+return `<section class="ex" id="hk"><h2>Add from Apple Health</h2><p class="hint">Tap <b>Run Gym Health</b>, come back here when it finishes, then tap <b>Paste from Health</b>. It saves on its own unless something needs a look. In the morning it brings in your weigh-in, last night’s sleep and lowest heart rate, and yesterday’s food and steps. After ${evT()}, today’s food and steps come in too.</p><a class="fin fin2" href="shortcuts://run-shortcut?name=Gym%20Health" style="margin:.4rem 0 .5rem">Run Gym Health</a><button class="fin" data-a="hkpaste" style="margin:0 0 .2rem">Paste from Health</button>${hkBox?`<textarea class="sel hkta" id="hkta" rows="2" placeholder="Long-press here and tap Paste" aria-label="Paste the shortcut’s text here"></textarea><p class="hint">Your phone didn’t let the app read the clipboard directly. Long-press the box and tap Paste.</p>`:''}${hkErr?`<p class="hint dn">${E(hkErr)}</p>`:''}</section>`}
 function hkConfirm(){
 const p=hkPend,W=new Map(wtList().map(x=>[x.t,x.w])),H=new Map(hlList().map(x=>[x.t,x])),F=new Map(fdList().map(x=>[x.t,x])),wl=wtList();
 const rows=p.days.map(d=>{const it=[],ch=[],wn=[];
@@ -2027,7 +2049,7 @@ if(d.st!=null){it.push(fmt(d.st)+' steps');const o=H.get(d.t);if(o&&o.st!=null&&
 if(d.c!=null){it.push(fmt(d.c)+' cal'+(d.p!=null?', '+d.p+' g protein':'')+(d.cb!=null?', '+d.cb+' g carbs':'')+(d.f!=null?', '+d.f+' g fat':'')+(d.fb!=null?', '+d.fb+' g fiber':''));const o=F.get(d.t);if(o&&o.c!==d.c)ch.push(fmt(o.c)+' cal');const mc=fdMacro(d,0);if(/dn/.test(mc))wn.push(mc.replace(/<[^>]+>/g,''))}
 return `<div class="hkd"><b>${E(wtLong(d.t))}</b><span>${E(it.join(' · '))}</span>${ch.length?`<small>Replaces ${E(ch.join(', '))}.</small>`:''}${wn.map(x=>`<small class="hkw">${E(x)}</small>`).join('')}</div>`}).join('');
 const miss=['wt','sl','st','c'].filter(k=>!p.seen[k]).map(k=>({wt:'weight',sl:'sleep',st:'steps',c:'food'})[k]);
-return `<section class="ex" id="hkc"><h2>Check before saving</h2>${rows}${miss.length?`<p class="hint">No ${E(miss.join(', '))} found in the last 3 days.${miss.includes('sleep')?' If you wore your ring or watch to bed, check the Sleep step in the shortcut (no source filter, last 1 day).':''}${miss.includes('food')?' If you logged in Lose It, check the food steps in the shortcut (source Lose It).':''}</p>`:''}${p.skipT?'<p class="hint">Today’s food and steps come in after 8 pm, or with tomorrow morning’s paste.</p>':''}<button class="fin" data-a="hkok" style="margin:.6rem 0 .2rem">Save</button><button class="edit" data-a="hkno" style="padding:.4rem 0">Discard</button></section>`}
+return `<section class="ex" id="hkc"><h2>Check before saving</h2>${rows}${miss.length?`<p class="hint">No ${E(miss.join(', '))} found in the last 3 days.${miss.includes('sleep')?' If you wore your ring or watch to bed, check the Sleep step in the shortcut (no source filter, last 1 day).':''}${miss.includes('food')?' If you logged in Lose It, check the food steps in the shortcut (source Lose It).':''}</p>`:''}${p.skipT?'<p class="hint">Today’s food and steps come in after '+evT()+', or with tomorrow morning’s paste.</p>':''}<button class="fin" data-a="hkok" style="margin:.6rem 0 .2rem">Save</button><button class="edit" data-a="hkno" style="padding:.4rem 0">Discard</button></section>`}
 // what Lose It is set to: the last goals confirmed here, else the last ones read from a screenshot
 const liNow=()=>{const c=S.prof&&S.prof.li;if(c)return c;const f=fdList().filter(x=>x.b&&!x.hk).pop();return f?{cal:f.b,prot:f.pg||null,t:f.t}:null};
 const liOk=L=>{const c=liNow();return !!(c&&L&&L.cal!=null&&Math.abs(c.cal-L.cal)<=25&&!(c.prot&&L.prot!=null&&Math.abs(c.prot-L.prot)>5))};
@@ -2042,7 +2064,7 @@ if(d.c!=null){const o=Object.assign({},F.get(d.t)||{t:d.t});o.c=d.c;for(const k 
 nd++}
 const srt=a=>a.sort((x,y)=>x.t<y.t?-1:x.t>y.t?1:0);
 S.wt=srt([...W.values()]);S.hl=srt([...H.values()]);S.food=fdPrune(srt([...F.values()]));
-hkPend=null;save();for(const t of fs){const e=S.food.find(x=>x.t===t);if(e)archF(e)}{const nw=new Date(),tm=String(nw.getHours()).padStart(2,'0')+':'+String(nw.getMinutes()).padStart(2,'0'),o=S.hkt&&S.hkt.d===today()?Object.assign({},S.hkt):{d:today()};if(nw.getHours()>=20){o.e=tm;if(!o.m)o.m=tm}else o.m=tm;S.hkt=o;save()}
+hkPend=null;save();for(const t of fs){const e=S.food.find(x=>x.t===t);if(e)archF(e)}{const nw=new Date(),tm=String(nw.getHours()).padStart(2,'0')+':'+String(nw.getMinutes()).padStart(2,'0'),o=S.hkt&&S.hkt.d===today()?Object.assign({},S.hkt):{d:today()};if(nw.getHours()>=evH()){o.e=tm;if(!o.m)o.m=tm}else o.m=tm;S.hkt=o;save()}
 render();window.scrollTo(0,0);say('Saved '+nd+' day'+(nd===1?'':'s')+' from Health')}
 
 // ===== Standalone: edit the program (add, swap, remove, reorder; sets, reps, rest) =====
@@ -2155,7 +2177,7 @@ if(needSetup()){app.innerHTML=initDone?setupHtml():'';return}
 if(window.__SA)for(const k in S.draft){const x=S.draft[k];if(x&&typeof x.ed==='string'&&x.ed!==today()){delete S.draft[k];save()}}
 GEN++;autoCheck();
 const p=P[day];
-const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&wkKey(e.t)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}${st?`<i class="dot ${st}" aria-hidden="true"></i>`:''}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}${window.__SA?`<button class="tgear" role="tab" aria-selected="${day==='set'}" aria-label="Settings" data-a="tab" data-d="set"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>`:''}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
+const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&wkKey(e.t)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}${st?`<i class="dot ${st}" aria-hidden="true"></i>`:''}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}${window.__SA?`<button class="tgear${updAvail?' up':''}" role="tab" aria-selected="${day==='set'}" aria-label="${updAvail?'Settings, update ready':'Settings'}" data-a="tab" data-d="set"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>`:''}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
 if(day==='w'){app.innerHTML=`${tabs}${todayBar()}${weightHtml()}`;return}
 if(day==='p'){app.innerHTML=`${tabs}${todayBar()}${progressHtml()}`;return}
 if(day==='g'){app.innerHTML=`${tabs}${todayBar()}${gymProgHtml()}`;return}
@@ -2376,6 +2398,9 @@ if(a==='thset'){const v=b.dataset.v||'';S.prof=Object.assign({},S.prof||{});if(v
 if(a==='acset'){const v=b.dataset.v||'';S.prof=Object.assign({},S.prof||{});if(v)S.prof.ac=v;else delete S.prof.ac;save();acApply();render();return}
 if(a==='dxok'){const x=dxPend;if(!x)return;S.scans=(S.scans||[]).filter(y=>y.t!==x.t).concat(x).sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0);if(dxPf&&S.scans[S.scans.length-1].t===x.t)S.prof=Object.assign({},S.prof||{},dxPf);dxPf=null;dxPend=null;save();render();say('DEXA scan added');return}
 if(a==='dxno'){dxPend=null;dxErr='';render();return}
+if(a==='upchk'){updCheck(false);return}
+if(a==='upgo'){updGo();return}
+if(a==='evset'){const v=+b.dataset.v;S.prof=Object.assign({},S.prof||{});if(v===20)delete S.prof.ev;else S.prof.ev=v;save();render();return}
 if(a==='msok'){S.msx=(S.msx||[]).concat(b.dataset.id).slice(-300);save();render();return}
 if(a==='msall'){msAll=!msAll;render();return}
 if(a==='lpm'){lpMode=b.dataset.v||'top';render();return}
