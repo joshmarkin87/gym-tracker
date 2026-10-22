@@ -177,6 +177,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .ntin{margin:.3rem 0 0}.lnt{color:var(--mute);font-style:italic}
 .hkd{display:flex;flex-direction:column;gap:.15rem;padding:.45rem 0;border-bottom:1px solid var(--line)}.hkd span{color:var(--ink);font-size:.92rem}.hkd small{color:var(--mute);font-size:.8rem}.hkd small.hkw{color:#d98a2b;font-weight:600}.hkta{margin:.4rem 0 .2rem}.hkg li{margin:.35rem 0}
 .pgrow{padding:.55rem 0;border-bottom:1px solid var(--line)}.pgh{display:flex;gap:.6rem;align-items:flex-start}.pgh small{display:block;color:var(--mute);font-size:.82rem;margin-top:.1rem}.pgb{display:flex;flex-wrap:wrap;gap:.2rem .75rem;margin:.35rem 0 0 1.6rem}.pgb .edit{padding:.2rem 0;font-size:.92rem}.pgb .edit[disabled]{opacity:.3}.pgset{margin:.3rem 0 0 1.6rem}.pgl{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:.55rem 0;color:var(--ink);font:inherit;cursor:pointer}.pgl small{display:block;color:var(--mute);font-size:.8rem}#pgres{max-height:22rem;overflow-y:auto;margin:.2rem 0 .6rem}
+.seatin{margin:.25rem 0 .35rem}.seatadd{display:block;padding:.15rem 0 .35rem;font-size:.9rem}.seat{margin:.1rem 0 .3rem}
 </style>
 </head>
 <body>
@@ -1769,6 +1770,12 @@ function pgCopy(o){const x=JSON.parse(JSON.stringify(o.x));delete x.ss;const r=x
 function pgPut(x){const p=pgPick;if(!p)return;const ns=pgNs(x);if(P[pgEd].x.some((y,j)=>pgNs(y).some(n=>ns.includes(n))&&!(p.mode==='swap'&&j===p.i))){say(pgName(x)+' is already on this day');return}
 pgSet(a=>{if(p.mode==='swap'){const o=a[p.i];if(o.k)x.k=o.k;if(o.ss)x.ss=o.ss;a[p.i]=x}else a.push(x)});pgPick=null;say((p.mode==='swap'?'Swapped in ':'Added ')+pgName(x))}
 
+// ===== Standalone: seat settings, remembered per exercise =====
+let seatEd=null;
+function seatLine(n){if(!window.__SA)return '';const v=(S.setup&&S.setup[n])||'';
+if(seatEd===n)return `<input class="sel seatin" maxlength="60" data-seat="${E(n)}" value="${E(v)}" placeholder="e.g. seat 4, back pad 2" aria-label="Seat setting for ${E(n)}" enterkeyhint="done" autocomplete="off">`;
+return v?`<p class="hint seat">Seat: <b>${E(v)}</b> <button class="edit" data-a="seated" data-n="${E(n)}" style="padding:0">Change</button></p>`:`<button class="edit seatadd" data-a="seated" data-n="${E(n)}">Add seat setting</button>`}
+app.addEventListener('keydown',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('seatin')&&e.key==='Enter'){e.preventDefault();seatEd=null;render()}});
 // her tracker says "lean bulk" everywhere: fix the visible text after each draw (text only, never attributes)
 function lbFix(t){return t.replace(/(?<![Ll]ean[ -])\b([Bb])ulk(ing|s|ed)?\b/g,(m,b,x)=>(b==='B'?'Lean b':'lean b')+'ulk'+(x||''))}
 function lbWords(){if(!FEM||!app)return;const w=document.createTreeWalker(app,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))if(/ulk/.test(n.nodeValue)){const v=lbFix(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}}
@@ -1813,7 +1820,7 @@ const ph=(l&&l[i])||[];
 return `<div class="set"><span>${i+1}</span><input inputmode="decimal" placeholder="${E(ph[0]||'lb')}" value="${E(a[0])}" data-n="${E(n)}" data-i="${i}" data-j="0" aria-label="Set ${i+1} weight in pounds"><input inputmode="numeric" placeholder="${E(ph[1]||'reps')}" value="${E(a[1])}" data-n="${E(n)}" data-i="${i}" data-j="1" aria-label="Set ${i+1} reps"><button class="wu" aria-pressed="${a[2]==='w'}" data-a="wu" data-n="${E(n)}" data-i="${i}" aria-label="Warm-up set ${i+1}">W</button><button class="x${armed==='x'+n+'|'+i?' warn':''}" data-a="del" data-n="${E(n)}" data-i="${i}" aria-label="${armed==='x'+n+'|'+i?'Tap again to remove':'Remove'} set ${i+1}">×</button></div>`}).join('');
 const gr=goalRows(x,n),canFill=!!gr&&gr.some((v,i)=>rowEmpty(r[i]));
 const done=exDone(n),fold=done&&n!==lastEx&&n!==openEx,sum=done?r.map(a=>(a[2]==='w'?'W ':'')+(String(a[0]).trim()?(AS.has(n)?a[0]+' assist':a[0]):'BW')+'×'+String(a[1]).trim()).join(', '):'';
-return `<section class="ex${fold?' col':''}" data-ex="${E(n)}">${done?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${hint}${lt}${gl}${up}${dn}${prog(n)}<div class="sets">${sets}</div><div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill today’s goal</button>`:''}${FEM&&!(D().nt&&n in D().nt)?`<button class="add" data-a="ntadd" data-n="${E(n)}">Add note</button>`:''}</div>${FEM&&D().nt&&n in D().nt?`<input class="sel ntin" maxlength="200" data-nt="${E(n)}" value="${E(D().nt[n]||'')}" placeholder="Note for ${E(n)} (optional)" aria-label="Note for ${E(n)}">`:''}</section>`}).join('');
+return `<section class="ex${fold?' col':''}" data-ex="${E(n)}">${done?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${seatLine(n)}${hint}${lt}${gl}${up}${dn}${prog(n)}<div class="sets">${sets}</div><div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill today’s goal</button>`:''}${FEM&&!(D().nt&&n in D().nt)?`<button class="add" data-a="ntadd" data-n="${E(n)}">Add note</button>`:''}</div>${FEM&&D().nt&&n in D().nt?`<input class="sel ntin" maxlength="200" data-nt="${E(n)}" value="${E(D().nt[n]||'')}" placeholder="Note for ${E(n)} (optional)" aria-label="Note for ${E(n)}">`:''}</section>`}).join('');
 const hist=S.log.slice(0,6).map((e,i)=>{
 const ds=new Date(e.t+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 const ex=Object.keys(e.s).length,st=Object.values(e.s).reduce((a,r)=>a+r.filter(q=>q[2]!=='w').length,0);
@@ -1830,9 +1837,9 @@ const d=new Date(w.k+'T12:00:00').toLocaleDateString(undefined,{month:'short',da
 return `<p><b>Week of ${E(d)}</b><span>${w.n} workouts, ${w.sets} sets, ${fmt(w.vol)} lb${c===null?'':` (${c>=0?'+':''}${c}%)`}</span></p>`}).join('');
 app.innerHTML=`${tabs}${todayBar()}${prb}${upb}${dnb}${wkb}${alertCard()}${FEM?cyRough():''}<h1>${p.t}</h1><p class="sub">${FN[day]}${day===T?', today':''}${FEM&&p.m?', about '+p.m+' min':''}. Weights in lb.${{cut:' Cut phase: holding strength is a win.',bulk:' Bulk phase: aim to beat last time.',maint:'',recomp:' Recomp: aim to beat last time.'}[phase().k]}</p>${FEM?(()=>{const d=S.draft[day]||{},td=today(),t=d.t||td;return d.id?`<p class="hint dn">Editing your ${E(wtLong(t))} workout. Finish saves the changes. <button class="edit" data-a="wkcancel" style="padding:0">Cancel</button></p>`:`<label class="pf"><span>Workout date</span><input type="date" class="sel" id="wkd" max="${td}" value="${t}"></label>${t!==td?`<p class="hint">Logging this workout for ${E(wtLong(t))}. <button class="edit" data-a="wktoday" style="padding:0">Use today</button></p>`:''}`})():''}${slNote()}${stats}${cards}<button class="fin" data-a="fin">Finish workout</button>${window.__SA?`<button class="edit" data-a="pged" style="display:block;padding:.7rem 0 .3rem;margin:0 0 1.1rem">Edit this day’s exercises</button>`:''}${wkRows?`<div class="hist"><h3>Past weeks</h3>${wkRows}</div>`:''}${hist?`<div class="hist"><h3>Recent workouts</h3>${hist}</div>`:''}`}
 let docRef=null,coll=null,fcol=null,armed=null,prAlert=[],upAlert=[],dnAlert=[],wkAlert='',busy=false,again=false,tm,syncFail=0,rtT=null,ldT=null,ldN=0,ldBusy=false;
-const LKB=LK+'-base',FLDS=['draft','log','dl','scans','labs','wt','food','rev','phases','prof','plan','lock','ci','hl','rarc','bk','waist','cyc','prog'],J=x=>JSON.stringify(x===undefined?null:x);
+const LKB=LK+'-base',FLDS=['draft','log','dl','scans','labs','wt','food','rev','phases','prof','plan','lock','ci','hl','rarc','bk','waist','cyc','prog','setup'],J=x=>JSON.stringify(x===undefined?null:x);
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-function pick(d){d=d||{};return{draft:d.draft&&typeof d.draft==='object'?d.draft:{},log:Array.isArray(d.log)?d.log:[],dl:d.dl,scans:d.scans,labs:d.labs,wt:d.wt,food:d.food,rev:d.rev,phases:d.phases,prof:d.prof,plan:d.plan,lock:d.lock,ci:d.ci,hl:d.hl,rarc:d.rarc,bk:d.bk,waist:d.waist,cyc:d.cyc,prog:d.prog}}
+function pick(d){d=d||{};return{draft:d.draft&&typeof d.draft==='object'?d.draft:{},log:Array.isArray(d.log)?d.log:[],dl:d.dl,scans:d.scans,labs:d.labs,wt:d.wt,food:d.food,rev:d.rev,phases:d.phases,prof:d.prof,plan:d.plan,lock:d.lock,ci:d.ci,hl:d.hl,rarc:d.rarc,bk:d.bk,waist:d.waist,cyc:d.cyc,prog:d.prog,setup:d.setup}}
 const cdr=dr=>{const o={};for(const k in dr||{}){const x=dr[k];if(x&&x.s&&Object.values(x.s).some(r=>Array.isArray(r)&&r.some(a=>a&&(a[0]!==''||a[1]!==''))))o[k]=x}return o};
 const nz=x=>{const p=pick(x);p.draft=cdr(p.draft);return J(p)};
 const KF={log:e=>e&&(e.id||e.t+'-'+e.day),wt:e=>e&&e.t,waist:e=>e&&e.t,food:e=>e&&e.t,hl:e=>e&&e.t,labs:e=>e&&e.t,scans:e=>e&&e.t,ci:e=>e&&e.pid+'|'+e.w};
@@ -1920,6 +1927,7 @@ app.onclick=e=>{
 const b=e.target.closest('[data-a]');if(!b)return;
 const a=b.dataset.a;
 if(a!=='rm'&&a!=='sdel'&&a!=='wtdel'&&a!=='fddel'&&a!=='hldel'&&a!=='wsdel'&&a!=='ph'&&a!=='del'&&a!=='cyclr'&&a!=='cyrm'&&a!=='pgrm'&&a!=='pgreset')armed=null;
+if(a!=='seated')seatEd=null;
 if(a!=='wt')wtArm=null;
 if(a!=='ws')wsArm=null;
 if(a!=='fin'){prAlert=[];upAlert=[];dnAlert=[];wkAlert=''}
@@ -1959,6 +1967,7 @@ if(a==='pgcas'){if(pgPick){pgPick.cas=!pgPick.cas;render()}return}
 if(a==='pgcadd'){if(!pgPick)return;const n=String(pgPick.cn||'').replace(/[<>"|]/g,'').replace(/\s+/g,' ').trim().slice(0,40);if(n.length<2){say('Type the exercise’s name first');return}pgPut(pgNew(n,pgPick.mu||'',pgPick.ty||'comp',pgPick.cas?'a':''));return}
 if(a==='pgcancel'){pgPick=null;render();return}
 if(a==='pgreset'){if(armed!=='pgreset'){armed='pgreset';render();return}armed=null;const p2=Object.assign({},S.prog||{});delete p2[pgEd];S.prog=p2;applyProg();pgDraft(pgEd);save();pgOpen=null;pgPick=null;render();say('Back to the original program');return}
+if(a==='seated'){seatEd=b.dataset.n;render();const i=[...app.querySelectorAll('input[data-seat]')].find(x=>x.dataset.seat===b.dataset.n);if(i){i.focus();const l=i.value.length;try{i.setSelectionRange(l,l)}catch(e){}}return}
 if(a==='hkpaste'){hkPaste();return}
 if(a==='hkok'){hkSave();return}
 if(a==='hkno'){hkPend=null;hkErr='';render();return}
@@ -2021,6 +2030,7 @@ if(t.id==='gwr'){const l=app.querySelector('#gwv');if(l)l.textContent=t.value+' 
 if(t.id==='pgq'){if(pgPick){pgPick.q=t.value.slice(0,40);const r=app.querySelector('#pgres');if(r)r.innerHTML=pgList()}return}
 if(t.id==='pgcn'){if(pgPick)pgPick.cn=t.value.slice(0,40);return}
 if(t.id==='cylen'){const l=app.querySelector('#cylv');if(l)l.textContent=t.value+' days';return}
+if(t.dataset&&t.dataset.seat!==undefined){const k=t.dataset.seat,v=t.value.replace(/[<>]/g,'').slice(0,60);const o=Object.assign({},S.setup||{});if(v.trim())o[k]=v;else delete o[k];S.setup=o;save();return}
 if(t.dataset&&t.dataset.nt!==undefined){const d=D();d.nt=Object.assign({},d.nt||{},{[t.dataset.nt]:t.value.slice(0,200)});save();return}
 if(n===undefined||t.dataset.j===undefined)return;
 if(t.dataset.j==='0'){const v=t.value.replace(/,/g,'.').replace(/[^\d.]/g,'').replace(/(\..*)\./g,'$1').slice(0,6);if(v!==t.value)t.value=v}else{const v=t.value.replace(/\D/g,'').slice(0,3);if(v!==t.value)t.value=v}
