@@ -1610,7 +1610,7 @@ render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.
 function aboutSec(){
 if(!window.__SA)return '';
 const pr=S.prof||{},dx=scans().length;
-return `<section class="ex" id="about"><h2>About you</h2><p class="hint">${pr.sex==='f'?'Women’s ranges and the 5-day program.':'Men’s ranges and the 3-day program.'} ${dx?'Your DEXA scan sets your resting metabolic rate, so these are only used when there’s no scan.':'With no DEXA scan yet, your calories are estimated from your height, age and weight.'}</p>${selH('pby','Birth year',BYO(),pr.by)}${selH('pht','Height',HTO,pr.ht)}<p class="hint" style="margin-top:.8rem"><b>App colour</b></p><div class="chips">${ACS.map(([k,l,c])=>`<button class="chip acs" aria-pressed="${((pr.ac||'')===k)}" data-a="acset" data-v="${k}"><i style="background:${c}"></i>${l}</button>`).join('')}</div></section>`}
+return `<section class="ex" id="about"><h2>About you</h2><p class="hint">${window.__SA&&J(ORDER)!==J(ORD0)?`${pr.sex==='f'?'Women’s':'Men’s'} ranges and your ${ORDER.length}-day program (${andL(ORDER.map(d=>DN[d]))}).`:pr.sex==='f'?'Women’s ranges and the 5-day program.':'Men’s ranges and the 3-day program.'} ${dx?'Your DEXA scan sets your resting metabolic rate, so these are only used when there’s no scan.':'With no DEXA scan yet, your calories are estimated from your height, age and weight.'}</p>${selH('pby','Birth year',BYO(),pr.by)}${selH('pht','Height',HTO,pr.ht)}<p class="hint" style="margin-top:.8rem"><b>App colour</b></p><div class="chips">${ACS.map(([k,l,c])=>`<button class="chip acs" aria-pressed="${((pr.ac||'')===k)}" data-a="acset" data-v="${k}"><i style="background:${c}"></i>${l}</button>`).join('')}</div></section>`}
 // the program follows who the tracker is for; if that changed (a restored backup, or another phone), reopen once
 function feMatch(){
 if(!window.__SA)return false;const f=!!(S.prof&&S.prof.sex==='f');if(f===FEM)return false;
@@ -1779,6 +1779,7 @@ const p=phase();if(p.k==='recomp')o.recomp_note='Recomp: eating at maintenance w
 if(cyOn()&&S.cyc.share!==false){const st=cyStats(),a=cyAt(today()),sy={};for(const d of cyDays().filter(x=>x.t>=addD(today(),-90)))for(const y of d.sy||[])sy[CYS[y]]=(sy[CYS[y]]||0)+1;
 o.cycle={method:CYM[S.cyc.m],predictions:cyNat()?'estimates from logged periods':'none (hormonal method)',cycle_day_today:a?a.day:null,phase_today:a&&a.ph?CYP[a.ph]:null,avg_cycle_days:st.avg,cycle_variation_days:st.vr,avg_bleed_days:st.bAvg==null?null:Math.round(st.bAvg*10)/10,endometriosis:!!S.cyc.endo,symptoms_last_90_days:sy,flags:cyFlags().map(f=>f.x)}}
 return o}
+const andL=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
 const dayFix=t=>{if(!window.__SA||J(ORDER)===J(ORD0))return t;const N=ORDER.length,L=ORDER.map(d=>FN[d]+' '+String(P[d].t).toLowerCase().replace(/&/g,'and')).join(', ');return t.replace(/lifts \d days a week \([^)]*\)/g,'lifts '+N+' days a week ('+L+')').replace(/lifts \d days a week on a fixed split/g,'lifts '+N+' days a week on a fixed split')};
 async function copyFor(kind){
 let txt='';
