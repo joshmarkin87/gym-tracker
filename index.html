@@ -1695,7 +1695,7 @@ const p=hkPend;if(!p)return;
 const W=new Map(wtList().map(x=>[x.t,x])),H=new Map(hlList().map(x=>[x.t,x])),F=new Map(fdList().map(x=>[x.t,x])),li=liNow(),fs=[];let nd=0;
 for(const d of p.days){
 if(d.wt!=null)W.set(d.t,{t:d.t,w:d.wt});
-if(d.st!=null||d.sl!=null||d.hr!=null){const o=Object.assign({},H.get(d.t)||{t:d.t});for(const k of['st','sl','hr'])if(d[k]!=null)o[k]=d[k];if(d.sl!=null&&d.hr==null)delete o.hr;H.set(d.t,o)}
+if(d.st!=null||d.sl!=null||d.hr!=null){const o=Object.assign({},H.get(d.t)||{t:d.t});for(const k of['st','sl','hr'])if(d[k]!=null)o[k]=d[k];H.set(d.t,o)}
 if(d.c!=null){const o=Object.assign({},F.get(d.t)||{t:d.t});o.c=d.c;for(const k of['p','cb','f'])if(d[k]!=null)o[k]=d[k];if(d.fb!=null)o.fb=d.fb;else delete o.fb;if(!o.b&&li){o.b=li.cal;if(li.prot)o.pg=li.prot}o.hk=1;delete o.a;F.set(d.t,o);fs.push(d.t)}
 nd++}
 const srt=a=>a.sort((x,y)=>x.t<y.t?-1:x.t>y.t?1:0);
