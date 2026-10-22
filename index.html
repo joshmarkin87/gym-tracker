@@ -991,11 +991,13 @@ const off=smpReady&&(!smp||!smpImg);
 return `<section class="ex"><h2>Add a day</h2><p class="hint">When you’re done logging in Lose It, screenshot the top of the Log screen (Budget, Food and macros). For meal patterns and top foods, also screenshot your meal list and upload ${fdMax>1?'them all together (up to '+fdMax+')':'one screenshot at a time'}. Check the numbers, then save.</p>${off?'<p class="hint dn">Reading screenshots isn’t available in this view. Send the screenshots in a Claude chat and say "log my food" and I’ll add them.</p>':`<label class="fin upl">Upload Lose It screenshots<input type="file" id="fdf" accept="${E((fdTypes||['image/png','image/jpeg','image/webp']).join(','))}"${fdMax>1?' multiple':''} hidden></label>`}${fdErr?`<p class="hint dn">${E(fdErr)}</p>`:''}<p class="hint">Claude reads the screenshots. Each read uses a little of your Claude usage, and the first one asks your permission.</p></section>`}
 function mealRows(m){return m.map(x=>`<div class="kv"><span>${E(x.n)}</span><b>${fmt(x.c)} cal${x.p!=null?' · '+Math.round(x.p)+' g protein':''}</b></div>`).join('')}
 // protein×4 + carbs×4 + fat×9 against Lose It's food calories; flags a gap over 70 cal either way (never blocks saving)
+// with fiber from Health: Lose It's carbs include it, at about 2 cal a gram rather than 4, so 2 per gram comes off
 const MACRO_GAP=70;
 function fdMacro(v,saved){
 if(v.p==null||v.cb==null||v.f==null||v.c==null)return '';
-const P=Math.round(v.p),C=Math.round(v.cb),F=Math.round(v.f),m=P*4+C*4+F*9,gap=m-Math.round(v.c),sum=`${P}×4 + ${C}×4 + ${F}×9`;
+const P=Math.round(v.p),C=Math.round(v.cb),F=Math.round(v.f),FB=v.fb!=null&&isFinite(v.fb)?Math.max(0,Math.min(Math.round(v.fb),C)):null,m=P*4+C*4+F*9-(FB||0)*2,gap=m-Math.round(v.c),sum=`${P}×4 + ${C}×4 + ${F}×9${FB?` − ${FB}×2 fiber`:''}`;
 if(Math.abs(gap)<=MACRO_GAP)return `<p class="hint">Macros check: ${sum} = ${fmt(m)} cal; Lose It shows ${fmt(v.c)} (${gap>0?'+':gap<0?'−':''}${fmt(Math.abs(gap))})&nbsp;✓</p>`;
+if(window.__SA)return `<p class="hint dn">Macros don’t match: ${sum} = ${fmt(m)} cal, ${fmt(Math.abs(gap))} ${gap>0?'more':'less'} than Lose It’s ${fmt(v.c)}. ${gap>0?(FB==null?'Usually fiber, which this check counts once you add Fiber to your Health shortcut. Otherwise sugar alcohols':'Usually sugar alcohols')+' (in protein bars and low-sugar foods) or a food in Lose It whose calories don’t match its macros.':'Usually alcohol (calories with no macros) or a food in Lose It whose calories don’t match its macros.'} ${saved?'If a food is wrong in Lose It, fix it there and paste from Health again to update the day.':'You can still save.'}</p>`;
 return `<p class="hint dn">Macros don’t match: ${sum} = ${fmt(m)} cal, ${fmt(Math.abs(gap))} ${gap>0?'more':'less'} than Lose It’s ${fmt(v.c)}. ${saved?`Usually a misread number, ${gap<0?'alcohol (calories with no macros), ':''}a food in Lose It with wrong macros${gap>0?' or a lot of fiber':''}. ${window.__SA?'If a food is wrong in Lose It, fix it there and paste from Health again to update the day.':'If it was a misread, upload that day’s screenshot again to replace it.'}`:`Check ${window.__SA?'the day in Lose It':'protein, carbs and fat against your screenshot'}. If they match, it’s usually ${gap<0?'alcohol (calories with no macros) or ':''}a food in Lose It with wrong macros${gap>0?', or a lot of fiber':''}. You can still save.`}</p>`}
 function fdConfirm(){
 const p=fdPend,v=p.v,ex=fdList().find(x=>x.t===p.t),nIt=p.m.reduce((a,x)=>a+(x.it?x.it.length:0),0);
@@ -1008,7 +1010,7 @@ const ring=`<div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><cir
 const mac=(n,a,g)=>`<div><small>${n}</small><div class="pb"><i style="width:${g&&a!=null?Math.min(100,a/g*100).toFixed(0):0}%"></i></div><b>${a!=null?Math.round(a):'-'}</b><small>${g!=null?' / '+Math.round(g)+' g':' g'}</small></div>`;
 const its=(e.m||[]).filter(x=>x.it),nIt=its.reduce((a,x)=>a+x.it.length,0);
 const extra=(e.m&&e.m.length?`<p class="hint"><b>Meals</b>${e.mf?'':' (incomplete)'}</p>${mealRows(e.m)}`:'')+(e.na!=null||e.su!=null?`<p class="hint">${[e.na!=null?'Sodium '+fmt(e.na)+' mg':'',e.su!=null?'sugar '+Math.round(e.su)+' g':'',e.sf!=null?'saturated fat '+Math.round(e.sf)+' g':''].filter(Boolean).join(' · ')}</p>`:'')+(nIt?`<details class="mf"><summary>What you ate (${nIt} food${nIt===1?'':'s'})</summary>${its.map(x=>`<p class="hint"><b>${E(x.n)}</b>${x.ic===0?' (partly visible)':''}</p>${x.it.map(f=>`<div class="kv"><span>${E(f.n)}${f.q?` <small class="hint">${E(f.q)}</small>`:''}</span><b>${f.c!=null?fmt(f.c):'-'}</b></div>`).join('')}`).join('')}</details>`:'');
-return `<section class="ex"><div class="fdnav"><button class="edit" data-a="fdprev" aria-label="Previous logged day"${prev?'':' disabled'}>‹</button><h2>${E(wtLong(e.t))}${e.t===today()?' (today)':''}</h2><button class="edit" data-a="fdnext" aria-label="Next logged day"${next?'':' disabled'}>›</button></div><div class="fdtop"><div><b>${fmt(e.c)}</b><small>Food</small></div>${ring}<div><b>${fmt(e.b)}</b><small>Budget</small></div></div><div class="mac">${mac('Protein',e.p,e.pg)}${mac('Carbs',e.cb,e.cg)}${mac('Fat',e.f,e.fg)}</div>${fdMacro({c:e.c,p:e.p,cb:e.cb,f:e.f},1)}${extra}<button class="edit${rm?' warn':''}" data-a="fddel" data-t="${e.t}" style="padding:.7rem 0 0">${rm?'Tap again to remove this day':'Remove this day'}</button></section>`}
+return `<section class="ex"><div class="fdnav"><button class="edit" data-a="fdprev" aria-label="Previous logged day"${prev?'':' disabled'}>‹</button><h2>${E(wtLong(e.t))}${e.t===today()?' (today)':''}</h2><button class="edit" data-a="fdnext" aria-label="Next logged day"${next?'':' disabled'}>›</button></div><div class="fdtop"><div><b>${fmt(e.c)}</b><small>Food</small></div>${ring}<div><b>${fmt(e.b)}</b><small>Budget</small></div></div><div class="mac">${mac('Protein',e.p,e.pg)}${mac('Carbs',e.cb,e.cg)}${mac('Fat',e.f,e.fg)}</div>${fdMacro({c:e.c,p:e.p,cb:e.cb,f:e.f,fb:e.fb},1)}${extra}<button class="edit${rm?' warn':''}" data-a="fddel" data-t="${e.t}" style="padding:.7rem 0 0">${rm?'Tap again to remove this day':'Remove this day'}</button></section>`}
 function fdWeeks(){
 const fl=fdList();if(!fl.length)return[];
 const ws=wtStats(),a0=wtD(ws?ws.st.t:fl[0].t),td=today(),g={};
@@ -1090,7 +1092,7 @@ return{today:td,tracking_started:{weigh_ins:(wtList()[0]||{}).t||null,workouts:S
 goals:{goal_weight_lb:ws&&phase().k==='cut'?Math.round(ws.gw):null,phase:{name:PH[phase().k].l,since:phase().since,target_lb_per_week:tgt(),goals:phase().g},body_fat_goal_pct:phase().k==='cut'?phase().g.bf:null,steps_per_day:(planT()||{}).st||stepsOf(S.prof||{})||10000,calorie_budget:lf.b||null,protein_goal_g:lf.pg||null,carbs_goal_g:lf.cg||null,fat_goal_g:lf.fg||null},
 dexa:scans().map(s=>({date:s.t,weight_lb:s.tm,fat_lb:s.fm,lean_lb:s.lm,body_fat_pct:r1(bfp(s)),rmr_estimate:s.rmr||null,visceral_fat_in2:s.vat||null})),
 weight:ws?{latest_lb:ws.L.w,latest_date:ws.L.t,seven_day_avg_lb:r1(ws.a7),pace_lb_per_week:r1(ws.pace),pace_pct_per_week:r1(ws.pct),status_vs_target:ws.stat?ws.stat.k:null,weekly_averages:ws.wk.slice(-8).map(x=>({week_start:x.s,avg_lb:r1(x.a),weigh_ins:x.n}))}:null,
-food_days:fl.slice(-28).map(e=>({date:e.t,cal:e.c,budget:e.b,protein_g:e.p??null,carbs_g:e.cb??null,fat_g:e.f??null,sodium_mg:e.na??null,sugar_g:e.su??null,workout_day:wd.has(e.t),morning_weight_lb:W.get(e.t)??null,steps:(HM.get(e.t)||{}).st??null,sleep_h_night_before:(HM.get(e.t)||{}).sl!=null?Math.round(HM.get(e.t).sl/6)/10:null})),
+food_days:fl.slice(-28).map(e=>({date:e.t,cal:e.c,budget:e.b,protein_g:e.p??null,carbs_g:e.cb??null,fat_g:e.f??null,...(e.fb!=null?{fiber_g:e.fb}:{}),sodium_mg:e.na??null,sugar_g:e.su??null,workout_day:wd.has(e.t),morning_weight_lb:W.get(e.t)??null,steps:(HM.get(e.t)||{}).st??null,sleep_h_night_before:(HM.get(e.t)||{}).sl!=null?Math.round(HM.get(e.t).sl/6)/10:null})),
 waist_in:(()=>{const L=wsSun();return L.length?L.slice(-12).map(x=>({date:x.t,inches:x.v})):null})(),
 recent_meals:fl.filter(e=>e.m&&e.t>=addD(td,-6)).map(e=>({date:e.t,complete:!!e.mf,meals:e.m.map(m=>({name:m.n,cal:m.c,protein_g:m.p??null,foods:(m.it||[]).map(i=>i.n+(i.c!=null?' ('+i.c+' cal)':''))}))})),
 top_foods:fdTop().list.slice(0,10).map(a=>({food:a.n,days:a.d,avg_cal:a.k?Math.round(a.c/a.k):null})),
@@ -1611,8 +1613,8 @@ say('Copying isn’t available here.')}
 
 // ===== Standalone: Apple Health (the Gym Health shortcut copies the numbers; the app pastes them) =====
 let hkPend=null,hkErr='',hkBox=false;
-const HKC={st:'Steps',wt:'Weight',c:'Food calories',p:'Protein',cb:'Carbs',f:'Fat',sl:'Sleep',hr:'Heart rate'};
-const HK_KIND=[[/step/i,'st'],[/body ?mass|weight/i,'wt'],[/energy|calorie/i,'c'],[/protein/i,'p'],[/carb/i,'cb'],[/fat/i,'f'],[/sleep/i,'sl'],[/heart/i,'hr']];
+const HKC={st:'Steps',wt:'Weight',c:'Food calories',p:'Protein',cb:'Carbs',f:'Fat',fb:'Fiber',sl:'Sleep',hr:'Heart rate'};
+const HK_KIND=[[/fib(er|re)/i,'fb'],[/step/i,'st'],[/body ?mass|weight/i,'wt'],[/energy|calorie/i,'c'],[/protein/i,'p'],[/carb/i,'cb'],[/fat/i,'f'],[/sleep/i,'sl'],[/heart/i,'hr']];
 function hkNum(v){let x=String(v==null?'':v).replace(/[   ]/g,'');const m=x.match(/-?[\d.,]+/);if(!m)return null;x=m[0];
 if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(x))x=x.replace(/,/g,'');else if(/^\d+,\d{1,2}$/.test(x))x=x.replace(',','.');else x=x.replace(/,/g,'');
 const n=parseFloat(x);return isFinite(n)?n:null}
@@ -1636,7 +1638,7 @@ rows.push({k,s,e:e<s?s:e,v:a[3],u:(a[4]||'')+' '+a[3]});seen[k]=(seen[k]||0)+1}
 if(!rows.length)return{err:badDate?'The dates from the shortcut aren’t in a format the app reads. In the shortcut’s Text step, set both dates to the custom format yyyy-MM-dd HH:mm.':'The shortcut didn’t find any Health data for the last 3 days. Check that it’s allowed to read Health (Settings › Health › Data Access & Devices › Shortcuts).'};
 const td=today(),late=new Date().getHours()>=20,D={},day=t=>D[t]||(D[t]={t}),WT={};
 for(const r of rows){
-if(['st','c','p','cb','f'].includes(r.k)){let n=hkNum(r.v);if(n==null||n<0)continue;if(r.k==='c'&&/kj/i.test(r.u)&&!/kcal/i.test(r.u))n/=4.184;const t=hkDay(r.s);day(t)[r.k]=(day(t)[r.k]||0)+n}
+if(['st','c','p','cb','f','fb'].includes(r.k)){let n=hkNum(r.v);if(n==null||n<0)continue;if(r.k==='c'&&/kj/i.test(r.u)&&!/kcal/i.test(r.u))n/=4.184;const t=hkDay(r.s);day(t)[r.k]=(day(t)[r.k]||0)+n}
 else if(r.k==='wt'){let n=hkNum(r.v);if(n==null)continue;if(/kg/i.test(r.u))n*=2.20462;const t=hkDay(r.s);if(!WT[t]||r.s<WT[t].s)WT[t]={s:r.s,w:n}}}
 for(const t in WT)day(t).wt=WT[t].w;
 // sleep: asleep segments grouped into nights (a gap over 3 hours starts a new one); a night belongs to the morning it ended
@@ -1653,7 +1655,7 @@ if(x.sl!=null&&x.sl>=30&&x.sl<=960)o.sl=Math.round(x.sl);
 if(o.sl!=null&&x.hr!=null)o.hr=Math.round(x.hr);
 const day0=t===td&&!late;
 if(x.st!=null&&x.st<=100000){if(day0)skipT=true;else o.st=Math.round(x.st)}
-if(x.c!=null&&x.c>0&&x.c<15000){if(day0)skipT=true;else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k])}}
+if(x.c!=null&&x.c>0&&x.c<15000){if(day0)skipT=true;else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}}}
 if(Object.keys(o).length>1)out.push(o)}
 if(!out.length)return{err:skipT?'Only today’s food and steps were found. They come in after 8 pm, or with tomorrow morning’s paste.':'Nothing from the last 3 days to add yet.'};
 return{days:out,seen,skipT,badDate}}
@@ -1666,7 +1668,7 @@ return `<section class="ex" id="hk"><h2>Add from Apple Health</h2><p class="hint
 <li>Open the Shortcuts app, tap <b>+</b> and name the new shortcut <b>Gym Health</b>.</li>
 <li>Add the action <b>Find Health Samples</b>. Set <b>Type</b> to <b>Steps</b>. Tap <b>Add Filter</b> for <b>Start Date is in the last 3 days</b>, and again for <b>Source is Garmin Connect</b>. Set <b>Group By</b> to <b>Day</b>.</li>
 <li>Add the action <b>Add to Variable</b> and name the variable <b>Samples</b>.</li>
-<li>Do steps 2 and 3 again for each of these, always adding to <b>Samples</b> (long-press an action and tap Duplicate to save time):<br>· <b>Weight</b> (Body Mass), source Garmin Connect, no grouping<br>· <b>Dietary Energy</b>, source Lose It, group by Day<br>· <b>Protein</b>, source Lose It, group by Day<br>· <b>Carbohydrates</b>, source Lose It, group by Day<br>· <b>Total Fat</b>, source Lose It, group by Day<br>· <b>Sleep</b> (Sleep Analysis), source Oura, no grouping<br>· <b>Heart Rate</b>, source Oura, no grouping</li>
+<li>Do steps 2 and 3 again for each of these, always adding to <b>Samples</b> (long-press an action and tap Duplicate to save time):<br>· <b>Weight</b> (Body Mass), source Garmin Connect, no grouping<br>· <b>Dietary Energy</b>, source Lose It, group by Day<br>· <b>Protein</b>, source Lose It, group by Day<br>· <b>Carbohydrates</b>, source Lose It, group by Day<br>· <b>Total Fat</b>, source Lose It, group by Day<br>· <b>Fiber</b> (Dietary Fiber), source Lose It, group by Day<br>· <b>Sleep</b> (Sleep Analysis), source Oura, no grouping<br>· <b>Heart Rate</b>, source Oura, no grouping</li>
 <li>Add <b>Repeat with Each</b> and pick <b>Samples</b>.</li>
 <li>Inside the repeat, add a <b>Text</b> action. Fill it with five details of <b>Repeat Item</b>, with a <b>|</b> between each: <b>Type</b> | <b>Start Date</b> | <b>End Date</b> | <b>Value</b> | <b>Unit</b>. Tap each date and set its format to <b>Custom</b>: <b>yyyy-MM-dd HH:mm</b>.</li>
 <li>Still inside the repeat, add <b>Add to Variable</b> and name it <b>Lines</b>.</li>
@@ -1678,7 +1680,7 @@ const rows=p.days.map(d=>{const it=[],ch=[],wn=[];
 if(d.wt!=null){it.push('Weight '+f1(d.wt)+' lb');const o=W.get(d.t);if(o!=null&&Math.abs(o-d.wt)>=.05)ch.push('weight '+f1(o)+' lb');const pv=wl.filter(x=>x.t<d.t).pop();if(pv&&Math.abs(pv.w-d.wt)>6)wn.push(`${sg(d.wt-pv.w)} lb from ${dsh(pv)}. Check the scale reading in Garmin Connect.`)}
 if(d.sl!=null){it.push('Sleep '+hkSl(d.sl)+(d.hr!=null?', lowest heart rate '+d.hr:''));const o=H.get(d.t);if(o&&o.sl!=null&&Math.abs(o.sl-d.sl)>=1)ch.push('sleep '+hkSl(o.sl))}
 if(d.st!=null){it.push(fmt(d.st)+' steps');const o=H.get(d.t);if(o&&o.st!=null&&o.st!==d.st)ch.push(fmt(o.st)+' steps')}
-if(d.c!=null){it.push(fmt(d.c)+' cal'+(d.p!=null?', '+d.p+' g protein':'')+(d.cb!=null?', '+d.cb+' g carbs':'')+(d.f!=null?', '+d.f+' g fat':''));const o=F.get(d.t);if(o&&o.c!==d.c)ch.push(fmt(o.c)+' cal');const mc=fdMacro(d,0);if(/dn/.test(mc))wn.push(mc.replace(/<[^>]+>/g,''))}
+if(d.c!=null){it.push(fmt(d.c)+' cal'+(d.p!=null?', '+d.p+' g protein':'')+(d.cb!=null?', '+d.cb+' g carbs':'')+(d.f!=null?', '+d.f+' g fat':'')+(d.fb!=null?', '+d.fb+' g fiber':''));const o=F.get(d.t);if(o&&o.c!==d.c)ch.push(fmt(o.c)+' cal');const mc=fdMacro(d,0);if(/dn/.test(mc))wn.push(mc.replace(/<[^>]+>/g,''))}
 return `<div class="hkd"><b>${E(wtLong(d.t))}</b><span>${E(it.join(' · '))}</span>${ch.length?`<small>Replaces ${E(ch.join(', '))}.</small>`:''}${wn.map(x=>`<small class="hkw">${E(x)}</small>`).join('')}</div>`}).join('');
 const miss=['wt','sl','st','c'].filter(k=>!p.seen[k]).map(k=>({wt:'weight',sl:'sleep',st:'steps',c:'food'})[k]);
 return `<section class="ex" id="hkc"><h2>Check before saving</h2>${rows}${miss.length?`<p class="hint">No ${E(miss.join(', '))} found in the last 3 days.${miss.includes('sleep')?' If you wore your ring, check the Sleep step in the shortcut (source Oura).':''}${miss.includes('food')?' If you logged in Lose It, check the food steps in the shortcut (source Lose It).':''}</p>`:''}${p.skipT?'<p class="hint">Today’s food and steps come in after 8 pm, or with tomorrow morning’s paste.</p>':''}<button class="fin" data-a="hkok" style="margin:.6rem 0 .2rem">Save</button><button class="edit" data-a="hkno" style="padding:.4rem 0">Discard</button></section>`}
@@ -1692,7 +1694,7 @@ const W=new Map(wtList().map(x=>[x.t,x])),H=new Map(hlList().map(x=>[x.t,x])),F=
 for(const d of p.days){
 if(d.wt!=null)W.set(d.t,{t:d.t,w:d.wt});
 if(d.st!=null||d.sl!=null||d.hr!=null){const o=Object.assign({},H.get(d.t)||{t:d.t});for(const k of['st','sl','hr'])if(d[k]!=null)o[k]=d[k];if(d.sl!=null&&d.hr==null)delete o.hr;H.set(d.t,o)}
-if(d.c!=null){const o=Object.assign({},F.get(d.t)||{t:d.t});o.c=d.c;for(const k of['p','cb','f'])if(d[k]!=null)o[k]=d[k];if(!o.b&&li){o.b=li.cal;if(li.prot)o.pg=li.prot}o.hk=1;delete o.a;F.set(d.t,o);fs.push(d.t)}
+if(d.c!=null){const o=Object.assign({},F.get(d.t)||{t:d.t});o.c=d.c;for(const k of['p','cb','f'])if(d[k]!=null)o[k]=d[k];if(d.fb!=null)o.fb=d.fb;else delete o.fb;if(!o.b&&li){o.b=li.cal;if(li.prot)o.pg=li.prot}o.hk=1;delete o.a;F.set(d.t,o);fs.push(d.t)}
 nd++}
 const srt=a=>a.sort((x,y)=>x.t<y.t?-1:x.t>y.t?1:0);
 S.wt=srt([...W.values()]);S.hl=srt([...H.values()]);S.food=fdPrune(srt([...F.values()]));
