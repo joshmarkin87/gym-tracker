@@ -1621,7 +1621,7 @@ const n=parseFloat(x);return isFinite(n)?n:null}
 const MON='janfebmaraprmayjunjulaugsepoctnovdec';
 function hkDate(v){
 const x=String(v||'').replace(/[  ]/g,' ').trim();let m;
-if((m=x.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T,]+(\d{1,2}):(\d{2}))?/)))return new Date(+m[1],+m[2]-1,+m[3],+(m[4]||0),+(m[5]||0));
+if((m=x.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T,]+(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp]\.?\s?[Mm]\.?)?)?/))){let h=+(m[4]||0);if(m[6]&&h<=12)h=h%12+(/p/i.test(m[6])?12:0);return new Date(+m[1],+m[2]-1,+m[3],h,+(m[5]||0))}
 const hm=(h,mi,ap)=>{h=+(h||0);if(ap)h=h%12+(/p/i.test(ap)?12:0);return[h,+(mi||0)]};
 if((m=x.match(/([A-Za-z]{3})[a-z]*\.? (\d{1,2}),? (\d{4})(?:,? (?:at )?(\d{1,2}):(\d{2})\s*([AaPp]\.?[Mm]\.?)?)?/))){const mo=MON.indexOf(m[1].toLowerCase());if(mo>=0&&mo%3===0){const[h,mi]=hm(m[4],m[5],m[6]);return new Date(+m[3],mo/3,+m[2],h,mi)}}
 if((m=x.match(/(\d{1,2}) ([A-Za-z]{3})[a-z]*\.? (\d{4})(?:,? (?:at )?(\d{1,2}):(\d{2})\s*([AaPp]\.?[Mm]\.?)?)?/))){const mo=MON.indexOf(m[2].toLowerCase());if(mo>=0&&mo%3===0){const[h,mi]=hm(m[4],m[5],m[6]);return new Date(+m[3],mo/3,+m[1],h,mi)}}
@@ -1649,12 +1649,14 @@ const hrs=rows.filter(r=>r.k==='hr').map(r=>({t:+r.s,v:hkNum(r.v)})).filter(x=>x
 for(const t in best){const n=best[t];day(t).sl=n.min;const h=hrs.filter(x=>x.t>=+n.s&&x.t<=+n.e);if(h.length)day(t).hr=Math.min(...h.map(x=>x.v))}
 // sanity ranges; today's food and steps only once the day is mostly done (after 8 pm)
 const out=[];let skipT=false;
-for(const t of Object.keys(D).sort().reverse()){if(t>td)continue;const x=D[t],o={t};
+// the oldest day of a 3-day look-back is only partly covered, so only today and the two days before it count
+const t0=addD(td,-2);
+for(const t of Object.keys(D).sort().reverse()){if(t>td||t<t0)continue;const x=D[t],o={t};
 if(x.wt!=null&&x.wt>=66&&x.wt<=600)o.wt=Math.round(x.wt*10)/10;
 if(x.sl!=null&&x.sl>=30&&x.sl<=960)o.sl=Math.round(x.sl);
 if(o.sl!=null&&x.hr!=null)o.hr=Math.round(x.hr);
 const day0=t===td&&!late;
-if(x.st!=null&&x.st<=100000){if(day0)skipT=true;else o.st=Math.round(x.st)}
+if(x.st!=null&&x.st>0&&x.st<=100000){if(day0)skipT=true;else o.st=Math.round(x.st)}
 if(x.c!=null&&x.c>0&&x.c<15000){if(day0)skipT=true;else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}}}
 if(Object.keys(o).length>1)out.push(o)}
 if(!out.length)return{err:skipT?'Only today’s food and steps were found. They come in after 8 pm, or with tomorrow morning’s paste.':'Nothing from the last 3 days to add yet.'};
