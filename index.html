@@ -186,6 +186,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .syr{display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--line)}.syr:last-child{border-bottom:0}.syr small{display:block;color:var(--mute);font-size:.82rem;margin-top:.1rem}.syr span{white-space:nowrap;color:var(--mute);font-weight:600}.syr span.ok{color:var(--acc)}
 .schb{display:flex;gap:.9rem;white-space:nowrap}
 .hist p.wkp{cursor:pointer}.hist p.wkp b::after{content:' ›';color:var(--mute)}.hist p.wkp.on b::after{content:' ⌄'}.wkd{margin:0 0 .4rem;padding:.2rem .8rem;border-left:3px solid var(--acc);background:var(--card);border-radius:0 .5rem .5rem 0}.wkd p{border-top:0;padding:.3rem 0;font-size:.92rem}.wkd .lnt{display:block;margin:-.2rem 0 .2rem;font-size:.85rem}
+.rch{margin:.7rem 0 .1rem}
 </style>
 </head>
 <body>
@@ -373,7 +374,27 @@ const pw=W[W.indexOf(w)+1],ch=pw&&pw.vol>0&&title!=='This week so far'?Math.roun
 let pr=0;for(const e of S.log)if(wkKey(e.t)===k)pr+=e.pr||0;
 const c=checkRows();
 return `<p><b>${E(title)}:</b> ${w.n} workouts, ${w.sets} sets, ${fmt(w.vol)} lb${ch===null?'':' ('+(ch>=0?'+':'')+ch+'% vs the week before)'}. ${pr} new best${pr===1?'':'s'}.${c.rows.length?' Strength: '+strLine(c)+'.':''}</p>`}
-function recapSec(){
+// ===== Standalone: the recap by weigh-in week =====
+function recapSA(){
+const ws=wtStats();if(!ws)return null;
+const td=today(),a0=wtD(ws.st.t),i=Math.floor(Math.round((wtD(td)-a0)/864e5)/7);
+const rng=k=>{const s0=new Date(a0),e0=new Date(a0);s0.setDate(s0.getDate()+7*k);e0.setDate(e0.getDate()+7*k+6);return[isoD(s0),isoD(e0)]};
+const[cs,ce]=rng(i),dn=t=>FN[new Date(t+'T12:00:00').getDay()];
+const how=`<p class="hint">Your weeks run ${dn(cs)} to ${dn(ce)} (they start on the weekday of your first weigh-in), the same weeks the check-in uses. Read last week’s recap on ${dn(cs)}, the day it closes and the check-in runs.</p>`;
+const gym=(s0,e0)=>{const L=S.log.filter(e=>e.t>=s0&&e.t<=e0);let sets=0,vol=0,pr=0;for(const e of L){pr+=e.pr||0;for(const[n,r]of Object.entries(e.s))for(const a of r){if(a[2]==='w')continue;sets++;const x=parseFloat(a[0])||0;vol+=(AS.has(n)?Math.max(0,(bwAt(e.t)||0)-x):x)*(parseFloat(a[1])||0)}}return{n:L.length,sets,vol,pr}};
+const out=[how];
+if(i>=1){const[ls,le]=rng(i-1),g=gym(ls,le),w=ws.wk.find(x=>x.s===ls),f=fdWeeks().find(x=>x.s===ls),h=hlWeeks().find(x=>x.s===ls),c=checkRows();
+out.push(`<p class="rch"><b>Last week, ${E(wkRange(ls,le))}</b></p>`);
+out.push(`<p><b>Workouts:</b> ${g.n} of ${ORDER.length}${g.n?`, ${g.sets} sets, ${fmt(g.vol)} lb. ${g.pr} new best${g.pr===1?'':'s'}`:''}.${c.rows.length?' Strength: '+strLine(c)+'.':''}</p>`);
+out.push(w?`<p><b>Weight:</b> averaged ${f1(w.a)} lb over ${w.n} weigh-in${w.n===1?'':'s'}${w.ch!=null?', '+sg(w.ch)+' lb ('+sg(w.pc)+'%) vs the week before':''}.</p>`:'<p><b>Weight:</b> no weigh-ins that week.</p>');
+out.push(f?`<p><b>Food:</b> averaged ${fmt(f.c)} cal${f.p!=null?' and '+Math.round(f.p)+' g protein':''} a day over ${f.n} logged day${f.n===1?'':'s'} (budget ${fmt(f.b)}).</p>`:'<p><b>Food:</b> no food logged that week.</p>');
+out.push(h&&(h.sd||h.nd)?`<p><b>Steps and sleep:</b> ${h.sa!=null?fmt(h.sa)+' steps a day ('+h.hit+' of '+h.sd+' day'+(h.sd===1?'':'s')+' at '+fmt(stTarget())+')':'no steps logged'}${h.sla!=null?', '+hm(h.sla)+' of sleep a night':''}${h.ha!=null?', resting heart rate '+Math.round(h.ha)+' bpm':''}.</p>`:'<p><b>Steps and sleep:</b> none logged that week.</p>')}
+else out.push(`<p class="hint">Your first full week ends ${E(wtLong(ce))}. Its recap shows here from ${E(wtLong(addD(ce,1)))}.</p>`);
+{const g=gym(cs,ce),nw=wtList().filter(x=>x.t>=cs&&x.t<=ce).length,nf=fdList().filter(x=>x.t>=cs&&x.t<=ce).length,el=Math.round((wtD(td)-wtD(cs))/864e5)+1;
+out.push(`<p class="rch"><b>This week so far, ${E(wkRange(cs,ce))}</b></p><p>${el===1&&!g.n&&nw<=1&&!nf?'It started today. It fills in as the days come in; today’s food and steps arrive with the evening sync.':`Day ${el} of 7: ${g.n} workout${g.n===1?'':'s'}, ${nw} weigh-in${nw===1?'':'s'}, ${nf} food day${nf===1?'':'s'} so far.`}</p>`)}
+const wn=wtRecap();if(wn.length)out.push(wn[wn.length-1]);
+return `<section class="ex"><h2>Weekly recap</h2>${out.concat(wsRecap(),FEM?cyRecap():[]).join('')}</section>`}
+function recapSec(){if(window.__SA){const r=recapSA();if(r)return r}
 const W=weeks(),ck=wkKey(today()),cur=W.find(w=>w.k===ck),prev=W.find(w=>w.k<ck);
 const p=[];
 if(cur)p.push(recapHtml(cur.k,'This week so far'));
