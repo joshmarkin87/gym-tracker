@@ -1775,7 +1775,11 @@ let seatEd=null;
 function seatLine(n){if(!window.__SA)return '';const v=(S.setup&&S.setup[n])||'';
 if(seatEd===n)return `<input class="sel seatin" maxlength="60" data-seat="${E(n)}" value="${E(v)}" placeholder="e.g. seat 4, back pad 2" aria-label="Seat setting for ${E(n)}" enterkeyhint="done" autocomplete="off">`;
 return v?`<p class="hint seat">Seat: <b>${E(v)}</b> <button class="edit" data-a="seated" data-n="${E(n)}" style="padding:0">Change</button></p>`:`<button class="edit seatadd" data-a="seated" data-n="${E(n)}">Add seat setting</button>`}
-app.addEventListener('keydown',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('seatin')&&e.key==='Enter'){e.preventDefault();seatEd=null;render()}});
+// closing the box swaps just that box for the saved line, so a tap on anything else isn't disturbed
+function seatClose(n){if(seatEd===n)seatEd=null;const i=[...app.querySelectorAll('input[data-seat]')].find(x=>x.dataset.seat===n);if(!i)return;const w=document.createElement('div');w.innerHTML=seatLine(n);i.replaceWith(...w.childNodes)}
+app.addEventListener('keydown',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('seatin')&&e.key==='Enter'){e.preventDefault();t.blur();seatClose(t.dataset.seat)}});
+// iPhone's keyboard check mark only closes the keyboard (no Return), so close the box when it loses focus
+app.addEventListener('focusout',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('seatin')){const n=t.dataset.seat;setTimeout(()=>{if(document.activeElement!==t)seatClose(n)},0)}});
 // her tracker says "lean bulk" everywhere: fix the visible text after each draw (text only, never attributes)
 function lbFix(t){return t.replace(/(?<![Ll]ean[ -])\b([Bb])ulk(ing|s|ed)?\b/g,(m,b,x)=>(b==='B'?'Lean b':'lean b')+'ulk'+(x||''))}
 function lbWords(){if(!FEM||!app)return;const w=document.createTreeWalker(app,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))if(/ulk/.test(n.nodeValue)){const v=lbFix(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}}
