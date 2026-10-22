@@ -270,7 +270,7 @@ const SETN={};for(const d in P)for(const x of P[d].x)if(x.k){SETN[x.n]=x.k;if(Ar
 const T=new Date().getDay();
 let day=ORDER.includes(T)?T:ORDER.find(d=>d>T);
 if(day===undefined)day=4;
-let gymLast=day,hlLast=null;const inGym=d=>ORDER.includes(d)||d==='g',inHl=d=>d==='sl'||d==='st'||!!(window.__SA&&(d==='bm'||d==='hk'||d==='w'||(FEM&&d==='cy')));
+let gymLast=day,hlLast=null;const inGym=d=>ORDER.includes(d)||d==='g',inHl=d=>d==='sl'||d==='st'||!!(window.__SA&&(d==='bm'||d==='hk'||d==='w'||d==='f'||(FEM&&d==='cy')));
 let S={draft:{},log:[]};
 const LK='gym-tracker-v1',app=document.getElementById('app'),msg=document.getElementById('msg');
 const E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1704,11 +1704,12 @@ if(Object.keys(o).length>1)out.push(o)}
 if(!out.length)return{err:skipT?'Only today’s food and steps were found. They come in after 8 pm, or with tomorrow morning’s paste.':'Nothing from the last 3 days to add yet.'};
 return{days:out,seen,skipT,badDate}}
 // ===== Standalone: the Sync page (Apple Health, twice a day) =====
-const hkMorn=()=>!!(S.hkt&&S.hkt.d===today()&&S.hkt.m);
-const hkEve=()=>!!(S.hkt&&S.hkt.d===today()&&S.hkt.e);
+const hkT=k=>S.hkt&&S.hkt.d===today()?S.hkt[k]||null:null;
+const hkMorn=()=>!!(hkT('m')||(wtList().some(x=>x.t===today())&&(hlList().find(x=>x.t===today())||{}).sl!=null));
+const hkEve=()=>!!(hkT('e')||(fdList().some(x=>x.t===today()&&x.hk)&&(hlList().find(x=>x.t===today())||{}).st!=null));
 const hkTm=t=>{const[h,m]=String(t).split(':').map(Number),d=new Date();d.setHours(h,m,0,0);return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};
-function syncHtml(){const late=new Date().getHours()>=20,row=(lab,sub,ok,tm,wait)=>`<div class="syr"><div><b>${lab}</b><small>${sub}</small></div><span class="${ok?'ok':''}">${ok?'✓ '+E(hkTm(tm)):wait?'After 8 pm':'Not yet'}</span></div>`;
-return `<h1>Sync</h1><p class="sub">Brings your weigh-in, sleep, heart rate, steps and food in from Apple Health. Sync each morning, and again after 8 pm if you want today’s food and steps the same day.</p>${hkPend?hkConfirm():''}<section class="ex" id="hksync"><h2>Today</h2>${row('Morning','Weigh-in, last night’s sleep and heart rate, yesterday’s food and steps',hkMorn(),S.hkt&&S.hkt.m,false)}${row('Evening','Today’s food and steps',hkEve(),S.hkt&&S.hkt.e,!late)}</section>${hkCard()}`}
+function syncHtml(){const late=new Date().getHours()>=20,row=(lab,sub,ok,tm,wait)=>`<div class="syr"><div><b>${lab}</b><small>${sub}</small></div><span class="${ok?'ok':''}">${ok?'✓ '+(tm?E(hkTm(tm)):'Done'):wait?'After 8 pm':'Not yet'}</span></div>`;
+return `<h1>Sync</h1><p class="sub">Brings your weigh-in, sleep, heart rate, steps and food in from Apple Health. Sync each morning, and again after 8 pm if you want today’s food and steps the same day.</p>${hkPend?hkConfirm():''}<section class="ex" id="hksync"><h2>Today</h2>${row('Morning','Weigh-in, last night’s sleep and heart rate, yesterday’s food and steps',hkMorn(),hkT('m'),false)}${row('Evening','Today’s food and steps',hkEve(),hkT('e'),!late)}</section>${hkCard()}`}
 // one line on Weight, Food, Sleep and Steps until today's sync is done
 const syncNote=()=>hkMorn()?'':`<p class="hint" style="margin:-.2rem 0 .8rem">Not synced with Apple Health yet today. <button class="edit" data-a="tab" data-d="hk" style="padding:0">Sync now</button></p>`;
 function hkTake(t){const r=hkParse(t);hkBox=false;if(r.err){hkErr=r.err;hkPend=null;render();return}hkPend=r;hkErr='';
@@ -1865,7 +1866,7 @@ if(needSetup()){app.innerHTML=initDone?setupHtml():'';return}
 if(window.__SA)for(const k in S.draft){const x=S.draft[k];if(x&&typeof x.ed==='string'&&x.ed!==today()){delete S.draft[k];save()}}
 GEN++;autoCheck();
 const p=P[day];
-const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&wkKey(e.t)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}${st?`<i class="dot ${st}" aria-hidden="true"></i>`:''}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','f','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
+const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&wkKey(e.t)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}${st?`<i class="dot ${st}" aria-hidden="true"></i>`:''}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
 if(day==='w'){app.innerHTML=`${tabs}${todayBar()}${weightHtml()}`;return}
 if(day==='p'){app.innerHTML=`${tabs}${todayBar()}${progressHtml()}`;return}
 if(day==='g'){app.innerHTML=`${tabs}${todayBar()}${gymProgHtml()}`;return}
