@@ -158,6 +158,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .rv li span{display:block;color:var(--mute);font-size:.9rem}
 .rv li span.rva{color:var(--ink)}
 .fin:disabled{opacity:.45;cursor:default}
+.fin2{display:block;box-sizing:border-box;text-align:center;text-decoration:none;background:none;color:var(--acc);border:2px solid var(--acc);padding:calc(.9rem - 2px)}
 .rng{width:100%;accent-color:var(--acc);margin:.4rem 0 0;height:1.6rem}
 .rngl{display:flex;justify-content:space-between;color:var(--mute);font-size:.75rem}
 .hlr{display:grid;grid-template-columns:minmax(0,1.6fr) 1fr .9fr .9fr;gap:.4rem;align-items:center;font-size:.9rem;padding:.25rem 0;border-top:1px solid var(--line)}
@@ -1638,8 +1639,10 @@ if((m=x.match(/(\d{1,2}) ([A-Za-z]{3})[a-z]*\.? (\d{4})(?:,? (?:at )?(\d{1,2}):(
 return null}
 const hkDay=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function hkParse(txt){
-const lines=String(txt||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-if(!lines.length||!/^GYM-HEALTH/i.test(lines[0]))return{err:'That isn’t from the Gym Health shortcut. Run the shortcut, then tap Paste from Health again.'};
+let lines=String(txt||'').replace(/\uFEFF/g,'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+const h0=lines.findIndex(x=>/^["'“”]?GYM-HEALTH/i.test(x));
+if(h0<0||h0>2){const q=lines.join(' ').replace(/\s+/g,' ');return{err:q?`Your clipboard has something else on it (“${q.length>40?q.slice(0,40)+'…':q}”). Tap Run Gym Health, come back here when it finishes, then tap Paste from Health.`:'Your clipboard is empty. Tap Run Gym Health, come back here when it finishes, then tap Paste from Health.'}}
+lines=lines.slice(h0);
 const rows=[],seen={};let badDate=0,unk=0;
 for(const l of lines.slice(1)){const a=l.split('|').map(x=>x.trim());if(a.length<4){unk++;continue}
 let k=HKC[a[0]]?a[0]:null;if(!k)for(const[re,kk]of HK_KIND)if(re.test(a[0])){k=kk;break}
@@ -1686,7 +1689,7 @@ async function hkPaste(){hkErr='';try{if(!navigator.clipboard||!navigator.clipbo
 const hkSl=m=>Math.floor(m/60)+'h '+String(Math.round(m%60)).padStart(2,'0')+'m';
 function hkCard(w){
 if(w&&!hkBox&&!hkErr){const td=today(),h=hlList().find(x=>x.t===td);if(wtList().some(x=>x.t===td)&&h&&h.sl!=null)return `<p class="hint" style="margin:-.3rem 0 .7rem">This morning’s weigh-in and sleep are in from Apple Health. <button class="edit" data-a="hkpaste" style="padding:0">Paste again</button></p>`}
-return `<section class="ex" id="hk"><h2>Add from Apple Health</h2><p class="hint">After your Gym Health shortcut runs, tap Paste from Health. It saves on its own unless something needs a look. In the morning it brings in your weigh-in, last night’s sleep and lowest heart rate, and yesterday’s food and steps. After 8 pm, today’s food and steps come in too.</p><button class="fin" data-a="hkpaste" style="margin:.4rem 0 .2rem">Paste from Health</button>${hkBox?`<textarea class="sel hkta" id="hkta" rows="2" placeholder="Long-press here and tap Paste" aria-label="Paste the shortcut’s text here"></textarea><p class="hint">Your phone didn’t let the app read the clipboard directly. Long-press the box and tap Paste.</p>`:''}${hkErr?`<p class="hint dn">${E(hkErr)}</p>`:''}<details class="mf"><summary>Set up the Gym Health shortcut (once)</summary><ol class="tl hint hkg">
+return `<section class="ex" id="hk"><h2>Add from Apple Health</h2><p class="hint">Tap <b>Run Gym Health</b>, come back here when it finishes, then tap <b>Paste from Health</b>. It saves on its own unless something needs a look. In the morning it brings in your weigh-in, last night’s sleep and lowest heart rate, and yesterday’s food and steps. After 8 pm, today’s food and steps come in too.</p><a class="fin fin2" href="shortcuts://run-shortcut?name=Gym%20Health" style="margin:.4rem 0 .5rem">Run Gym Health</a><button class="fin" data-a="hkpaste" style="margin:0 0 .2rem">Paste from Health</button>${hkBox?`<textarea class="sel hkta" id="hkta" rows="2" placeholder="Long-press here and tap Paste" aria-label="Paste the shortcut’s text here"></textarea><p class="hint">Your phone didn’t let the app read the clipboard directly. Long-press the box and tap Paste.</p>`:''}${hkErr?`<p class="hint dn">${E(hkErr)}</p>`:''}<details class="mf"><summary>Set up the Gym Health shortcut (once)</summary><ol class="tl hint hkg">
 <li>Open the Shortcuts app, tap <b>+</b> and name the new shortcut <b>Gym Health</b>.</li>
 <li>Add the action <b>Find Health Samples</b>. Set <b>Type</b> to <b>Steps</b>. Tap <b>Add Filter</b> for <b>Start Date is in the last 3 days</b>, and again for <b>Source is Garmin Connect</b> (choose <b>Source</b> from the list, not Name or Value, then pick the app from the list; Garmin may be listed as <b>Connect</b>). Set <b>Group By</b> to <b>Day</b>.</li>
 <li>Add the action <b>Add to Variable</b> and name the variable <b>Samples</b>.</li>
@@ -1695,7 +1698,7 @@ return `<section class="ex" id="hk"><h2>Add from Apple Health</h2><p class="hint
 <li>Inside the repeat, add a <b>Text</b> action. Fill it with five details of <b>Repeat Item</b>, with a <b>|</b> between each: <b>Type</b> | <b>Start Date</b> | <b>End Date</b> | <b>Value</b> | <b>Unit</b>. Tap each date and set its format to <b>Custom</b>: <b>yyyy-MM-dd HH:mm</b>.</li>
 <li>Still inside the repeat, add <b>Add to Variable</b> and name it <b>Lines</b>.</li>
 <li>Below <b>End Repeat</b>, add a <b>Text</b> action: first line <b>GYM-HEALTH</b>, second line the <b>Lines</b> variable. Then add <b>Copy to Clipboard</b>.</li>
-<li>In Settings › Apps › Shortcuts › Advanced, turn on <b>Allow Sharing Large Amounts of Data</b> (a night of sleep is a few hundred pieces). Then run it once and allow Shortcuts to read each Health type when your iPhone asks.</li></ol><p class="hint">Make it run on its own: in Shortcuts, open <b>Automation</b>, add <b>Time of Day</b> (say 8 am), choose <b>Run Immediately</b> and pick Gym Health. Add a second one for the evening (after 8 pm). Then each day just open this app and tap Paste from Health. You can also run it any time from its Home Screen icon or Siri.</p></details></section>`}
+<li>In Settings › Apps › Shortcuts › Advanced, turn on <b>Allow Sharing Large Amounts of Data</b> (a night of sleep is a few hundred pieces). Then run it once and allow Shortcuts to read each Health type when your iPhone asks.</li></ol><p class="hint">The <b>Run Gym Health</b> button opens the shortcut by its name, so keep it named exactly <b>Gym Health</b>. Timed automations aren’t reliable for this: your iPhone keeps Health data locked while the phone is locked, so a run at 8 am on a locked phone copies nothing, and anything you copy afterwards replaces it.</p></details></section>`}
 function hkConfirm(){
 const p=hkPend,W=new Map(wtList().map(x=>[x.t,x.w])),H=new Map(hlList().map(x=>[x.t,x])),F=new Map(fdList().map(x=>[x.t,x])),wl=wtList();
 const rows=p.days.map(d=>{const it=[],ch=[],wn=[];
@@ -1794,14 +1797,13 @@ app.addEventListener('keydown',e=>{const t=e.target;if(t&&t.classList&&t.classLi
 app.addEventListener('pointerdown',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-seatbox]');seatKeep=b?b.dataset.seatbox:null},true);
 app.addEventListener('focusout',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('seatin')){const n=t.dataset.seat;setTimeout(()=>{if(seatKeep===n){seatKeep=null;return}if(document.activeElement!==t)seatClose(n)},0)}});
 // ===== Standalone: bowel movements (last one and how long ago) =====
-let bmEarly=false;
+let bmEarly=false,bmUndo=null;
 const bmNow=()=>{const d=new Date();return hkDay(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
 const bmDate=t=>{const[a,b]=String(t).split('T'),[y,m,d]=a.split('-').map(Number),[h,mi]=(b||'0:0').split(':').map(Number);return new Date(y,m-1,d,h,mi)};
-function bmWhen(t){const d=bmDate(t),td=today(),dy=t.slice(0,10),tm=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});return (dy===td?'Today':dy===addD(td,-1)?'Yesterday':wtLong(dy))+', '+tm}
+function bmWhen(t){const d=bmDate(t),tm=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});return wtLong(t.slice(0,10))+' at '+tm}
 function bmAgo(t){const m=Math.max(0,Math.round((Date.now()-bmDate(t))/6e4));if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<36)return h+(h===1?' hour':' hours')+' ago';const d=Math.round(m/1440);return d+' days ago'}
-function bmSec(){if(!window.__SA)return '';const L=(S.bm||[]).slice().sort().reverse(),last=L[0];
-const rec=L.slice(0,5).map(t=>{const k='bm'+t;return `<p><b>${E(bmWhen(t))}</b><span></span><button class="edit${armed===k?' warn':''}" data-a="bmrm" data-t="${E(t)}">${armed===k?'Tap again':'Remove'}</button></p>`}).join('');
-return `<section class="ex" id="bm"><h2>Bowel movements</h2><p class="hint">${last?`Last: <b>${E(bmWhen(last))}</b> (${E(bmAgo(last))})`:'None logged yet.'}</p><div class="addrow"><button class="add" data-a="bmnow">Log one now</button><button class="add" data-a="bmearly">${bmEarly?'Cancel':'Earlier'}</button></div>${bmEarly?`<div class="addrow" style="align-items:center;gap:.6rem"><input type="datetime-local" class="sel" id="bmt" value="${bmNow()}" max="${bmNow()}" aria-label="When"><button class="add" data-a="bmadd">Add</button></div>`:''}${L.length>1?`<p class="hint" style="margin-top:.5rem"><b>Recent</b></p><div class="hist">${rec}</div>`:''}</section>`}
+function bmSec(){if(!window.__SA)return '';const last=(S.bm||[]).slice().sort().pop();
+return `<section class="ex" id="bm"><h2>Bowel movements</h2><p class="hint">${last?`Last: <b>${E(bmWhen(last))}</b> (${E(bmAgo(last))})${bmUndo?` <button class="edit" data-a="bmundo" style="padding:0">Undo</button>`:''}`:'None logged yet.'}</p><div class="addrow"><button class="add" data-a="bmnow">Log one now</button><button class="add" data-a="bmearly">${bmEarly?'Cancel':'Earlier'}</button></div>${bmEarly?`<div class="addrow" style="align-items:center;gap:.6rem"><input type="datetime-local" class="sel" id="bmt" value="${bmNow()}" max="${bmNow()}" aria-label="When"><button class="add" data-a="bmadd">Save</button></div>`:''}</section>`}
 // her tracker says "lean bulk" everywhere: fix the visible text after each draw (text only, never attributes)
 function lbFix(t){return t.replace(/(?<![Ll]ean[ -])\b([Bb])ulk(ing|s|ed)?\b/g,(m,b,x)=>(b==='B'?'Lean b':'lean b')+'ulk'+(x||''))}
 function lbWords(){if(!FEM||!app)return;const w=document.createTreeWalker(app,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))if(/ulk/.test(n.nodeValue)){const v=lbFix(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}}
@@ -1954,6 +1956,7 @@ const b=e.target.closest('[data-a]');if(!b)return;
 const a=b.dataset.a;
 if(a!=='rm'&&a!=='sdel'&&a!=='wtdel'&&a!=='fddel'&&a!=='hldel'&&a!=='wsdel'&&a!=='ph'&&a!=='del'&&a!=='cyclr'&&a!=='cyrm'&&a!=='pgrm'&&a!=='pgreset'&&a!=='bmrm')armed=null;
 if(a!=='seated'&&a!=='seatstep'&&a!=='seatdone')seatEd=null;
+if(a!=='bmundo'&&a!=='bmnow'&&a!=='bmadd')bmUndo=null;
 if(a!=='wt')wtArm=null;
 if(a!=='ws')wsArm=null;
 if(a!=='fin'){prAlert=[];upAlert=[];dnAlert=[];wkAlert=''}
@@ -1996,9 +1999,10 @@ if(a==='pgreset'){if(armed!=='pgreset'){armed='pgreset';render();return}armed=nu
 if(a==='seated'){seatEd=b.dataset.n;render();const i=[...app.querySelectorAll('input[data-seat]')].find(x=>x.dataset.seat===b.dataset.n);if(i){i.focus();const l=i.value.length;try{i.setSelectionRange(l,l)}catch(e){}}return}
 if(a==='seatstep'){const n=b.dataset.n,v=+b.dataset.v;const o=Object.assign({},S.steps||{});if(v>0)o[n]=v;else delete o[n];S.steps=o;save();seatEd=n;const bx=[...app.querySelectorAll('[data-seatbox]')].find(x=>x.dataset.seatbox===n);if(bx){const w=document.createElement('div');w.innerHTML=seatLine(n);bx.replaceWith(...w.childNodes)}else render();updLive(n);return}
 if(a==='seatdone'){seatKeep=null;seatClose(b.dataset.n);render();return}
-if(a==='bmnow'){S.bm=(S.bm||[]).concat(bmNow()).sort().slice(-200);bmEarly=false;save();render();say('Logged');return}
+if(a==='bmnow'){bmUndo=(S.bm||[]).slice();S.bm=[bmNow()];bmEarly=false;save();render();say('Logged');return}
+if(a==='bmundo'){if(bmUndo){S.bm=bmUndo;bmUndo=null;save()}render();say('Put back');return}
 if(a==='bmearly'){bmEarly=!bmEarly;render();return}
-if(a==='bmadd'){const i=document.getElementById('bmt'),v=i&&i.value||'';if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v)){say('Pick a day and time');return}const t=v.slice(0,16);if(t>bmNow()){say('Pick a time up to now');return}if(t<addD(today(),-30)){say('Pick a time in the last 30 days');return}S.bm=(S.bm||[]).filter(x=>x!==t).concat(t).sort().slice(-200);bmEarly=false;save();render();say('Logged '+bmWhen(t));return}
+if(a==='bmadd'){const i=document.getElementById('bmt'),v=i&&i.value||'';if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v)){say('Pick a day and time');return}const t=v.slice(0,16);if(t>bmNow()){say('Pick a time up to now');return}if(t<addD(today(),-30)){say('Pick a time in the last 30 days');return}bmUndo=(S.bm||[]).slice();S.bm=[t];bmEarly=false;save();render();say('Logged '+bmWhen(t));return}
 if(a==='bmrm'){const t=b.dataset.t,k='bm'+t;if(armed!==k){armed=k;render();return}armed=null;S.bm=(S.bm||[]).filter(x=>x!==t);save();render();say('Removed');return}
 if(a==='hkpaste'){hkPaste();return}
 if(a==='hkok'){hkSave();return}
