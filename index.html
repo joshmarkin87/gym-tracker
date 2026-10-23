@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Gym tracker</title>
-<style>@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/bc-600.woff2) format("woff2")}@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/bc-700.woff2) format("woff2")}</style><link rel="manifest" href="manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Gym"><link rel="apple-touch-icon" href="icons/icon-180.png"><link rel="icon" href="icons/icon-192.png"><meta name="theme-color" content="#f3f6f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0f1519" media="(prefers-color-scheme: dark)"><style>body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:20;pointer-events:none}</style><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<style>@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:600;font-display:swap;src:url(fonts/bc-600.woff2) format("woff2")}@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/bc-700.woff2) format("woff2")}</style><link rel="manifest" href="manifest.webmanifest"><meta name="robots" content="noindex, nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Gym"><link rel="apple-touch-icon" href="icons/icon-180.png"><link rel="icon" href="icons/icon-192.png"><meta name="theme-color" content="#f3f6f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#0f1519" media="(prefers-color-scheme: dark)"><style>body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:20;pointer-events:none}</style><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <style>
 :root{--bg:#f3f6f7;--card:#fff;--ink:#14202b;--mute:#62727c;--line:#d9e1e5;--acc:#0e7482;--accink:#fff;color-scheme:light;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -200,7 +200,8 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .msb{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin:.1rem 0 .7rem;padding:.6rem .8rem;border:1px solid var(--acc);border-radius:.8rem;background:var(--card)}.msb .edit{padding:0;white-space:nowrap}
 .tabs .tgear{position:relative}.tabs .tgear.up::after{content:'';position:absolute;top:.35rem;right:.15rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--warn)}
 a.fin{display:block;box-sizing:border-box;text-align:center;text-decoration:none}
-.chips.gfm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:.8rem 0 .15rem}.gfm .chip{min-width:0;padding-left:.3rem;padding-right:.3rem;white-space:nowrap;text-align:center}@media (max-width:350px){.gfm .chip{font-size:.82rem}}
+.chips.gfm{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin:.8rem 0 .15rem}.gfm .chip{min-width:0;padding-left:.3rem;padding-right:.3rem;white-space:nowrap;text-align:center}@media (max-width:350px){.gfm .chip{font-size:.82rem}}
+.bkb{align-items:flex-start}.bkbb{display:flex;flex-direction:column;align-items:flex-end;gap:.2rem;flex:none}
 </style>
 </head>
 <body>
@@ -1014,7 +1015,16 @@ let msAll=false;
 // a milestone from the last 3 days, once
 function msBan(){if(!window.__SA||needSetup())return '';const seen=new Set(S.msx||[]),c=addD(today(),-3),n=msData().done.find(x=>x.t>=c&&!seen.has(x.id));if(!n)return '';
 return `<div class="msb" role="status"><span><b>Milestone:</b> ${E(n.l)}.</span><button class="edit" data-a="msok" data-id="${E(n.id)}">Nice</button></div>`}
-function todayBar(){return todayBar0()+msBan()}
+// ===== Standalone: backup reminder =====
+const bkCnt=()=>({s:(S.scans||[]).length,l:(S.labs||[]).length});
+function bkWhy(){if(!window.__SA||needSetup())return '';const td=today(),pr=S.prof||{};if(pr.bks&&pr.bks>td)return '';
+const d0=[wtList()[0],fdList()[0]].concat(S.log.map(e=>({t:e.t}))).filter(x=>x&&x.t).map(x=>x.t).sort()[0];if(!d0)return '';
+if(!S.bk)return d0<=addD(td,-7)?'You haven’t backed up yet, and everything lives only on this phone.':'';
+if(pr.bkc){const n=bkCnt();if(n.s>(pr.bkc.s||0))return 'You added a DEXA scan since your last backup.';if(n.l>(pr.bkc.l||0))return 'You added blood work since your last backup.'}
+const ago=Math.round((wtD(td)-wtD(S.bk))/864e5);return ago>=14?`Your last backup was ${dsh({t:S.bk})}, ${Math.floor(ago/7)} weeks ago.`:''}
+function bkBan(){if(day==='set')return '';const w=bkWhy();if(!w)return '';
+return `<div class="msb bkb" role="status"><span><b>Back up:</b> ${E(w)}</span><span class="bkbb"><button class="edit" data-a="bkgo"${bkBusy?' disabled':''}>Back up now</button><button class="edit" data-a="bkno">Not now</button></span></div>`}
+function todayBar(){return todayBar0()+msBan()+bkBan()}
 function todayBar0(){
 const td=today(),yd=addD(td,-1),hr=new Date().getHours(),wd=new Date(td+'T12:00:00').getDay(),H=new Map(hlList().map(x=>[x.t,x])),F=new Set(fdList().map(x=>x.t)),Wt=new Set(wtList().map(x=>x.t)),has=(t,k)=>{const x=H.get(t);return !!(x&&x[k]!=null)};
 const it=[{d:'w',l:'Weight',ok:Wt.has(td)}];if(FEM&&cyNat()){const c=cyAt(td);if(c&&c.ph==='per')it.push({d:window.__SA?'cy':'w',l:'Flow',ok:!!(cyDay(td)||{}).f,id:'cycle'})}if(wd===0)it.push({d:'w',l:'Waist',ok:wsList().some(x=>x.t===td),id:'waist'});it.push({d:'sl',l:'Sleep',ok:has(td,'sl')});
@@ -1039,14 +1049,18 @@ else if(p.k==='maint'&&Math.abs(pc)>=(FEM?.5:.75)){h='Still maintaining?';x=`You
 return h?`<section class="pr dn"><h2>${h}</h2><p>${E(x)} <button class="edit" data-a="phgo">Change phase</button></p></section>`:''}
 // ===== Standalone: goal progress =====
 // a third goal date, one chip per way of measuring pace
-const GFK=['2w','4w','st','tr','tw','dd'],GFL=[['2w','2 weeks'],['4w','4 weeks'],['st','Since start'],['tr','Trend'],['tw','This week'],['dd','Latest']];
-const gfM=()=>{const v=S.prof&&S.prof.gm;return GFK.includes(v)?v:'2w'};
+const GFK=['2w','st','tr','tw','dd','fm','sd','dx'],GFL0=[['2w','2 weeks'],['st','Since start'],['tr','Trend'],['tw','This week'],['dd','Latest'],['fm','Food'],['sd','Slowdown'],['dx','DEXA']];
+// the DEXA chip shows once there are two scans
+const GFL=()=>GFL0.filter(([k])=>k!=='dx'||scans().length>=2);
+const gfDt=ms=>new Date(ms).toLocaleDateString(undefined,{month:'short',year:'numeric'}),gfCal=c=>(Math.round(c/10)*10).toLocaleString();
+// least squares through weigh-ins: slope in lb a week, and where the line sits at the last one
+function gfLS(p,dy){const n=p.length,e=dy(p[n-1]),xs=p.map(x=>(dy(x)-e)/6048e5),mx=xs.reduce((a,b)=>a+b,0)/n,my=p.reduce((a,x)=>a+x.w,0)/n;let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-mx)*(p[i].w-my);sxx+=(x-mx)*(x-mx)});const sl=sxx>0?sxy/sxx:0;return{n,e,sl,my,end:my-sl*mx}}
+const gfM=()=>{const v=S.prof&&S.prof.gm;return GFL().some(([k])=>k===v)?v:'2w'};
 function gfFit(s,m){const{w,dy,ph}=s,td=wtD(today()),st=m==='st'?null:td-(m==='4w'?27:13)*864e5,p=w.filter(x=>(st==null?x.t>=ph.since:dy(x)>=st)&&dy(x)<=td);
 if(p.length<5||dy(p[p.length-1])-dy(p[0])<6*864e5)return{ok:false,n:p.length};
-const n=p.length,e=dy(p[n-1]),xs=p.map(x=>(dy(x)-e)/6048e5),mx=xs.reduce((a,b)=>a+b,0)/n,my=p.reduce((a,x)=>a+x.w,0)/n;let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-mx)*(p[i].w-my);sxx+=(x-mx)*(x-mx)});const sl=sxx>0?sxy/sxx:0;
-return{ok:true,n,from:p[0].t,e,sl,end:my-sl*mx}}
+return Object.assign({ok:true,from:p[0].t},gfLS(p,dy))}
 function gfCalc(s,m){const{w,dy,L,ph}=s,nm=phN(ph.k),dl=dy(L);
-if(m==='2w'||m==='4w'||m==='st'){const f=gfFit(s,m),lab={'2w':'Last 2 weeks','4w':'Last 4 weeks',st:'Since your '+nm+' started'}[m];
+if(m==='2w'||m==='st'){const f=gfFit(s,m),lab={'2w':'Last 2 weeks',st:'Since your '+nm+' started'}[m];
 if(!f.ok)return{lab,need:`Needs 5 weigh-ins spread over at least a week ${m==='st'?'since your '+nm+' started':'in the '+lab.toLowerCase()} (${f.n} so far).`};
 return{lab,r:-f.sl,now:f.end,e:f.e,f0:wtD(f.from),how:`From a straight line through your ${f.n} weigh-ins ${m==='st'?'since your '+nm+' started':'since '+E(dsh({t:f.from}))}, so it moves with every weigh-in${m==='2w'?' and swings more than At your pace':''}.`}}
 if(m==='tr'){const lab='Trend weight',k7=dl-7*864e5;let T=w[0].w,t7=dy(w[0])<=k7?{d:dy(w[0]),T}:null;for(let i=1;i<w.length;i++){T+=.1*(w[i].w-T);if(dy(w[i])<=k7)t7={d:dy(w[i]),T:T}}
@@ -1056,15 +1070,44 @@ if(m==='tw'){const lab='This week vs last week',a0=dy(s.st),ic=Math.floor(Math.r
 if(!p||p.n<3)return{lab,need:`Needs 3 weigh-ins last week (${d1} to ${d7}).`};
 if(!c)return{lab,need:`Needs a weigh-in this week. Your weeks start on ${d1}.`};
 return{lab,r:(p.a-c.a)/((c.m-p.m)/6048e5),now:c.a,e:c.m,f0:wtD(p.s),how:`This week so far (since ${d1}) averages ${f1(c.a)} lb over ${c.n} weigh-in${c.n>1?'s':''}, vs ${f1(p.a)} lb last week (${d1} to ${d7}). It settles as the week fills in.`}}
+if(m==='fm'){const lab='Food & real maintenance',td=today(),F=fdList().filter(x=>x.c!=null&&x.c>=800&&x.t>=addD(td,-27)&&x.t<=td);
+if(F.length<14)return{lab,wait:'After more logged days',need:`Needs 14 days of logged food in the last 4 weeks (${F.length} so far). A day under 800 calories counts as not fully logged.`};
+const f0=F[0].t,p=w.filter(x=>x.t>=f0&&x.t<=F[F.length-1].t);
+if(p.length<5||dy(p[p.length-1])-dy(p[0])<10*864e5)return{lab,need:'Needs weigh-ins spread across your logged food days.'};
+const q=gfLS(p,dy),C=F.reduce((a,x)=>a+x.c,0)/F.length,M=C-q.sl*500,I7=F.slice(-7),I=I7.reduce((a,x)=>a+x.c,0)/I7.length,r=(M-I)*7/3500,ws=I*q.my/M,gw=s.gw;
+return{lab,r,now:q.end,e:q.e,f0:wtD(f0),v:r<.05?'Not losing at this intake':null,how:`Your real maintenance is about ${gfCal(M)} calories a day, worked out from ${F.length} logged days and your weigh-ins since ${E(dsh({t:f0}))}. Your last ${I7.length} logged days averaged ${gfCal(I)}${r>=.05?`, so you’d lose ${f1(r)} lb a week. Your maintenance drops as you get lighter, so at that intake you’d eventually level off around ${Math.round(ws)} lb${ws>=gw?`, above your ${Math.round(gw)} lb goal, so you’d need to eat a little less to get there`:''}.`:', at or above what you burn, so you wouldn’t be losing.'}`}}
+if(m==='sd'){const lab='Slowing as you get lighter',f=gfFit(s,'4w');
+if(!f.ok)return{lab,need:`Needs 5 weigh-ins spread over at least a week in the last 4 weeks (${f.n} so far).`};
+const r=-f.sl,W0=f.end,pc=r/W0,gw=s.gw;if(r<.05)return{lab,r,how:'Your last 4 weeks don’t show a loss yet, so there’s nothing to project.'};
+const n=W0>gw?Math.log(W0/gw)/-Math.log(1-pc):0;
+return{lab,r,now:W0,e:f.e,f0:wtD(f.from),nw:1,v:n>260?'More than 5 years':gfDt(f.e+n*6048e5),how:`Starts from your last 4 weeks’ pace, ${f1(r)} lb a week (${(pc*100).toFixed(2)}% of your weight), and keeps losing that same percent each week, so the pounds come off a little slower as you get lighter: about ${f1(pc*gw)} lb a week near your goal.`}}
+if(m==='dx'){const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2],lab='Fat loss between scans',bf=ph.g&&ph.g.bf||10;
+if(!a||!b)return{lab,need:'Needs a second DEXA scan.'};
+const wk=(wtD(b.t)-wtD(a.t))/6048e5;if(wk<4)return{lab,wait:'After your next scan',need:`Your last two scans are only ${Math.round(wk*7)} days apart. They need to be at least 4 weeks apart to show a real change in fat.`};
+const df=a.fm-b.fm,dl=b.lm-a.lm,rf=df/wk,Ft=b.lm*bf/(100-bf),left=b.fm-Ft,tag=`Between your ${E(dsh(a))} and ${E(dsh(b))} scans you ${df>=0?'lost':'gained'} ${f1(Math.abs(df))} lb of fat and ${dl<0?'lost':'gained'} ${f1(Math.abs(dl))} lb of lean mass.`;
+if(rf<.05)return{lab,r:rf,v:'Not losing fat yet',how:tag+' It only changes when you add a new scan.'};
+const n=Math.max(0,left/rf);
+return{lab,r:rf,u:' lb of fat a week',v:left<=0?'At your goal':n>260?'More than 5 years':gfDt(wtD(b.t)+n*6048e5),how:tag+` At that pace you’d go from ${f1(b.fm)} to ${f1(Ft)} lb of fat, which is ${bf}% body fat at your lean mass. It only changes when you add a new scan.`}}
 const lab='Latest vs a week before',tg=dl-7*864e5;let b=null;for(const x of w){const g=Math.abs(dy(x)-tg);if(g<=2*864e5&&(!b||g<Math.abs(dy(b)-tg)))b=x}
 if(!b)return{lab,need:'Needs a weigh-in from about a week before your latest one.'};
 return{lab,r:(b.w-L.w)/((dl-dy(b))/6048e5),now:L.w,e:dl,f0:dy(b),how:`${E(dsh(L))} (${f1(L.w)} lb) vs ${E(dsh(b))} (${f1(b.w)} lb). Day-to-day changes are mostly water, so this one jumps around the most.`}}
 function gfRow(s){const m=gfM(),c=gfCalc(s,m),{gw,ph}=s,nm=phN(ph.k),td=wtD(today()),c0=wtD(ph.since);
 const ok=c.r!=null&&isFinite(c.r),los=ok&&c.r>=.05;
-let v;if(!ok)v='After a few more weigh-ins';else if(!los)v='Not losing yet';else{const k=Math.max(0,(c.now-gw)/c.r);v=k>260?'More than 5 years':new Date(c.e+k*6048e5).toLocaleDateString(undefined,{month:'short',year:'numeric'})}
+let v;if(!ok)v=c.wait||'After a few more weigh-ins';else if(c.v)v=c.v;else if(!los)v='Not losing yet';else{const k=Math.max(0,(c.now-gw)/c.r);v=k>260?'More than 5 years':gfDt(c.e+k*6048e5)}
 const early=los&&c.f0<c0+14*864e5&&td<c0+42*864e5&&(s.pace==null||c.r>-s.pace);
 const hint=ok?c.how+(early?` Early in a ${nm}, water weight comes off fast, so this looks faster than it will stay.`:''):c.need;
-return `<div class="chips gfm">${GFL.map(([k,l])=>`<button class="chip" aria-pressed="${m===k}" data-a="gfm" data-v="${k}">${l}</button>`).join('')}</div><div class="gdt"><div><span>${E(c.lab)}${los?' ('+f1(c.r)+' lb a week)':''}</span><b>${E(v)}</b></div></div><p class="hint">${hint}</p>`}
+const L=GFL(),sp=i=>L.length>7?(i<6?2:3):(i<3?2:3);
+return `<div class="chips gfm">${L.map(([k,l],i)=>`<button class="chip" style="grid-column:span ${sp(i)}" aria-pressed="${m===k}" data-a="gfm" data-v="${k}">${l}</button>`).join('')}</div><div class="gdt"><div><span>${E(c.lab)}${los?' ('+f1(c.r)+(c.u||' lb a week')+(c.nw?' now':'')+')':''}</span><b>${E(v)}</b></div></div><p class="hint">${hint}</p>`}
+// lean bulk / bulk: when you'd reach your body-fat stop, from the last two DEXA scans
+function bkDx(ph){const cap=ph.g&&ph.g.cap;if(!cap)return '';const nm=phN(ph.k),sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2],end=addD(ph.since,(ph.g.wk||0)*7);
+const wk=a&&b?(wtD(b.t)-wtD(a.t))/6048e5:0;
+if(!a||!(b.t>ph.since)||a.t<addD(ph.since,-28)||wk<4)return `<p class="hint">Two DEXA scans, one near the start of your ${nm} and one at least 4 weeks later, will show when you’d reach your ${cap}% stop at your pace.</p>`;
+const bf=x=>x.fm/(x.fm+x.lm)*100,df=b.fm-a.fm,dl=b.lm-a.lm,tot=df+dl,c=cap/100,gf=df/wk,gl=dl/wk,num=c*(b.fm+b.lm)-b.fm,den=gf-c*(gf+gl);
+const pw=(d,w)=>`${d>=0?'gained':'lost'} ${f1(Math.abs(d))} lb${w?' '+w:''}`;
+let v,tail;if(bf(b)>=cap){v='Already there';tail=`Your latest scan is at ${f1(bf(b))}% body fat, at or over your ${cap}% stop.`}
+else if(!(den>0)){v='Not rising';tail=`At this pace your body fat isn’t rising, so you wouldn’t reach ${cap}%.`}
+else{const t=num/den,ms=wtD(b.t)+t*6048e5;v=t>260?'More than 5 years':gfDt(ms);tail=ph.g.wk?`At that pace you’d reach your ${cap}% stop ${ms<wtD(end)?`<b>before</b> your ${ph.g.wk} weeks are up`:`after your ${ph.g.wk} weeks are up`}.`:''}
+return `<div class="gdt"><div><span>Reaches ${cap}% body fat</span><b>${E(v)}</b></div></div><p class="hint">Between your ${E(dsh(a))} and ${E(dsh(b))} scans you ${pw(tot)}${tot>0&&dl>0&&df>=0?`: ${f1(dl)} lb lean and ${f1(df)} lb fat (${Math.round(dl/tot*100)}% lean)`:`, with lean mass ${dl>=0?'up':'down'} ${f1(Math.abs(dl))} lb and fat ${df>=0?'up':'down'} ${f1(Math.abs(df))} lb`}. Body fat went from ${f1(bf(a))}% to ${f1(bf(b))}%. ${tail}</p>`}
 function goalCard(){if(!window.__SA)return '';const s=wtStats();if(!s)return '';const{L,ps,ph,gw,proj,projT,pace}=s,bar=pc=>`<div class="pb gpb" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pc)}"><i style="width:${Math.max(0,Math.min(100,pc)).toFixed(1)}%"></i></div>`,yd=t=>{const d=new Date(t+'T12:00:00');return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})};
 if(ph.k==='cut'){if(!ps||!(gw>0)||!(ps.w>gw))return '';const tot=ps.w-gw,dn=ps.w-L.w,pc=Math.max(0,Math.min(100,dn/tot*100)),left=Math.max(0,L.w-gw);
 if(left<=0)return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Goal reached:</b> ${f1(L.w)} lb, at or under ${Math.round(gw)} lb (${ph.g.bf}% body fat at your lean mass).</p>${bar(100)}<p class="hint">A DEXA scan confirms where your body fat landed. Then pick what’s next under Plan.</p></section>`;
@@ -1072,7 +1115,7 @@ const yp=pace!=null&&pace<0?(proj||'More than 5 years'):pace!=null?'Not losing y
 const rows=`<div class="gdt"><div><span>Planned (${ph.r} lb a week)</span><b>${E(projT||'-')}</b></div><div><span>At your pace${pace!=null&&pace<0?' ('+f1(-pace)+' lb a week)':''}</span><b>${E(yp)}</b></div></div>`;
 return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>${Math.round(pc)}%</b> of the way to ${Math.round(gw)} lb (${ph.g.bf}% body fat)</p>${bar(pc)}<p class="hint">${dn>=0?'Down '+f1(dn)+' lb':'Up '+f1(-dn)+' lb'} from ${f1(ps.w)} lb on ${E(dsh(ps))}, ${f1(left)} lb to go.</p>${rows}<p class="hint">Planned and At your pace come from your weekly average weight, so they move as each week’s weigh-ins come in.</p>${gfRow(s)}</section>`}
 if((ph.k==='recomp'||ph.k==='bulk')&&ph.g&&ph.g.wk){const wk=ph.g.wk,el=Math.max(0,Math.round((wtD(today())-wtD(ph.since))/864e5)),n=Math.min(wk,Math.floor(el/7)+1),pc=Math.min(100,el/(wk*7)*100),end=addD(ph.since,wk*7),nm=phN(ph.k);
-return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Week ${n} of ${wk}</b> of your ${nm}</p>${bar(pc)}<p class="hint">${el>=wk*7?`Your ${wk} weeks are up. `:`Ends around ${E(yd(end))}. `}${ph.k==='recomp'?'A recomp is judged by your lifts, your waist and your next DEXA, not the scale.':`Judged by a slow, steady gain${ph.g.cap?' and staying under '+ph.g.cap+'% body fat':''}.`}</p></section>`}
+return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Week ${n} of ${wk}</b> of your ${nm}</p>${bar(pc)}<p class="hint">${el>=wk*7?`Your ${wk} weeks are up. `:`Ends around ${E(yd(end))}. `}${ph.k==='recomp'?'A recomp is judged by your lifts, your waist and your next DEXA, not the scale.':`Judged by a slow, steady gain${ph.g.cap?' and staying under '+ph.g.cap+'% body fat':''}.`}</p>${ph.k==='bulk'?bkDx(ph):''}</section>`}
 return ''}
 function weightHtml(){return '<h1>Weight</h1><p class="sub">'+(window.__SA?'Weigh in every morning, workout day or not. Your scale’s reading comes in with the morning sync.':'Weigh in every morning, workout day or not.')+'</p>'+phaseWarn()+phaseLine()+ordersLine()+(window.__SA?syncNote()+goalCard():'')+(window.__SA?'':wtBox())+(window.__SA?cyWt():cySec())+wsBox()+wtSec()+wsSec()+wtDaily()}
 function wtStats(){return memo('ws',[S.wt,(S.wt||[]).length,S.phases,(S.phases||[]).length,S.scans,(S.scans||[]).length,S.log.length,today()],wtStats0)}
@@ -1640,7 +1683,7 @@ const d=await dlP;if(!d){say('Backup isn’t available in this view. Ask in a Cl
 const out={app:'gym-tracker',kind:'backup',exported:new Date().toISOString(),data:JSON.parse(J(S))};
 const grab=async c=>{try{if(!c)return null;const q=await c.limit(1000).get();return q.docs.map(x=>x.data())}catch(e){return null}};
 const ss=await grab(coll),fd=await grab(fcol);if(ss)out.sessions=ss;if(fd)out.food_days=fd;
-await d.save({filename:'gym-tracker-backup-'+today()+'.json',data:JSON.stringify(out,null,1)});S.bk=today();save();say('Backup saved')
+await d.save({filename:'gym-tracker-backup-'+today()+'.json',data:JSON.stringify(out,null,1)});S.bk=today();S.prof=Object.assign({},S.prof||{},{bkc:bkCnt()});delete S.prof.bks;save();say('Backup saved')
 }catch(e){const c=e&&e.code;say(c==='declined'?'Backup cancelled':c==='rate_limited'?'Another save is open. Try again in a moment.':c==='too_large'?'The backup is too large to save here. Ask in a Claude chat instead.':'Backup isn’t available in this view. Ask in a Claude chat instead.')}
 finally{bkBusy=false;render()}}
 function bkSec(){const off=dlReady&&!dlNs;return `<section class="ex"><h2>Backup</h2><p class="hint">Download everything in one file: workouts (including archived ones), weights, waist, food, health, scans, labs, plan and check-ins. Keep it somewhere safe. ${window.__SA?'To restore it, or to add a DEXA, blood work or weight file made in a Claude chat, use Import a file.':'To restore it, send the file in a Claude chat.'}${S.bk?' Last backup: '+E(dsh({t:S.bk}))+'.':''}</p>${off?'<p class="hint dn">Backups aren’t available in this view. Ask in a Claude chat instead.</p>':`<button class="fin" data-a="bk" style="margin:.6rem 0 .2rem"${bkBusy?' disabled':''}>${bkBusy?'Preparing…':'Download backup'}</button>`}${window.__SA?`<label class="add upl">Import a file<input type="file" id="imf" accept=".json,application/json" hidden></label>`:''}</section>${window.__SA?imCard():''}`}
@@ -1701,7 +1744,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'bfca055764',d:'Oct 23, 2026 at 12:00 PM'};
+const APP_V={h:'159e19d39e',d:'Oct 23, 2026 at 1:09 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2046,13 +2089,16 @@ for(const t in best){const n=best[t];day(t).sl=n.min;const h=hrs.filter(x=>x.t>=
 const out=[];let skipT=false;
 // the oldest day of a 3-day look-back is only partly covered, so only today and the two days before it count
 const t0=addD(td,-2);
-for(const t of Object.keys(D).sort().reverse()){if(t>td||t<t0)continue;const x=D[t],o={t};
-if(x.wt!=null&&x.wt>=66&&x.wt<=600)o.wt=Math.round(x.wt*10)/10;if(o.wt!=null&&S.wtx&&S.wtx[t]!=null&&Math.abs(S.wtx[t]-o.wt)<.05)delete o.wt;
-if(x.sl!=null&&x.sl>=30&&x.sl<=960)o.sl=Math.round(x.sl);
+// a kind that looks back further (a one-time backfill) counts every day after its own oldest, partly covered one
+const mn={};for(const r of rows){const t=hkDay(r.s);if(!mn[r.k]||t<mn[r.k])mn[r.k]=t}
+const k0=k=>mn[k]&&mn[k]<addD(td,-7)?addD(mn[k],1):t0,okD=(k,t)=>t>=k0(k),tMin=Object.keys(mn).reduce((a,k)=>k0(k)<a?k0(k):a,t0);
+for(const t of Object.keys(D).sort().reverse()){if(t>td||t<tMin)continue;const x=D[t],o={t};
+if(okD('wt',t)&&x.wt!=null&&x.wt>=66&&x.wt<=600)o.wt=Math.round(x.wt*10)/10;if(o.wt!=null&&S.wtx&&S.wtx[t]!=null&&Math.abs(S.wtx[t]-o.wt)<.05)delete o.wt;
+if(okD('sl',t)&&x.sl!=null&&x.sl>=30&&x.sl<=960)o.sl=Math.round(x.sl);
 if(o.sl!=null&&x.hr!=null)o.hr=Math.round(x.hr);
 const day0=t===td&&!late;
-if(x.st!=null&&x.st>0&&x.st<=100000){if(day0)skipT=true;else o.st=Math.round(x.st)}
-if(x.c!=null&&x.c>0&&x.c<15000){if(day0)skipT=true;else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}}}
+if(okD('st',t)&&x.st!=null&&x.st>0&&x.st<=100000){if(day0)skipT=true;else o.st=Math.round(x.st)}
+if(okD('c',t)&&x.c!=null&&x.c>0&&x.c<15000){if(day0)skipT=true;else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(okD(k,t)&&x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb&&okD('fb',t)){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}}}
 if(Object.keys(o).length>1)out.push(o)}
 if(!out.length)return{err:skipT?'Only today’s food and steps were found. They come in after '+evT()+', or with tomorrow morning’s paste.':'Nothing from the last 3 days to add yet.'};
 return{days:out,seen,skipT,badDate}}
@@ -2218,7 +2264,7 @@ if(needSetup()){app.innerHTML=initDone?setupHtml():'';return}
 if(window.__SA)for(const k in S.draft){const x=S.draft[k];if(x&&typeof x.ed==='string'&&x.ed!==today()){delete S.draft[k];save()}}
 GEN++;autoCheck();
 const p=P[day];
-const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&wkKey(e.t)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}${st?`<i class="dot ${st}" aria-hidden="true"></i>`:''}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}${window.__SA?`<button class="tgear${updAvail?' up':''}" role="tab" aria-selected="${day==='set'}" aria-label="${updAvail?'Settings, update ready':'Settings'}" data-a="tab" data-d="set"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>`:''}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
+const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&wkKey(e.t)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}${st?`<i class="dot ${st}" aria-hidden="true"></i>`:''}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}${window.__SA?`<button class="tgear${updAvail||bkWhy()?' up':''}" role="tab" aria-selected="${day==='set'}" aria-label="${updAvail?'Settings, update ready':bkWhy()?'Settings, backup due':'Settings'}" data-a="tab" data-d="set"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>`:''}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
 if(day==='w'){app.innerHTML=`${tabs}${todayBar()}${weightHtml()}`;return}
 if(day==='p'){app.innerHTML=`${tabs}${todayBar()}${progressHtml()}`;return}
 if(day==='g'){app.innerHTML=`${tabs}${todayBar()}${gymProgHtml()}`;return}
@@ -2483,7 +2529,8 @@ if(a==='hlno'){hlPend=null;render();return}
 if(a==='hlstop'){if(hlCtl)hlCtl.abort();return}
 if(a==='hldel'){hlDel(b.dataset.t,b.dataset.k);return}
 if(a==='hlall'){hlAll=!hlAll;render();return}
-if(a==='bk'){backup();return}
+if(a==='bk'||a==='bkgo'){backup();return}
+if(a==='bkno'){S.prof=Object.assign({},S.prof||{},{bks:addD(today(),3)});save();render();return}
 if(a==='hs'){const k=b.dataset.k,v=b.dataset.v;if(['st','sl','hr'].includes(k)&&['garmin','oura','apple','any'].includes(v)){S.prof=Object.assign({},S.prof||{},{hs:Object.assign({},hsrc(),{[k]:v})});save();render()}return}
 if(a==='recall'){recAll=!recAll;render();return}
 if(a==='rv'){fdReview();return}
