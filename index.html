@@ -200,7 +200,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .msb{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin:.1rem 0 .7rem;padding:.6rem .8rem;border:1px solid var(--acc);border-radius:.8rem;background:var(--card)}.msb .edit{padding:0;white-space:nowrap}
 .tabs .tgear{position:relative}.tabs .tgear.up::after{content:'';position:absolute;top:.35rem;right:.15rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--warn)}
 a.fin{display:block;box-sizing:border-box;text-align:center;text-decoration:none}
-.gfm{margin:.8rem 0 .15rem;flex-wrap:nowrap}.gfm .chip{flex:1 1 auto;padding-left:.45rem;padding-right:.45rem;white-space:nowrap}
+.chips.gfm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:.8rem 0 .15rem}.gfm .chip{min-width:0;padding-left:.3rem;padding-right:.3rem;white-space:nowrap;text-align:center}@media (max-width:350px){.gfm .chip{font-size:.82rem}}
 </style>
 </head>
 <body>
@@ -1038,18 +1038,33 @@ else if(p.k==='recomp'&&Math.abs(pc)>=.5){h='Still recomping?';x=`Your weight ha
 else if(p.k==='maint'&&Math.abs(pc)>=(FEM?.5:.75)){h='Still maintaining?';x=`Your weight has been going ${pc>0?'up':'down'}${ov}, but your phase is Maintain. If you meant to ${pc>0?phN('bulk'):'cut'}, change your phase. If not, the weekly check-in adjusts your calories if this keeps up.`}
 return h?`<section class="pr dn"><h2>${h}</h2><p>${E(x)} <button class="edit" data-a="phgo">Change phase</button></p></section>`:''}
 // ===== Standalone: goal progress =====
-// goal date from a straight line through the weigh-ins in a window (2 weeks, 4 weeks, since the cut started)
-const gfM=()=>{const v=S.prof&&S.prof.gm;return v==='4w'||v==='st'?v:'2w'};
+// a third goal date, one chip per way of measuring pace
+const GFK=['2w','4w','st','tr','tw','dd'],GFL=[['2w','2 weeks'],['4w','4 weeks'],['st','Since start'],['tr','Trend'],['tw','This week'],['dd','Latest']];
+const gfM=()=>{const v=S.prof&&S.prof.gm;return GFK.includes(v)?v:'2w'};
 function gfFit(s,m){const{w,dy,ph}=s,td=wtD(today()),st=m==='st'?null:td-(m==='4w'?27:13)*864e5,p=w.filter(x=>(st==null?x.t>=ph.since:dy(x)>=st)&&dy(x)<=td);
 if(p.length<5||dy(p[p.length-1])-dy(p[0])<6*864e5)return{ok:false,n:p.length};
 const n=p.length,e=dy(p[n-1]),xs=p.map(x=>(dy(x)-e)/6048e5),mx=xs.reduce((a,b)=>a+b,0)/n,my=p.reduce((a,x)=>a+x.w,0)/n;let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-mx)*(p[i].w-my);sxx+=(x-mx)*(x-mx)});const sl=sxx>0?sxy/sxx:0;
 return{ok:true,n,from:p[0].t,e,sl,end:my-sl*mx}}
-function gfRow(s){const m=gfM(),f=gfFit(s,m),{gw,ph}=s,nm=phN(ph.k),lab={'2w':'Last 2 weeks','4w':'Last 4 weeks',st:'Since your '+nm+' started'}[m],td=wtD(today()),c0=wtD(ph.since);
-const r=f.ok?-f.sl:null,los=r!=null&&r>=.05;
-let v;if(!f.ok)v='After a few more weigh-ins';else if(!los)v='Not losing yet';else{const k=Math.max(0,(f.end-gw)/r);v=k>260?'More than 5 years':new Date(f.e+k*6048e5).toLocaleDateString(undefined,{month:'short',year:'numeric'})}
-const early=f.ok&&los&&wtD(f.from)<c0+14*864e5&&td<c0+42*864e5&&(s.pace==null||r>-s.pace);
-const hint=f.ok?`From a straight line through your ${f.n} weigh-ins ${m==='st'?'since your '+nm+' started':'since '+E(dsh({t:f.from}))}, so it moves with every weigh-in${m==='2w'?' and swings more than At your pace':''}.${early?` Early in a ${nm}, water weight comes off fast, so this looks faster than it will stay.`:''}`:`Needs 5 weigh-ins spread over at least a week ${m==='st'?'since your '+nm+' started':'in the '+lab.toLowerCase()} (${f.n} so far).`;
-return `<div class="chips gfm">${[['2w','2 weeks'],['4w','4 weeks'],['st','Since start']].map(([k,l])=>`<button class="chip" aria-pressed="${m===k}" data-a="gfm" data-v="${k}">${l}</button>`).join('')}</div><div class="gdt"><div><span>${E(lab)}${los?' ('+f1(r)+' lb a week)':''}</span><b>${E(v)}</b></div></div><p class="hint">${hint}</p>`}
+function gfCalc(s,m){const{w,dy,L,ph}=s,nm=phN(ph.k),dl=dy(L);
+if(m==='2w'||m==='4w'||m==='st'){const f=gfFit(s,m),lab={'2w':'Last 2 weeks','4w':'Last 4 weeks',st:'Since your '+nm+' started'}[m];
+if(!f.ok)return{lab,need:`Needs 5 weigh-ins spread over at least a week ${m==='st'?'since your '+nm+' started':'in the '+lab.toLowerCase()} (${f.n} so far).`};
+return{lab,r:-f.sl,now:f.end,e:f.e,f0:wtD(f.from),how:`From a straight line through your ${f.n} weigh-ins ${m==='st'?'since your '+nm+' started':'since '+E(dsh({t:f.from}))}, so it moves with every weigh-in${m==='2w'?' and swings more than At your pace':''}.`}}
+if(m==='tr'){const lab='Trend weight',k7=dl-7*864e5;let T=w[0].w,t7=dy(w[0])<=k7?{d:dy(w[0]),T}:null;for(let i=1;i<w.length;i++){T+=.1*(w[i].w-T);if(dy(w[i])<=k7)t7={d:dy(w[i]),T:T}}
+if(w.length<5||!t7)return{lab,need:`Needs a week of weigh-ins (${w.length} so far).`};
+return{lab,r:(t7.T-T)/((dl-t7.d)/6048e5),now:T,e:dl,f0:t7.d,how:`Your trend weight is ${f1(T)} lb. Each weigh-in moves it a tenth of the way toward the scale, so one day barely moves it and real changes show up slowly. The pace is how much it changed over the last week.`}}
+if(m==='tw'){const lab='This week vs last week',a0=dy(s.st),ic=Math.floor(Math.round((wtD(today())-a0)/864e5)/7),c=s.wk.find(x=>x.i===ic),p=s.wk.find(x=>x.i===ic-1),wd=t=>new Date(t+'T12:00:00').toLocaleDateString(undefined,{weekday:'long'}),d1=wd(s.st.t),d7=wd(addD(s.st.t,6));
+if(!p||p.n<3)return{lab,need:`Needs 3 weigh-ins last week (${d1} to ${d7}).`};
+if(!c)return{lab,need:`Needs a weigh-in this week. Your weeks start on ${d1}.`};
+return{lab,r:(p.a-c.a)/((c.m-p.m)/6048e5),now:c.a,e:c.m,f0:wtD(p.s),how:`This week so far (since ${d1}) averages ${f1(c.a)} lb over ${c.n} weigh-in${c.n>1?'s':''}, vs ${f1(p.a)} lb last week (${d1} to ${d7}). It settles as the week fills in.`}}
+const lab='Latest vs a week before',tg=dl-7*864e5;let b=null;for(const x of w){const g=Math.abs(dy(x)-tg);if(g<=2*864e5&&(!b||g<Math.abs(dy(b)-tg)))b=x}
+if(!b)return{lab,need:'Needs a weigh-in from about a week before your latest one.'};
+return{lab,r:(b.w-L.w)/((dl-dy(b))/6048e5),now:L.w,e:dl,f0:dy(b),how:`${E(dsh(L))} (${f1(L.w)} lb) vs ${E(dsh(b))} (${f1(b.w)} lb). Day-to-day changes are mostly water, so this one jumps around the most.`}}
+function gfRow(s){const m=gfM(),c=gfCalc(s,m),{gw,ph}=s,nm=phN(ph.k),td=wtD(today()),c0=wtD(ph.since);
+const ok=c.r!=null&&isFinite(c.r),los=ok&&c.r>=.05;
+let v;if(!ok)v='After a few more weigh-ins';else if(!los)v='Not losing yet';else{const k=Math.max(0,(c.now-gw)/c.r);v=k>260?'More than 5 years':new Date(c.e+k*6048e5).toLocaleDateString(undefined,{month:'short',year:'numeric'})}
+const early=los&&c.f0<c0+14*864e5&&td<c0+42*864e5&&(s.pace==null||c.r>-s.pace);
+const hint=ok?c.how+(early?` Early in a ${nm}, water weight comes off fast, so this looks faster than it will stay.`:''):c.need;
+return `<div class="chips gfm">${GFL.map(([k,l])=>`<button class="chip" aria-pressed="${m===k}" data-a="gfm" data-v="${k}">${l}</button>`).join('')}</div><div class="gdt"><div><span>${E(c.lab)}${los?' ('+f1(c.r)+' lb a week)':''}</span><b>${E(v)}</b></div></div><p class="hint">${hint}</p>`}
 function goalCard(){if(!window.__SA)return '';const s=wtStats();if(!s)return '';const{L,ps,ph,gw,proj,projT,pace}=s,bar=pc=>`<div class="pb gpb" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pc)}"><i style="width:${Math.max(0,Math.min(100,pc)).toFixed(1)}%"></i></div>`,yd=t=>{const d=new Date(t+'T12:00:00');return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})};
 if(ph.k==='cut'){if(!ps||!(gw>0)||!(ps.w>gw))return '';const tot=ps.w-gw,dn=ps.w-L.w,pc=Math.max(0,Math.min(100,dn/tot*100)),left=Math.max(0,L.w-gw);
 if(left<=0)return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Goal reached:</b> ${f1(L.w)} lb, at or under ${Math.round(gw)} lb (${ph.g.bf}% body fat at your lean mass).</p>${bar(100)}<p class="hint">A DEXA scan confirms where your body fat landed. Then pick what’s next under Plan.</p></section>`;
@@ -1686,7 +1701,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'10ccd0b19c',d:'Oct 23, 2026 at 11:30 AM'};
+const APP_V={h:'bfca055764',d:'Oct 23, 2026 at 12:00 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2427,7 +2442,7 @@ if(a==='dxok'){const x=dxPend;if(!x)return;S.scans=(S.scans||[]).filter(y=>y.t!=
 if(a==='dxno'){dxPend=null;dxErr='';render();return}
 if(a==='upchk'){updCheck(false);return}
 if(a==='upgo'){updGo();return}
-if(a==='gfm'){const v=b.dataset.v;S.prof=Object.assign({},S.prof||{});if(v==='4w'||v==='st')S.prof.gm=v;else delete S.prof.gm;save();render();return}
+if(a==='gfm'){const v=b.dataset.v;S.prof=Object.assign({},S.prof||{});if(GFK.includes(v)&&v!=='2w')S.prof.gm=v;else delete S.prof.gm;save();render();return}
 if(a==='evset'){const v=+b.dataset.v;S.prof=Object.assign({},S.prof||{});if(v===20)delete S.prof.ev;else S.prof.ev=v;save();render();return}
 if(a==='msok'){S.msx=(S.msx||[]).concat(b.dataset.id).slice(-300);save();render();return}
 if(a==='msall'){msAll=!msAll;render();return}
