@@ -808,11 +808,11 @@ if(a.length>=2&&a[a.length-1].t===td&&a[a.length-2].k===k&&a[a.length-2].r===r)a
 S.phases=a;if(cur.k!==k)day='pl';save();render();if(cur.k!==k){const el=document.getElementById('plan');if(el&&el.scrollIntoView)el.scrollIntoView();say('Switched to '+PH[k].l+'. Here’s your new plan.')}else say('Target set to '+(k==='cut'?'-':'+')+r+' lb a week')}
 function setGoal(key,val){const td=today(),a=phases().filter(x=>x.t<=td),p=phase(),i=a.findIndex(x=>x.t===p.since&&x.k===p.k);if(i<0)return;a[i]=Object.assign({},a[i],{g:Object.assign({},a[i].g||{},{[key]:val})});S.phases=a;save();render()}
 // the share of the loss that was lean between the last two scans (4+ weeks apart, 2+ lb of fat lost)
-function lnQ(){const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2];if(!a||!b||(wtD(b.t)-wtD(a.t))/6048e5<4)return null;const df=a.fm-b.fm,dl=a.lm-b.lm;if(!(df>=2))return null;return{q:dl>0?Math.min(.5,dl/(df+dl)):0,a,b}}
+function lnQ(){const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2];if(!a||!b||(wtD(b.t)-wtD(a.t))/6048e5<4)return null;const lost=a.tm-b.tm,df=a.fm-b.fm,dl=a.lm-b.lm;if(!(lost>=5&&df>=2))return null;const q0=dl>0?dl/lost:0;return{q:Math.min(.2,q0),q0,a,b}}
 function goalW0(bf){const sc=scans(),c=sc[sc.length-1];return c?c.lm/(1-bf/100)+(c.tm-c.fm-c.lm):null}
 function goalW(bf){const sc=scans(),c=sc[sc.length-1];if(!c)return phase().k==='cut'?gwNoDexa():null;const base=c.lm/(1-bf/100)+(c.tm-c.fm-c.lm),G=window.__SA?lnQ():null;if(!G||!(G.q>0))return base;const k=bf/100,X=(c.fm-k*(c.fm+c.lm))/(1-G.q-k);return X>0?c.tm-X:base}
 function gwNote(ph){const G=lnQ();if(!G||!(G.q>0)||!ph.g)return '';const a=goalW(ph.g.bf),b=goalW0(ph.g.bf);if(!(Math.round(b)-Math.round(a)>=1))return '';
-return `<p class="hint">This goal weight counts the lean mass you’re losing: ${Math.round(G.q*100)}% of what you lost between your ${E(dsh(G.a))} and ${E(dsh(G.b))} scans was lean, so ${ph.g.bf}% body fat lands around ${Math.round(a)} lb rather than ${Math.round(b)}. It updates with each new scan.</p>`}
+return `<p class="hint">This goal weight counts the lean mass you’re losing: ${Math.round(G.q0*100)}% of what you lost between your ${E(dsh(G.a))} and ${E(dsh(G.b))} scans was lean, so ${ph.g.bf}% body fat lands around ${Math.round(a)} lb rather than ${Math.round(b)}${G.q0>.2?' (counting no more than 20% lean from here, since your pace eases when it runs higher)':''}. It updates with each new scan.</p>`}
 const phGoal=p=>p.k==='cut'?(scans().length?'goal '+p.g.bf+'% body fat (about '+Math.round(goalW(p.g.bf))+' lb)':(g=>g?'goal '+Math.round(g)+' lb':'goal weight not set yet')(goalW())):p.k==='bulk'?p.g.wk+' weeks, stop at '+p.g.cap+'% body fat':p.k==='recomp'?p.g.wk+' weeks at maintenance':'hold for '+p.g.wk+' weeks';
 const STEP={a:2500,b:6500,c:10000,d:14000},stepsOf=pr=>typeof pr.st==='number'&&isFinite(pr.st)?Math.max(0,Math.min(20000,pr.st)):STEP[pr.steps]!=null?STEP[pr.steps]:null,stepF=v=>1.3+.025*Math.min(20000,v)/1000,stLbl=v=>v>=20000?'20,000+':fmt(v),EXP={n:'Under 1 year',i:'1-3 years',a:'3+ years'};
 let plBusy=false,plErr='',plCtl=null;
@@ -966,6 +966,7 @@ S.lock=Object.assign({},L,{cal,fat,carb,st});
 return SK(Object.assign(base,{v:'change',f,chg:{from:L.cal,to:cal,st0:L.st,st},m:`Change: ${txt}. Two check-ins in a row point the same way (${mvTxt(a)} ${vs}).${wn} New targets: ${fmt(cal)} cal, ${L.prot} g protein, ${carb} g carbs, ${fat} g fat, ${fmt(st)} steps.${cal!==L.cal?' Update Lose It to match.':''}`}))}
 function autoCheck(){
 if(!initDone)return;
+try{dxAct()}catch(e){}
 let dirty=ensureLock();
 const L=planT(),ws=wtStats(),p=phase(),pid=planId(),td=today();
 if(L&&ws){const done=ws.wk.filter(x=>x.e<td),W=done[done.length-1],ci=S.ci||[];
@@ -1090,10 +1091,10 @@ return{lab,r,now:W0,e:f.e,f0:wtD(f.from),nw:1,v:n>260?'More than 5 years':gfDt(f
 if(m==='dx'){const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2],lab='Fat loss between scans',bf=ph.g&&ph.g.bf||10;
 if(!a||!b)return{lab,need:'Needs a second DEXA scan.'};
 const wk=(wtD(b.t)-wtD(a.t))/6048e5;if(wk<4)return{lab,wait:'After your next scan',need:`Your last two scans are only ${Math.round(wk*7)} days apart. They need to be at least 4 weeks apart to show a real change in fat.`};
-const df=a.fm-b.fm,dl=b.lm-a.lm,rf=df/wk,G=lnQ(),q=G?G.q:0,kk=bf/100,Ft=b.fm-(1-q)*(b.fm-kk*(b.fm+b.lm))/(1-q-kk),left=b.fm-Ft,tag=`Between your ${E(dsh(a))} and ${E(dsh(b))} scans you ${df>=0?'lost':'gained'} ${f1(Math.abs(df))} lb of fat and ${dl<0?'lost':'gained'} ${f1(Math.abs(dl))} lb of lean mass.`;
-if(rf<.05)return{lab,r:rf,v:'Not losing fat yet',how:tag+' It only changes when you add a new scan.'};
+const df=a.fm-b.fm,dl=b.lm-a.lm,rf=df/wk,G=lnQ(),q=G?G.q:0,kk=bf/100,Ft=b.fm-(1-q)*(b.fm-kk*(b.fm+b.lm))/(1-q-kk),left=b.fm-Ft,tag=(()=>{const P=dxPair(ph);return P&&P.b===b&&dxJudge(ph.k,P.a,P.b)?'':`Between your ${E(dsh(a))} and ${E(dsh(b))} scans you ${df>=0?'lost':'gained'} ${f1(Math.abs(df))} lb of fat and ${dl<0?'lost':'gained'} ${f1(Math.abs(dl))} lb of lean mass.`})();
+if(rf<.05)return{lab,r:rf,v:'Not losing fat yet',how:(tag?tag+' ':'')+'It only changes when you add a new scan.'};
 const n=Math.max(0,left/rf);
-return{lab,r:rf,u:' lb of fat a week',v:left<=0?'At your goal':n>260?'More than 5 years':gfDt(wtD(b.t)+n*6048e5),how:tag+` At that pace you’d go from ${f1(b.fm)} to ${f1(Ft)} lb of fat, which is ${bf}% body fat ${q>0?'with the lean loss your scans show':'at your lean mass'}. It only changes when you add a new scan.`}}
+return{lab,r:rf,u:' lb of fat a week',v:left<=0?'At your goal':n>260?'More than 5 years':gfDt(wtD(b.t)+n*6048e5),how:(tag?tag+' ':'')+`At that pace you’d go from ${f1(b.fm)} to ${f1(Ft)} lb of fat, which is ${bf}% body fat ${q>0?'with the lean loss your scans show':'at your lean mass'}. It only changes when you add a new scan.`}}
 const lab='Latest vs a week before',tg=dl-7*864e5;let b=null;for(const x of w){const g=Math.abs(dy(x)-tg);if(g<=2*864e5&&(!b||g<Math.abs(dy(b)-tg)))b=x}
 if(!b)return{lab,need:'Needs a weigh-in from about a week before your latest one.'};
 return{lab,r:(b.w-L.w)/((dl-dy(b))/6048e5),now:L.w,e:dl,f0:dy(b),how:`${E(dsh(L))} (${f1(L.w)} lb) vs ${E(dsh(b))} (${f1(b.w)} lb). Day-to-day changes are mostly water, so this one jumps around the most.`}}
@@ -1113,7 +1114,8 @@ const pw=(d,w)=>`${d>=0?'gained':'lost'} ${f1(Math.abs(d))} lb${w?' '+w:''}`;
 let v,tail;if(bf(b)>=cap){v='Already there';tail=`Your latest scan is at ${f1(bf(b))}% body fat, at or over your ${cap}% stop.`}
 else if(!(den>0)){v='Not rising';tail=`At this pace your body fat isn’t rising, so you wouldn’t reach ${cap}%.`}
 else{const t=num/den,ms=wtD(b.t)+t*6048e5;v=t>260?'More than 5 years':gfDt(ms);tail=ph.g.wk?`At that pace you’d reach your ${cap}% stop ${ms<wtD(end)?`<b>before</b> your ${ph.g.wk} weeks are up`:`after your ${ph.g.wk} weeks are up`}.`:''}
-return `<div class="gdt"><div><span>Reaches ${cap}% body fat</span><b>${E(v)}</b></div></div><p class="hint">Between your ${E(dsh(a))} and ${E(dsh(b))} scans you ${pw(tot)}${tot>0&&dl>0&&df>=0?`: ${f1(dl)} lb lean and ${f1(df)} lb fat (${Math.round(dl/tot*100)}% lean)`:`, with lean mass ${dl>=0?'up':'down'} ${f1(Math.abs(dl))} lb and fat ${df>=0?'up':'down'} ${f1(Math.abs(df))} lb`}. Body fat went from ${f1(bf(a))}% to ${f1(bf(b))}%. ${tail}</p>`}
+const dv=dxJudge('bulk',a,b),dvh=dv?`<b>${dv.v==='ok'?'DEXA: on track.':dv.v==='watch'?'DEXA: watch your lean mass.':'DEXA: mostly fat.'}</b> `:'',dvt=dv&&dv.v!=='ok'?(()=>{const x=(S.prof||{}).dxe;return dv.v==='watch'?' Keep your lifts climbing and don’t push the gain faster.':x&&x.s===b.t?` So your ${nm} slowed from ${x.from} to ${x.to} lb a week on ${E(dsh({t:x.t}))}.`:dxStep(ph)?'':` Your ${nm} is already at its slowest pace.`})():'';
+return `<div class="gdt"><div><span>Reaches ${cap}% body fat</span><b>${E(v)}</b></div></div><p class="hint">${dvh}Between your ${E(dsh(a))} and ${E(dsh(b))} scans you ${pw(tot)}${tot>0&&dl>0&&df>=0?`: ${f1(dl)} lb lean and ${f1(df)} lb fat (${Math.round(dl/tot*100)}% lean)`:`, with lean mass ${dl>=0?'up':'down'} ${f1(Math.abs(dl))} lb and fat ${df>=0?'up':'down'} ${f1(Math.abs(df))} lb`}. Body fat went from ${f1(bf(a))}% to ${f1(bf(b))}%. ${tail}${dvt}</p>`}
 // recomp: is it working? (lifts, waist, weight, DEXA as verdicts; the numbers live in their own sections)
 function rcCard(ph){const td=today(),wk=(wtD(td)-wtD(ph.since))/6048e5;
 if(wk<4)return `<p class="hint">Your lifts, waist and weight get judged after 4 full weeks (${E(dsh({t:addD(ph.since,28)}))}).</p>`;
@@ -1167,12 +1169,38 @@ else if(wt==='down')v=['Drifting down',`losing ${f1(-s.pace)} lb a week, so it�
 else if(li==='slip')v=['Mostly holding','your weight is steady, but some lifts are slipping.'];
 else v=['Working',`your weight is holding steady${li==='hold'?' and so are your lifts':''}.`];
 return vdOut(rows,v)}
+// ===== Standalone: the DEXA check (cut and bulk) =====
+function dxPair(ph){const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2];if(!a||!b||!(b.t>ph.since)||a.t<addD(ph.since,-42)||(wtD(b.t)-wtD(a.t))/6048e5<4)return null;return{a,b}}
+// the verdict for a pair: cut = share of the loss that was lean, bulk = share of the gain that was lean
+function dxJudge(k,a,b){if(k==='cut'){const lost=a.tm-b.tm,ll=a.lm-b.lm;if(!(lost>=5))return null;const sh=Math.max(0,ll)/lost;return{k,amt:lost,sh,ll,v:sh>=.3?'bad':sh>=.2?'watch':'ok'}}
+if(k==='bulk'){const gn=b.tm-a.tm,lg=b.lm-a.lm;if(!(gn>=4))return null;const sh=Math.max(0,lg)/gn;return{k,amt:gn,sh,lg,v:sh<.3?'bad':sh<.5?'watch':'ok'}}return null}
+// one pace step slower (a cut eases, a bulk slows); null when it's already at the slowest
+function dxStep(ph){const o=PH[ph.k].r;if(!o.length)return null;if(FEM){const c=ph.pc||null,lo=o.filter(x=>c!=null?x<c-1e-9:pcLb(x)<ph.r-1e-9);return lo.length?{pc:lo[lo.length-1],r:pcLb(lo[lo.length-1])}:null}
+const lo=o.filter(x=>x<ph.r-1e-9);return lo.length?{r:lo[lo.length-1]}:null}
+function dxAct(){if(!window.__SA)return;const ph=phase();if(ph.k!=='cut'&&ph.k!=='bulk')return;const P=dxPair(ph);if(!P)return;const{a,b}=P,td=today(),pr=S.prof||{};
+if(pr.dxa===b.t||b.t<addD(td,-21))return;S.prof=Object.assign({},pr,{dxa:b.t});const J=dxJudge(ph.k,a,b);
+if(!J||J.v!=='bad'){save();return}const st=dxStep(ph);if(!st){save();return}
+const L=planT(),r0=ph.r,e={t:td,k:ph.k,r:st.r};if(st.pc!=null)e.pc=st.pc;
+const all=phases().filter(x=>x.t<=td),last=all[all.length-1];if(last&&last.t===td){if(last.g)e.g=last.g;all[all.length-1]=e}else all.push(e);S.phases=all;
+const sign=ph.k==='cut'?1:-1,dc=Math.round(sign*(r0-st.r)*500/10)*10;let msg='';
+if(L){const n=planNums(),cal=L.cal+dc;S.lock={pid:planId(),key:planKey(),t:td,base:n.cal,cal,prot:L.prot,fat:L.fat,carb:Math.max(0,(L.carb||0)+Math.round(dc/4)),st:L.st,rate:n.rate!=null?Math.round(n.rate*100)/100:L.rate,fp:L.fp};msg=` New targets: ${fmt(cal)} cal a day (${dc>=0?'+':''}${dc}, all from carbs), same steps.`}
+const pct=Math.round(J.sh*100),m=ph.k==='cut'?`Change: your ${dsh(b)} DEXA shows ${pct}% of the ${f1(J.amt)} lb you lost since ${dsh(a)} was lean, so your cut eases from ${r0} to ${st.r} lb a week to protect muscle.${msg} The new numbers get 3 full weeks before the next call.`:`Change: your ${dsh(b)} DEXA shows only ${pct}% of the ${f1(J.amt)} lb you gained since ${dsh(a)} was lean, so your ${phN('bulk')} slows from ${r0} to ${st.r} lb a week to limit fat gain.${msg} The new numbers get 3 full weeks before the next call.`;
+S.prof=Object.assign({},S.prof,{dxe:{t:td,s:b.t,from:r0,to:st.r}});S.ci=(S.ci||[]).concat({v:'change',f:'dexa',t:td,w:td,pid:planId(),m,chg:L?{from:L.cal,to:L.cal+dc,st0:L.st,st:L.st}:null}).slice(-60);save();setTimeout(()=>say(ph.k==='cut'?`New DEXA: too much lean loss, so your cut eased to ${st.r} lb a week`:`New DEXA: mostly fat, so your ${phN('bulk')} slowed to ${st.r} lb a week`),300)}
+// the Goal card line
+function dxVerdict(ph,a,b){const J=dxJudge(ph.k,a,b);if(!J)return null;const pct=Math.round(J.sh*100),x=(S.prof||{}).dxe,acted=x&&x.s===b.t;
+const head=J.v==='ok'?'DEXA: on track.':J.v==='watch'?'DEXA: watch your lean mass.':ph.k==='cut'?'DEXA: too much lean loss.':'DEXA: mostly fat.';
+const body=ph.k==='cut'?(J.ll<=0?`Between your ${E(dsh(a))} and ${E(dsh(b))} scans you lost ${f1(J.amt)} lb and kept all your lean mass.`:`${100-pct}% of the ${f1(J.amt)} lb you lost between your ${E(dsh(a))} and ${E(dsh(b))} scans was fat and ${pct}% was lean.`):`${pct}% of the ${f1(J.amt)} lb you gained between your ${E(dsh(a))} and ${E(dsh(b))} scans was lean.`;
+const tail=J.v==='ok'?'':J.v==='watch'?' Keep protein high and keep pushing your lifts.':acted?(ph.k==='cut'?` So your cut eased from ${x.from} to ${x.to} lb a week on ${E(dsh({t:x.t}))}.`:` So your ${phN('bulk')} slowed from ${x.from} to ${x.to} lb a week on ${E(dsh({t:x.t}))}.`):dxStep(ph)?'':(ph.k==='cut'?' Your cut is already at its slowest pace, so keep protein high and keep pushing your lifts.':` Your ${phN('bulk')} is already at its slowest pace, so keep your lifts climbing.`);
+return `<b>${head}</b> ${body}${tail}`}
+function dxNote(ph){const P=dxPair(ph),v=P&&dxVerdict(ph,P.a,P.b);if(!v)return gwNote(ph);
+const G=lnQ(),gw=ph.g?goalW(ph.g.bf):null,g0=ph.g?goalW0(ph.g.bf):null,adj=G&&G.q>0&&G.b===P.b&&gw&&g0&&Math.round(g0)-Math.round(gw)>=1?` Counting the lean loss${G.q0>.2?' (no more than 20% from here, since the pace eases when it runs higher)':''}, ${ph.g.bf}% body fat lands around ${Math.round(gw)} lb rather than ${Math.round(g0)}. It updates with each new scan.`:'';
+return `<p class="hint">${v}${adj}</p>`}
 function goalCard(){if(!window.__SA)return '';const s=wtStats();if(!s)return '';const{L,ps,ph,gw,proj,projT,pace}=s,bar=pc=>`<div class="pb gpb" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pc)}"><i style="width:${Math.max(0,Math.min(100,pc)).toFixed(1)}%"></i></div>`,yd=t=>{const d=new Date(t+'T12:00:00');return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})};
 if(ph.k==='cut'){if(!ps||!(gw>0)||!(ps.w>gw))return '';const tot=ps.w-gw,dn=ps.w-L.w,pc=Math.max(0,Math.min(100,dn/tot*100)),left=Math.max(0,L.w-gw);
 if(left<=0)return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Goal reached:</b> ${f1(L.w)} lb, at or under ${Math.round(gw)} lb (${ph.g.bf}% body fat at your lean mass).</p>${bar(100)}<p class="hint">A DEXA scan confirms where your body fat landed. Then pick what’s next under Plan.</p></section>`;
 const yp=pace!=null&&pace<0?(proj||'More than 5 years'):pace!=null?'Not losing yet':'After 2 weeks of weigh-ins';
 const rows=`<div class="gdt"><div><span>Planned (${ph.r} lb a week)</span><b>${E(projT||'-')}</b></div><div><span>At your pace${pace!=null&&pace<0?' ('+f1(-pace)+' lb a week)':''}</span><b>${E(yp)}</b></div></div>`;
-return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>${Math.round(pc)}%</b> of the way to ${Math.round(gw)} lb (${ph.g.bf}% body fat)</p>${bar(pc)}<p class="hint">${dn>=0?'Down '+f1(dn)+' lb':'Up '+f1(-dn)+' lb'} from ${f1(ps.w)} lb on ${E(dsh(ps))}, ${f1(left)} lb to go.</p>${gwNote(ph)}${ctV(s,ph)}${rows}<p class="hint">Planned and At your pace come from your weekly average weight, so they move as each week’s weigh-ins come in.</p>${gfRow(s)}</section>`}
+return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>${Math.round(pc)}%</b> of the way to ${Math.round(gw)} lb (${ph.g.bf}% body fat)</p>${bar(pc)}<p class="hint">${dn>=0?'Down '+f1(dn)+' lb':'Up '+f1(-dn)+' lb'} from ${f1(ps.w)} lb on ${E(dsh(ps))}, ${f1(left)} lb to go.</p>${dxNote(ph)}${ctV(s,ph)}${rows}<p class="hint">Planned and At your pace come from your weekly average weight, so they move as each week’s weigh-ins come in.</p>${gfRow(s)}</section>`}
 if((ph.k==='recomp'||ph.k==='bulk')&&ph.g&&ph.g.wk){const wk=ph.g.wk,el=Math.max(0,Math.round((wtD(today())-wtD(ph.since))/864e5)),n=Math.min(wk,Math.floor(el/7)+1),pc=Math.min(100,el/(wk*7)*100),end=addD(ph.since,wk*7),nm=phN(ph.k);
 return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Week ${n} of ${wk}</b> of your ${nm}</p>${bar(pc)}<p class="hint">${el>=wk*7?`Your ${wk} weeks are up. `:`Ends around ${E(yd(end))}. `}${ph.k==='recomp'?'A recomp is judged by your lifts, your waist and your next DEXA, not the scale.':`Judged by a slow, steady gain, climbing lifts${ph.g.cap?' and staying under '+ph.g.cap+'% body fat':''}.`}</p>${ph.k==='bulk'?bkCard(ph)+bkDx(ph):''}${ph.k==='recomp'?rcCard(ph):''}</section>`}
 if(ph.k==='maint'&&ph.g&&ph.g.wk){const wk=ph.g.wk,el=Math.max(0,Math.round((wtD(today())-wtD(ph.since))/864e5)),n=Math.min(wk,Math.floor(el/7)+1),pc=Math.min(100,el/(wk*7)*100),end=addD(ph.since,wk*7);
@@ -1805,7 +1833,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'1688d2ab7e',d:'Oct 23, 2026 at 2:03 PM'};
+const APP_V={h:'1131acdf81',d:'Oct 23, 2026 at 2:38 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
