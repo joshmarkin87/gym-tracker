@@ -200,6 +200,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .msb{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin:.1rem 0 .7rem;padding:.6rem .8rem;border:1px solid var(--acc);border-radius:.8rem;background:var(--card)}.msb .edit{padding:0;white-space:nowrap}
 .tabs .tgear{position:relative}.tabs .tgear.up::after{content:'';position:absolute;top:.35rem;right:.15rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--warn)}
 a.fin{display:block;box-sizing:border-box;text-align:center;text-decoration:none}
+.gfm{margin:.8rem 0 .15rem;flex-wrap:nowrap}.gfm .chip{flex:1 1 auto;padding-left:.45rem;padding-right:.45rem;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1037,12 +1038,24 @@ else if(p.k==='recomp'&&Math.abs(pc)>=.5){h='Still recomping?';x=`Your weight ha
 else if(p.k==='maint'&&Math.abs(pc)>=(FEM?.5:.75)){h='Still maintaining?';x=`Your weight has been going ${pc>0?'up':'down'}${ov}, but your phase is Maintain. If you meant to ${pc>0?phN('bulk'):'cut'}, change your phase. If not, the weekly check-in adjusts your calories if this keeps up.`}
 return h?`<section class="pr dn"><h2>${h}</h2><p>${E(x)} <button class="edit" data-a="phgo">Change phase</button></p></section>`:''}
 // ===== Standalone: goal progress =====
+// goal date from a straight line through the weigh-ins in a window (2 weeks, 4 weeks, since the cut started)
+const gfM=()=>{const v=S.prof&&S.prof.gm;return v==='4w'||v==='st'?v:'2w'};
+function gfFit(s,m){const{w,dy,ph}=s,td=wtD(today()),st=m==='st'?null:td-(m==='4w'?27:13)*864e5,p=w.filter(x=>(st==null?x.t>=ph.since:dy(x)>=st)&&dy(x)<=td);
+if(p.length<5||dy(p[p.length-1])-dy(p[0])<6*864e5)return{ok:false,n:p.length};
+const n=p.length,e=dy(p[n-1]),xs=p.map(x=>(dy(x)-e)/6048e5),mx=xs.reduce((a,b)=>a+b,0)/n,my=p.reduce((a,x)=>a+x.w,0)/n;let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-mx)*(p[i].w-my);sxx+=(x-mx)*(x-mx)});const sl=sxx>0?sxy/sxx:0;
+return{ok:true,n,from:p[0].t,e,sl,end:my-sl*mx}}
+function gfRow(s){const m=gfM(),f=gfFit(s,m),{gw,ph}=s,nm=phN(ph.k),lab={'2w':'Last 2 weeks','4w':'Last 4 weeks',st:'Since your '+nm+' started'}[m],td=wtD(today()),c0=wtD(ph.since);
+const r=f.ok?-f.sl:null,los=r!=null&&r>=.05;
+let v;if(!f.ok)v='After a few more weigh-ins';else if(!los)v='Not losing yet';else{const k=Math.max(0,(f.end-gw)/r);v=k>260?'More than 5 years':new Date(f.e+k*6048e5).toLocaleDateString(undefined,{month:'short',year:'numeric'})}
+const early=f.ok&&los&&wtD(f.from)<c0+14*864e5&&td<c0+42*864e5&&(s.pace==null||r>-s.pace);
+const hint=f.ok?`From a straight line through your ${f.n} weigh-ins ${m==='st'?'since your '+nm+' started':'since '+E(dsh({t:f.from}))}, so it moves with every weigh-in${m==='2w'?' and swings more than At your pace':''}.${early?` Early in a ${nm}, water weight comes off fast, so this looks faster than it will stay.`:''}`:`Needs 5 weigh-ins spread over at least a week ${m==='st'?'since your '+nm+' started':'in the '+lab.toLowerCase()} (${f.n} so far).`;
+return `<div class="chips gfm">${[['2w','2 weeks'],['4w','4 weeks'],['st','Since start']].map(([k,l])=>`<button class="chip" aria-pressed="${m===k}" data-a="gfm" data-v="${k}">${l}</button>`).join('')}</div><div class="gdt"><div><span>${E(lab)}${los?' ('+f1(r)+' lb a week)':''}</span><b>${E(v)}</b></div></div><p class="hint">${hint}</p>`}
 function goalCard(){if(!window.__SA)return '';const s=wtStats();if(!s)return '';const{L,ps,ph,gw,proj,projT,pace}=s,bar=pc=>`<div class="pb gpb" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pc)}"><i style="width:${Math.max(0,Math.min(100,pc)).toFixed(1)}%"></i></div>`,yd=t=>{const d=new Date(t+'T12:00:00');return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})};
 if(ph.k==='cut'){if(!ps||!(gw>0)||!(ps.w>gw))return '';const tot=ps.w-gw,dn=ps.w-L.w,pc=Math.max(0,Math.min(100,dn/tot*100)),left=Math.max(0,L.w-gw);
 if(left<=0)return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Goal reached:</b> ${f1(L.w)} lb, at or under ${Math.round(gw)} lb (${ph.g.bf}% body fat at your lean mass).</p>${bar(100)}<p class="hint">A DEXA scan confirms where your body fat landed. Then pick what’s next under Plan.</p></section>`;
 const yp=pace!=null&&pace<0?(proj||'More than 5 years'):pace!=null?'Not losing yet':'After 2 weeks of weigh-ins';
 const rows=`<div class="gdt"><div><span>Planned (${ph.r} lb a week)</span><b>${E(projT||'-')}</b></div><div><span>At your pace${pace!=null&&pace<0?' ('+f1(-pace)+' lb a week)':''}</span><b>${E(yp)}</b></div></div>`;
-return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>${Math.round(pc)}%</b> of the way to ${Math.round(gw)} lb (${ph.g.bf}% body fat)</p>${bar(pc)}<p class="hint">${dn>=0?'Down '+f1(dn)+' lb':'Up '+f1(-dn)+' lb'} from ${f1(ps.w)} lb on ${E(dsh(ps))}, ${f1(left)} lb to go.</p>${rows}<p class="hint">Both dates come from your weekly average weight, so they move as each week’s weigh-ins come in.</p></section>`}
+return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>${Math.round(pc)}%</b> of the way to ${Math.round(gw)} lb (${ph.g.bf}% body fat)</p>${bar(pc)}<p class="hint">${dn>=0?'Down '+f1(dn)+' lb':'Up '+f1(-dn)+' lb'} from ${f1(ps.w)} lb on ${E(dsh(ps))}, ${f1(left)} lb to go.</p>${rows}<p class="hint">Planned and At your pace come from your weekly average weight, so they move as each week’s weigh-ins come in.</p>${gfRow(s)}</section>`}
 if((ph.k==='recomp'||ph.k==='bulk')&&ph.g&&ph.g.wk){const wk=ph.g.wk,el=Math.max(0,Math.round((wtD(today())-wtD(ph.since))/864e5)),n=Math.min(wk,Math.floor(el/7)+1),pc=Math.min(100,el/(wk*7)*100),end=addD(ph.since,wk*7),nm=phN(ph.k);
 return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Week ${n} of ${wk}</b> of your ${nm}</p>${bar(pc)}<p class="hint">${el>=wk*7?`Your ${wk} weeks are up. `:`Ends around ${E(yd(end))}. `}${ph.k==='recomp'?'A recomp is judged by your lifts, your waist and your next DEXA, not the scale.':`Judged by a slow, steady gain${ph.g.cap?' and staying under '+ph.g.cap+'% body fat':''}.`}</p></section>`}
 return ''}
@@ -1673,7 +1686,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'f999e869f2',d:'Oct 22, 2026 at 11:58 PM'};
+const APP_V={h:'10ccd0b19c',d:'Oct 23, 2026 at 11:30 AM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2414,6 +2427,7 @@ if(a==='dxok'){const x=dxPend;if(!x)return;S.scans=(S.scans||[]).filter(y=>y.t!=
 if(a==='dxno'){dxPend=null;dxErr='';render();return}
 if(a==='upchk'){updCheck(false);return}
 if(a==='upgo'){updGo();return}
+if(a==='gfm'){const v=b.dataset.v;S.prof=Object.assign({},S.prof||{});if(v==='4w'||v==='st')S.prof.gm=v;else delete S.prof.gm;save();render();return}
 if(a==='evset'){const v=+b.dataset.v;S.prof=Object.assign({},S.prof||{});if(v===20)delete S.prof.ev;else S.prof.ev=v;save();render();return}
 if(a==='msok'){S.msx=(S.msx||[]).concat(b.dataset.id).slice(-300);save();render();return}
 if(a==='msall'){msAll=!msAll;render();return}
