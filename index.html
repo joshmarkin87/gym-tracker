@@ -1833,7 +1833,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'97f3c35a3b',d:'Oct 23, 2026 at 4:14 PM'};
+const APP_V={h:'4e406a8881',d:'Oct 23, 2026 at 4:42 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2375,7 +2375,7 @@ const lab=x.ss?num+(x.ss===1?'a':'b'):num;
 const n=nm(x),r=rows(n),l=last(n);
 const chips=Array.isArray(x.o)?`<div class="chips">${x.o.map(o=>`<button class="chip" aria-pressed="${o===n}" data-a="v" data-x="${x.id}" data-o="${E(o)}">${E(o)}</button>`).join('')}</div>`:'';
 const hint=x.o==='rest'?'<p class="hint">Opposite of your first bench</p>':x.ss===1?'<p class="hint">Superset: go straight to the next exercise, then rest</p>':x.ss===2?'<p class="hint">Superset: rest after this set</p>':'';
-const lnt=(FEM||window.__SA)?(()=>{for(const e of S.log)if(e.s[n]&&e.s[n].length)return e.nt&&e.nt[n]||'';return ''})():'';
+const lnt='';
 const lt=l?`<p class="last">Last time: ${l.map(a=>E((a[2]==='w'?'W ':'')+(a[0]?(AS.has(n)?a[0]+' assist':a[0]):'BW')+'×'+a[1])).join(', ')}${lnt?`<br><span class="lnt">Note: ${E(lnt)}</span>`:''}</p>`:'';
 const lw=l?l.filter(a=>a[2]!=='w'):null;
 const tp=x.r?+String(x.r).split('-').pop():0;
@@ -2396,7 +2396,7 @@ const ph=window.__SA?(((a[2]==='w')?lWu:lWk)[r.slice(0,i).filter(b=>(b[2]==='w')
 return `<div class="set"><span>${i+1}</span><input inputmode="decimal" placeholder="${E(ph[0]||'lb')}" value="${E(a[0])}" data-n="${E(n)}" data-i="${i}" data-j="0" aria-label="Set ${i+1} weight in pounds"><input inputmode="numeric" placeholder="${E(ph[1]||'reps')}" value="${E(a[1])}" data-n="${E(n)}" data-i="${i}" data-j="1" aria-label="Set ${i+1} reps"><button class="wu" aria-pressed="${a[2]==='w'}" data-a="wu" data-n="${E(n)}" data-i="${i}" aria-label="Warm-up set ${i+1}">W</button><button class="x${armed==='x'+n+'|'+i?' warn':''}" data-a="del" data-n="${E(n)}" data-i="${i}" aria-label="${armed==='x'+n+'|'+i?'Tap again to remove':'Remove'} set ${i+1}">×</button></div>`}).join('');
 const gr=goalRows(x,n),canFill=!!gr&&gr.some((v,i)=>rowEmpty(r[i]));
 const done=exDone(n),fold=done&&n!==lastEx&&n!==openEx,sum=done?r.map(a=>(a[2]==='w'?'W ':'')+(String(a[0]).trim()?(AS.has(n)?a[0]+' assist':a[0]):'BW')+'×'+String(a[1]).trim()).join(', '):'';
-return `<section class="ex${fold?' col':''}" data-ex="${E(n)}">${done?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${seatLine(n)}${hint}${lt}${gl}${up}${dn}${prog(n)}<div class="sets">${sets}</div><div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill today’s goal</button>`:''}${(FEM||window.__SA)&&!(D().nt&&n in D().nt)?`<button class="add" data-a="ntadd" data-n="${E(n)}">Add note</button>`:''}</div>${(FEM||window.__SA)&&D().nt&&n in D().nt?`<input class="sel ntin" maxlength="200" data-nt="${E(n)}" value="${E(D().nt[n]||'')}" placeholder="Note for ${E(n)} (optional)" aria-label="Note for ${E(n)}">`:''}</section>`}).join('');
+return `<section class="ex${fold?' col':''}" data-ex="${E(n)}">${done?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${seatLine(n)}${hint}${lt}${gl}${up}${dn}${prog(n)}<div class="sets">${sets}</div><div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill today’s goal</button>`:''}</div></section>`}).join('');
 const hist=S.log.slice(0,6).map((e,i)=>{
 const ds=new Date(e.t+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 const ex=Object.keys(e.s).length,st=Object.values(e.s).reduce((a,r)=>a+r.filter(q=>q[2]!=='w').length,0);
