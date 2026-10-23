@@ -659,8 +659,8 @@ let ch='-';if(bv&&lv&&typeof bv.n==='number'&&typeof lv.n==='number'&&!bv.op&&!l
 return `<span>${E(k)}</span><span>${cell(bv,bt&&bt!==b?bt:null)}</span><span>${cell(lv,lt&&lt!==c?lt:null)}</span><b>${ch}</b>`}).join('');
 return rows?`<details class="mf"><summary>${g[0]}</summary><div class="cmp"><b class="h">Marker</b><b class="h">Baseline</b><b class="h">Latest</b><b class="h">Change</b>${rows}</div></details>`:''}).join('');
 const hn=S.prof&&Array.isArray(S.prof.hn)&&S.prof.hn.length?`<p class="hint"><b>Health notes</b></p><ul class="tl">${S.prof.hn.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:'';
-const out=FEM?(()=>{const lt={};for(const l of L)for(const k in l.v||{})lt[k]={v:l.v[k],t:l.t};const o=Object.keys(lt).filter(k=>{const v=lt[k].v;return v&&(v.f==='L'||v.f==='H'||v.f==='A'||(v.f==null&&typeof v.n==='number'&&((v.lo!=null&&v.n<v.lo)||(v.hi!=null&&v.n>v.hi))))});return o.length?`<p class="hint dn"><b>Outside the lab’s range at your latest test:</b> ${o.map(k=>E(k)+' ('+E(ds(lt[k]))+')').join(', ')}. Bring these to your doctor.</p>`:''})():'';
-const rl=FEM?`<details class="mf"><summary>Reports (${L.length})</summary><ul class="tl">${L.slice().reverse().map(l=>`<li><b>${E(ds(l))}</b>${l.lab?' · '+E(l.lab):''}${(c=>c?' · cycle day '+c.day:'')(cyAt(l.t))} · ${Object.keys(l.v||{}).length} results${l.nt?' · '+E(l.nt):''}</li>`).join('')}</ul></details>`:'';
+const out=(FEM||window.__SA)?(()=>{const lt={};for(const l of L)for(const k in l.v||{})lt[k]={v:l.v[k],t:l.t};const o=Object.keys(lt).filter(k=>{const v=lt[k].v;return v&&(v.f==='L'||v.f==='H'||v.f==='A'||(v.f==null&&typeof v.n==='number'&&((v.lo!=null&&v.n<v.lo)||(v.hi!=null&&v.n>v.hi))))});return o.length?`<p class="hint dn"><b>Outside the lab’s range at your latest test:</b> ${o.map(k=>E(k)+' ('+E(ds(lt[k]))+')').join(', ')}. Bring these to your doctor.</p>`:''})():'';
+const rl=(FEM||window.__SA)?`<details class="mf"><summary>Reports (${L.length})</summary><ul class="tl">${L.slice().reverse().map(l=>`<li><b>${E(ds(l))}</b>${l.lab?' · '+E(l.lab):''}${(c=>c?' · cycle day '+c.day:'')(cyAt(l.t))} · ${Object.keys(l.v||{}).length} results${l.nt?' · '+E(l.nt):''}</li>`).join('')}</ul></details>`:'';
 return `<section class="ex"><h2>Blood work</h2>${hn}${upGo('lb')}<p class="hint">Baseline ${E(ds(b))}${L.length>1?'. Latest '+E(ds(c)):''}. Values outside the lab's own range are flagged. This shows numbers and trends only, so your doctor is the one to interpret them.</p>${out}${grp}${rl}${testList()}${tip}</section>`}
 function wtS(){return memo('wt',[S.wt,(S.wt||[]).length],()=>(S.wt||[]).slice().sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0))}
 function wtList(){return wtS().slice()}
@@ -1833,7 +1833,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'4e406a8881',d:'Oct 23, 2026 at 4:42 PM'};
+const APP_V={h:'bcfbd1ff62',d:'Oct 23, 2026 at 4:55 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2379,7 +2379,7 @@ const lnt='';
 const lt=l?`<p class="last">Last time: ${l.map(a=>E((a[2]==='w'?'W ':'')+(a[0]?(AS.has(n)?a[0]+' assist':a[0]):'BW')+'×'+a[1])).join(', ')}${lnt?`<br><span class="lnt">Note: ${E(lnt)}</span>`:''}</p>`:'';
 const lw=l?l.filter(a=>a[2]!=='w'):null;
 const tp=x.r?+String(x.r).split('-').pop():0;
-const tg=x.r?`${FEM&&(x.tl||x.pa||AS.has(n))?`<p class="tags">${x.tl?'<i>Test lift</i>':''}${x.pa?'<i>Reps per arm or leg</i>':''}${AS.has(n)?'<i>Assisted: less is harder</i>':''}</p>`:''}<p class="hint">Target: ${x.k||3} × ${E(x.r)} reps${(x.rs||RS[x.id])&&x.ss!==1?` · Rest ${x.rs||RS[x.id]}`:''}</p>`:'';
+const tg=x.r?`${(FEM||window.__SA)&&(x.tl||x.pa||AS.has(n))?`<p class="tags">${x.tl?'<i>Test lift</i>':''}${x.pa?'<i>Reps per arm or leg</i>':''}${AS.has(n)?'<i>Assisted: less is harder</i>':''}</p>`:''}<p class="hint">Target: ${x.k||3} × ${E(x.r)} reps${(x.rs||RS[x.id])&&x.ss!==1?` · Rest ${x.rs||RS[x.id]}`:''}</p>`:'';
 const asx=AS.has(n),ws=lw?lw.map(a=>parseFloat(a[0])||0):[],mw=lw&&lw.length?(asx?Math.min(...ws):Math.max(...ws)):0;
 const rc=lw&&lw.length&&tp?rec(x,n,mw,tp,x.r?+String(x.r).split('-')[0]:0,tp,1):'';
 const up=!x.nn&&tp&&lw&&lw.length&&l.length>=3&&lw.filter(a=>(parseFloat(a[0])||0)===mw).every(a=>(parseFloat(a[1])||0)>=tp)?`<p class="hint up">Hit ${tp} reps${mw||asx?` at ${mw} lb${asx?' of assistance':''}`:''} last time. ${rc?rc+' '+TD+'.':(x.hr||'Go heavier today.').replace(/ today\.$/,' '+TD+'.')}</p>`:'';
