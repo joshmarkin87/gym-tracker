@@ -234,10 +234,68 @@ if(!(await bar(f)))throw{code:'declined'}}};
 window.claude={use:async n=>n==='db'?db:n==='user'?{id:async()=>'me'}:n==='downloads'?downloads:null};
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+// ===== Safety net =====
+// The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
+// instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
+// error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
+const SFV='80921a8b08',sfT0=Date.now();
+const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
+let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
+const sfN=!sfGo&&sfB&&!sfB.ok&&Math.abs(sfT0-sfB.t)<60000?(sfB.n||0)+1:1;
+sfSet('gym-sa-boot',{n:sfN,t:sfT0});sfSet('gym-sa-step',{s:'opening',t:0});
+// automated test browsers never enter safe mode (their pages reload quickly on purpose)
+window.__SAFE=navigator.webdriver!==true&&sfN>=4;
+window.__saStep=x=>{const t=Date.now()-sfT0;if(t<8000)sfSet('gym-sa-step',{s:String(x).slice(0,60),t})};
+window.__ERRS=[];
+window.__saErr=x=>{x=String(x).slice(0,300);window.__ERRS.push(x);sfSet('gym-sa-err',(sfGet('gym-sa-err')||[]).concat({x,t:Date.now()}).slice(-3))};
+window.__saUp=()=>{window.__BOOTED=true;window.__saStep('started');setTimeout(()=>{sfSet('gym-sa-boot',{n:0,t:Date.now(),ok:1});window.__saStep('running')},3000)};
+let sfFile=null;
+// the phone's quick copy first (no database read, in case the database is what fails); the database only if that copy is missing
+async function sfData(){const ok=x=>!!(x&&typeof x==='object'&&Array.isArray(x.log));let data=sfGet('gym-tracker-v1');const out={app:'gym-tracker',kind:'backup',exported:new Date().toISOString()};
+if(!ok(data)){data=null;try{const d=await get('data/users/me/tracker');if(ok(d))data=d}catch(e){}if(!data)return null;
+try{const a=await list('data/users/me/tracker/sessions/',1000);if(a&&a.length)out.sessions=a}catch(e){}
+try{const a=await list('data/users/me/tracker/food/',1000);if(a&&a.length)out.food_days=a}catch(e){}}
+out.data=data;return out}
+async function sfPrep(b){try{const o=await sfData();if(!o){b.textContent='No saved data found on this phone';return}
+const t=new Date(),p=n=>String(n).padStart(2,'0');sfFile=new File([JSON.stringify(o,null,1)],'gym-tracker-backup-'+t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate())+'.json',{type:'application/json'});
+b.disabled=false;b.textContent='Save a backup'}catch(e){b.textContent='Couldn’t prepare a backup'}}
+async function sfSave(b){const f=sfFile;if(!f)return;
+if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});b.textContent='Backup saved ✓';return}catch(e){if(e&&e.name==='AbortError')return}}
+if(await bar(f))b.textContent='Backup saved ✓'}
+async function sfUpd(b){b.disabled=true;b.textContent='Downloading…';
+try{const r=await fetch('index.html?u='+Date.now(),{cache:'no-store'}),body=await r.text();
+if(!r.ok||!/<\/html>\s*$/i.test(body))throw 0;
+if(body.indexOf("h:'"+SFV+"'")>=0){b.disabled=false;b.textContent='You already have the latest version';return}
+if(window.caches)for(const k of await caches.keys())if(/^gym-/.test(k)){const c=await caches.open(k);await c.put('index.html',new Response(body,{headers:{'content-type':'text/html; charset=utf-8'}}))}
+try{const g=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(g)await Promise.race([g.update(),new Promise(r=>setTimeout(r,4000))])}catch(e){}
+try{sessionStorage.setItem('gym-sa-go','1');sessionStorage.setItem('gym-sa-up','1')}catch(e){}sfSet('gym-sa-boot',{n:0,t:Date.now(),ok:1});location.reload()}
+catch(e){b.disabled=false;b.textContent='Couldn’t download it. Check you’re online, then tap to try again.'}}
+function sfRescue(why){let o=document.getElementById('sares');if(o){o.querySelector('.sawhy').textContent=why;return}
+o=document.createElement('div');o.id='sares';o.setAttribute('role','alertdialog');o.setAttribute('aria-label','The app hit a problem');
+o.innerHTML='<h2>The app hit a problem</h2><p>Your data is still saved on this phone. <b>Don’t delete the app from your Home Screen:</b> that would erase it.</p><p class="sawhy"></p>'
++'<button type="button" data-r="bk" disabled>Preparing a backup…</button><button type="button" data-r="up">Get the latest version</button><button type="button" data-r="go">'+(window.__SAFE?'Open the app anyway':'Try again')+'</button><p class="sasm"></p>';
+o.querySelector('.sawhy').textContent=why;
+const pv=window.__SAFE&&sfPrev&&sfPrev.s?'Last step before it closed: '+sfPrev.s+' ('+(sfPrev.t/1000).toFixed(1)+' s after opening).':'',er=(sfGet('gym-sa-err')||[]).map(x=>x.x).join(' · ');
+o.querySelector('.sasm').textContent=[pv,er?'Errors: '+er+'.':'','Version '+SFV.slice(0,7)+'.'].filter(Boolean).join(' ');
+o.addEventListener('click',e=>{const b=e.target.closest('button[data-r]');if(!b||b.disabled)return;const r=b.dataset.r;
+if(r==='bk')sfSave(b);else if(r==='up')sfUpd(b);else{try{sessionStorage.setItem('gym-sa-go','1')}catch(x){}location.reload()}});
+document.body.appendChild(o);sfPrep(o.querySelector('[data-r="bk"]'))}
+function sfBar(x){let b=document.getElementById('saerr');
+if(!b){b=document.createElement('div');b.id='saerr';b.setAttribute('role','alert');b.innerHTML='<span><b>Something went wrong.</b> A screenshot of this helps get it fixed.<small></small></span><button type="button" aria-label="Close">×</button>';b.querySelector('button').addEventListener('click',()=>b.remove());document.body.appendChild(b)}
+b.querySelector('small').textContent=x+' · Version '+SFV.slice(0,7)}
+window.addEventListener('error',e=>{const m=String(e.message||(e.error&&e.error.message)||'');if(!m||/^(Uncaught )?Script error\.?$/i.test(m)||/gym-safe/.test(m))return;if(e.error&&e.error.__rd)return;
+const x=m+(e.lineno?' (line '+e.lineno+':'+e.colno+')':'');window.__saErr(x);if(!window.__BOOTED)sfRescue('The app couldn’t start.');else sfBar(x)});
+window.addEventListener('unhandledrejection',e=>{const r=e.reason;if(!(r instanceof Error)||!/^(Type|Reference|Range|Syntax)Error$/.test(r.name))return;const x=r.name+': '+r.message;window.__saErr(x);if(window.__BOOTED)sfBar(x)});
+window.addEventListener('load',()=>setTimeout(()=>{if(!window.__BOOTED&&!window.__SAFE)sfRescue('The app didn’t finish starting.')},5000));
+if(window.__SAFE)sfRescue('It kept closing right after opening, so it’s paused here.');
 })();
 </script>
-<style>.sabar{position:fixed;left:.8rem;right:.8rem;bottom:calc(1rem + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:.8rem;padding:.7rem .9rem;border-radius:.9rem;background:var(--ink);color:var(--bg);font:15px/1.3 system-ui,-apple-system,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25)}.sabar span{flex:1;min-width:0}.sabar b,.sabar small{display:block}.sabar small{opacity:.75;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sabar a{padding:.35rem .2rem}.sabar a{color:var(--bg);font-weight:700}.sabar button{background:none;border:0;color:var(--bg);font-size:1.4rem;line-height:1;cursor:pointer}</style>
+<style>#sares{position:fixed;inset:0;z-index:100;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg,#fff);color:var(--ink,#111);padding:calc(env(safe-area-inset-top,0px) + 1.6rem) 1.2rem calc(env(safe-area-inset-bottom,0px) + 1.6rem);font:16px/1.45 system-ui,-apple-system,sans-serif}#sares h2{font-size:1.45rem;margin:0 0 .8rem}#sares p{margin:0 0 .9rem}#sares button{display:block;width:100%;margin:.6rem 0;padding:.95rem;border:0;border-radius:.8rem;font:600 17px system-ui,-apple-system,sans-serif;background:var(--acc,#0e7482);color:var(--accink,#fff);cursor:pointer}#sares button[data-r="go"]{background:none;color:var(--acc,#0e7482);border:1px solid var(--line,#ccc)}#sares button:disabled{opacity:.6}#sares .sasm{font-size:13px;opacity:.75;word-break:break-word;margin-top:1.2rem}#saerr{position:fixed;left:.8rem;right:.8rem;top:calc(env(safe-area-inset-top,0px) + .6rem);z-index:40;display:flex;gap:.6rem;align-items:flex-start;padding:.7rem .9rem;border-radius:.9rem;background:#8a1c1c;color:#fff;font:15px/1.35 system-ui,-apple-system,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25)}#saerr span{flex:1;min-width:0}#saerr small{display:block;opacity:.85;font-size:12px;word-break:break-word;margin-top:.2rem}#saerr button{background:none;border:0;color:#fff;font-size:1.4rem;line-height:1;cursor:pointer}</style>
+<style>.sabar{position:fixed;left:.8rem;right:.8rem;bottom:calc(1rem + env(safe-area-inset-bottom,0px));z-index:120;display:flex;align-items:center;gap:.8rem;padding:.7rem .9rem;border-radius:.9rem;background:var(--ink);color:var(--bg);font:15px/1.3 system-ui,-apple-system,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25)}.sabar span{flex:1;min-width:0}.sabar b,.sabar small{display:block}.sabar small{opacity:.75;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sabar a{padding:.35rem .2rem}.sabar a{color:var(--bg);font-weight:700}.sabar button{background:none;border:0;color:var(--bg);font-size:1.4rem;line-height:1;cursor:pointer}</style>
 <script>
+if(window.__SAFE)throw new Error('gym-safe');
+function STP(x){try{if(window.__saStep)window.__saStep(x)}catch(e){}}STP('main');
 var GEN=0,MEMO=new Map();function memo(k,d,f){const m=MEMO.get(k);if(m&&m.g===GEN&&m.d.length===d.length&&m.d.every((x,i)=>x===d[i]))return m.v;const v=f();MEMO.set(k,{g:GEN,d,v});return v}
 // standalone: set once at setup; the program and women's numbers follow it
 const FEM=(()=>{try{const v=JSON.parse(localStorage.getItem('gym-tracker-v1')||'null');return !!(v&&v.prof&&v.prof.sex==='f')}catch(e){return false}})();
@@ -966,12 +1024,12 @@ S.lock=Object.assign({},L,{cal,fat,carb,st});
 return SK(Object.assign(base,{v:'change',f,chg:{from:L.cal,to:cal,st0:L.st,st},m:`Change: ${txt}. Two check-ins in a row point the same way (${mvTxt(a)} ${vs}).${wn} New targets: ${fmt(cal)} cal, ${L.prot} g protein, ${carb} g carbs, ${fat} g fat, ${fmt(st)} steps.${cal!==L.cal?' Update Lose It to match.':''}`}))}
 function autoCheck(){
 if(!initDone)return;
-try{dxAct()}catch(e){}
-let dirty=ensureLock();
+STP('check-in: DEXA');try{dxAct()}catch(e){}
+STP('check-in: plan');let dirty=ensureLock();STP('check-in: weeks');
 const L=planT(),ws=wtStats(),p=phase(),pid=planId(),td=today();
 if(L&&ws){const done=ws.wk.filter(x=>x.e<td),W=done[done.length-1],ci=S.ci||[];
-if(W&&W.e>=p.since&&!ci.some(c=>c.pid===pid&&c.w===W.e)){const r=ciEval(W,done,planT()||L,ws,p);{const hw=hlRange(W.s,W.e);if(hw.nd>=4&&hw.sla<390)r.m+=` Sleep averaged ${hm(hw.sla)} a night last week; under 7 hours makes hunger and recovery harder.`}r.t=td;r.w=W.e;r.pid=pid;S.ci=ci.concat(r).slice(-60);dirty=true}}
-if(dirty)save()}
+if(W&&W.e>=p.since&&!ci.some(c=>c.pid===pid&&c.w===W.e)){STP('check-in: judging');const r=ciEval(W,done,planT()||L,ws,p);{const hw=hlRange(W.s,W.e);if(hw.nd>=4&&hw.sla<390)r.m+=` Sleep averaged ${hm(hw.sla)} a night last week; under 7 hours makes hunger and recovery harder.`}r.t=td;r.w=W.e;r.pid=pid;S.ci=ci.concat(r).slice(-60);dirty=true}}
+STP('check-in: done');if(dirty)save()}
 function ordersLine(){
 const L=planT();if(!L)return '';
 const nx=nextCheck(),ch=(S.ci||[]).filter(c=>c.pid===planId()&&c.v==='change').pop(),rec=ch&&(wtD(today())-wtD(ch.t))/864e5<7;
@@ -1833,7 +1891,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'bcfbd1ff62',d:'Oct 23, 2026 at 4:55 PM'};
+const APP_V={h:'80921a8b08',d:'Oct 23, 2026 at 6:05 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -1842,7 +1900,7 @@ let v=null;try{v=await updLatest()}catch(e){if(!silent){updMsg='Couldn’t check
 const was=updAvail;updAvail=v!==APP_V.h?v:null;if(!silent)updMsg=updAvail?'':'You have the latest version.';if(!silent||was!==updAvail)render()}
 async function updGo(){if(updBusy)return;updBusy=true;updMsg='Updating…';render();
 try{const v=updAvail||await updLatest();const r=await fetch('index.html?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const body=await r.text();
-if(!body.includes("h:'"+v+"'")){updBusy=false;updMsg='The update is still on its way to your phone. Try again in a few minutes.';render();return}
+if(!body.includes("h:'"+v+"'")||!/<\/html>\s*$/i.test(body)){updBusy=false;updMsg='The update is still on its way to your phone. Try again in a few minutes.';render();return}
 if(window.caches)for(const k of await caches.keys())if(/^gym-/.test(k)){const c=await caches.open(k);await c.put('index.html',new Response(body,{headers:{'content-type':'text/html; charset=utf-8'}}))}
 try{const g=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(g)g.update().catch(()=>{})}catch(e){}
 try{sessionStorage.setItem('gym-sa-up','1')}catch(e){}location.reload()}
@@ -1877,7 +1935,7 @@ return `<section class="ex" id="about"><h2>About you</h2><p class="hint">${windo
 // the program follows who the tracker is for; if that changed (a restored backup, or another phone), reopen once
 function feMatch(){
 if(!window.__SA)return false;const f=!!(S.prof&&S.prof.sex==='f');if(f===FEM)return false;
-let n=0;try{n=+sessionStorage.getItem('gym-sa-rl')||0;sessionStorage.setItem('gym-sa-rl',String(n+1))}catch(e){}
+let n=0;try{n=+sessionStorage.getItem('gym-sa-rl')||0;sessionStorage.setItem('gym-sa-rl',String(n+1));if(+sessionStorage.getItem('gym-sa-rl')!==n+1)n=9}catch(e){n=9}
 if(n<2){lsSet(LK,S);location.reload();return true}return false}
 
 // ===== Cycle tracker (women): logged on the Weight tab; predictions, safety flags and where it feeds in =====
@@ -2346,12 +2404,14 @@ return `<section class="ex" id="bm"><h2>Last one</h2><p class="hint">${last?`<b>
 // her tracker says "lean bulk" everywhere: fix the visible text after each draw (text only, never attributes)
 function lbFix(t){return t.replace(/(?<![Ll]ean[ -])\b([Bb])ulk(ing|s|ed)?\b/g,(m,b,x)=>(b==='B'?'Lean b':'lean b')+'ulk'+(x||''))}
 function lbWords(){if(!FEM||!app)return;const w=document.createTreeWalker(app,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))if(/ulk/.test(n.nodeValue)){const v=lbFix(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}}
-function render(){render0();lbWords()}
+var rdOk=null;
+function render(){try{render0();lbWords();rdOk=day;STP('drawn')}catch(e){rdErr(e)}}
+function rdErr(e){const m=String(e&&e.message||e),st=String(e&&e.stack||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,4).join(' ← '),v=(()=>{try{return String(APP_V.h).slice(0,7)}catch(x){return '?'}})();try{if(window.__saErr)window.__saErr('page '+day+': '+m)}catch(x){}STP('page error');try{e.__rd=1}catch(x){}setTimeout(()=>{throw e},0);app.innerHTML=`<section class="ex" id="rderr"><h2>This page hit a problem</h2><p class="hint">Your data is safe on this phone. A screenshot of this helps get it fixed.</p><p class="hint" style="word-break:break-word;font-size:.8rem"><b>${E(m)}</b>${st?'<br>'+E(st.slice(0,500)):''}<br>Page: ${E(String(day))} · Version ${E(v)}</p>${rdOk!=null&&rdOk!==day?'<button class="fin" data-a="rdback">Go back</button>':''}${window.__SA&&day!=='set'?'<button class="fin" data-a="rdset">Open Settings</button>':''}${window.__SA?'<button class="edit" data-a="bk" style="padding:.4rem 0">Save a backup</button>':''}</section>`}
 function render0(){
 acApply();
 if(needSetup()){app.innerHTML=initDone?setupHtml():'';return}
 if(window.__SA)for(const k in S.draft){const x=S.draft[k];if(x&&typeof x.ed==='string'&&x.ed!==today()){delete S.draft[k];save()}}
-GEN++;autoCheck();
+GEN++;autoCheck();STP('drawing '+day);
 const p=P[day];
 const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&wkKey(e.t)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}${st?`<i class="dot ${st}" aria-hidden="true"></i>`:''}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}${window.__SA?`<button class="tgear${updAvail||bkWhy()?' up':''}" role="tab" aria-selected="${day==='set'}" aria-label="${updAvail?'Settings, update ready':bkWhy()?'Settings, backup due':'Settings'}" data-a="tab" data-d="set"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>`:''}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
 if(day==='w'){app.innerHTML=`${tabs}${todayBar()}${weightHtml()}`;return}
@@ -2440,7 +2500,7 @@ return o}
 function save(){GEN++;clearTimeout(tm);tm=setTimeout(flush,500)}
 if(window.__SA){let sg=-1;const now=()=>{if(!dbReady||sg===GEN)return;sg=GEN;clearTimeout(tm);flush()};document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')now()});window.addEventListener('pagehide',now)}
 async function flush(){
-slim();lsSet(LK,S);
+STP('saving');slim();lsSet(LK,S);STP('saved on phone');
 if(!docRef||!dbReady)return;
 if(busy){again=true;return}
 busy=true;clearTimeout(rtT);
@@ -2509,6 +2569,7 @@ app.onclick=e=>{
 {const g=e.target.closest('a[data-clgo]');if(g){clGo(g.dataset.clgo);return}}
 const b=e.target.closest('[data-a]');if(!b)return;
 const a=b.dataset.a;
+if(a==='rdback'){day=rdOk;render();window.scrollTo(0,0);return}if(a==='rdset'){day='set';render();window.scrollTo(0,0);return}
 if(a!=='rm'&&a!=='sdel'&&a!=='wtdel'&&a!=='fddel'&&a!=='hldel'&&a!=='wsdel'&&a!=='ph'&&a!=='del'&&a!=='cyclr'&&a!=='cyrm'&&a!=='pgrm'&&a!=='pgreset'&&a!=='bmrm'&&a!=='wtrm'&&a!=='schrm')armed=null;
 if(a!=='seated'&&a!=='seatstep'&&a!=='seatdone')seatEd=null;
 if(a!=='bmundo'&&a!=='bmnow'&&a!=='bmadd')bmUndo=null;
@@ -2666,14 +2727,14 @@ if(FEM&&new Date().getHours()<12&&!(S.wt||[]).some(x=>x.t===today()))day=window.
 if(FEM)document.documentElement.classList.add('fem');
 cleanDrafts();
 const boot0=JSON.parse(J(pick(S)));
-render();
+STP('first screen');render();
 try{if(window.__SA&&sessionStorage.getItem('gym-sa-hi')){sessionStorage.removeItem('gym-sa-hi');setTimeout(()=>say('All set. Log today’s weight to get started.'),50)}}catch(e){}
 async function dbLoad(){
 clearTimeout(ldT);
 if(!docRef||dbReady||ldBusy)return;
 ldBusy=true;
 try{
-const snap=await docRef.get(),before=J(S);
+STP('loading saved data');const snap=await docRef.get(),before=J(S);STP('merging saved data');
 let need=false;
 if(snap.exists){
 const R=pick(JSON.parse(JSON.stringify(snap.data())));let base=lsGet(LKB);
@@ -2681,15 +2742,15 @@ if(!base){base=JSON.parse(J(boot0));for(const f in KF){const rk=new Set((Array.i
 if(nz(S)!==nz(base)){S=merge3(base,S,R);need=nz(S)!==nz(R)}else S=R;
 lsSet(LKB,R)}
 else need=FLDS.some(f=>f!=='draft'&&S[f]!=null&&!(Array.isArray(S[f])&&!S[f].length));
-cleanDrafts();applyProg();
+cleanDrafts();applyProg();STP('saved data loaded');
 dbReady=true;ldN=0;
 if(window.__SA&&!!(S.prof&&S.prof.sex==='f')!==FEM){lsSet(LK,S);if(need){try{await docRef.set(JSON.parse(J(S)))}catch(e){}}if(feMatch())return}
 const ae=document.activeElement,typing=ae&&ae.tagName==='INPUT'&&app.contains(ae)&&J(S)===before;
 initDone=true;
-if(typing)autoCheck();else render();
+STP('screen with saved data');if(typing)autoCheck();else render();
 if(need)flush();else lsSet(LK,S);
 {const ids=new Set();for(const e of S.log.slice().reverse()){if(!e.id)e.id=e.t+'-'+e.day;if(ids.has(e.id)){let k=2;while(ids.has(e.id+'-'+k))k++;e.id=e.id+'-'+k;e.a=0}ids.add(e.id)}}
-for(const e of S.log){if(!e.a)await arch(e)}
+STP('archiving');for(const e of S.log){if(!e.a)await arch(e)}
 for(const e of (S.food||[]))if(!e.a)await archF(e)
 }catch(e){if(!dbReady){ldN++;ldT=setTimeout(dbLoad,Math.min(60000,10000*ldN))}}
 finally{ldBusy=false;if(!initDone){initDone=true;render()}}}
@@ -2703,6 +2764,7 @@ if(id){docRef=db.doc('data/users/'+id+'/tracker');coll=db.collection('data/users
 }catch(e){}
 if(docRef)await dbLoad();
 if(!initDone){initDone=true;render()}})();
+if(window.__saUp)window.__saUp();
 </script>
 </body>
 </html>
