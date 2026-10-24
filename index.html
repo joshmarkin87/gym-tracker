@@ -238,7 +238,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='ec71380042',sfT0=Date.now();
+const SFV='f40df0bb91',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -448,7 +448,7 @@ function recapHtml(k,title){
 const W=weeks(),w=W.find(x=>x.k===k);
 if(!w)return '';
 const pw=W[W.indexOf(w)+1],ch=pw&&pw.vol>0&&title!=='This week so far'?Math.round((w.vol/pw.vol-1)*100):null;
-let pr=0;for(const e of S.log)if(wkKey(e.t)===k)pr+=e.pr||0;
+let pr=0;for(const e of S.log)if(logWk(e)===k)pr+=e.pr||0;
 const c=checkRows();
 return `<p><b>${E(title)}:</b> ${w.n} workouts, ${w.sets} sets, ${fmt(w.vol)} lb${ch===null?'':' ('+(ch>=0?'+':'')+ch+'% vs the week before)'}. ${pr} new best${pr===1?'':'s'}.${c.rows.length?' Strength: '+strLine(c)+'.':''}</p>`}
 // ===== Standalone: the recap by weigh-in week =====
@@ -458,7 +458,7 @@ const td=today(),a0=wtD(ws.st.t),i=Math.floor(Math.round((wtD(td)-a0)/864e5)/7);
 const rng=k=>{const s0=new Date(a0),e0=new Date(a0);s0.setDate(s0.getDate()+7*k);e0.setDate(e0.getDate()+7*k+6);return[isoD(s0),isoD(e0)]};
 const[cs,ce]=rng(i),dn=t=>FN[new Date(t+'T12:00:00').getDay()];
 const how=`<p class="hint">Your weeks run ${dn(cs)} to ${dn(ce)} (they start on the weekday of your first weigh-in), the same weeks the check-in uses. Read last week’s recap on ${dn(cs)}, the day it closes and the check-in runs.</p>`;
-const gym=(s0,e0)=>{const L=S.log.filter(e=>e.t>=s0&&e.t<=e0);let sets=0,vol=0,pr=0;for(const e of L){pr+=e.pr||0;for(const[n,r]of Object.entries(e.s))for(const a of r){if(a[2]==='w')continue;sets++;const x=parseFloat(a[0])||0;vol+=(AS.has(n)?Math.max(0,(bwAt(e.t)||0)-x):x)*(parseFloat(a[1])||0)}}return{n:L.length,sets,vol,pr}};
+const gym=(s0,e0)=>{const L=S.log.filter(e=>{const k=logWk(e);return k>=s0&&k<=e0});let sets=0,vol=0,pr=0;for(const e of L){pr+=e.pr||0;for(const[n,r]of Object.entries(e.s))for(const a of r){if(a[2]==='w')continue;sets++;const x=parseFloat(a[0])||0;vol+=(AS.has(n)?Math.max(0,(bwAt(e.t)||0)-x):x)*(parseFloat(a[1])||0)}}return{n:L.length,sets,vol,pr}};
 const out=[how];
 // one week's lines; now = this week so far
 const wkLines=(s0,e0,now)=>{const g=gym(s0,e0),w=ws.wk.find(x=>x.s===s0),f=fdWeeks().find(x=>x.s===s0),h=hlWeeks().find(x=>x.s===s0),c=now?null:checkRows(),av=now?'averaging':'averaged',th=now?'this week so far':'that week',o=[];
@@ -1071,7 +1071,7 @@ for(const m of[7,30,60,100]){if(wr.hit[m])add('ws'+m+'@'+wr.hit[m],wr.hit[m],m+'
 for(const m of[7,30,60]){if(fr.hit[m])add('fs'+m+'@'+fr.hit[m],fr.hit[m],m+' days of food logged in a row');else{next.push(m+'-day food streak ('+(m-fr.cur)+' days to go)');break}}
 const tg=stTarget(),sr=msRun(hlList().filter(x=>x.st!=null&&x.st>=tg&&(x.t<td||stToday())).map(x=>x.t),td,[]);
 // gym weeks with every planned workout done
-const per={};for(const e of S.log){const k=wkKey(e.t);per[k]=(per[k]||0)+1}const N=ORDER.length,cw=wkKey(td),full=Object.keys(per).filter(k=>per[k]>=N).sort();
+const per={};for(const e of S.log){const k=logWk(e);per[k]=(per[k]||0)+1}const N=ORDER.length,cw=wkKey(td),full=Object.keys(per).filter(k=>per[k]>=N).sort();
 let gb=0,run=0,prev=null;const gh={};for(const k of full){run=prev&&addD(prev,7)===k?run+1:1;prev=k;if(run>gb)gb=run;for(const m of[4,8,12])if(run===m&&!gh[m])gh[m]=addD(k,6)}
 let gc=0;{let k=per[cw]>=N?cw:addD(cw,-7);while(per[k]>=N){gc++;k=addD(k,-7)}}
 for(const m of[4,8,12]){if(gh[m])add('gw'+m+'@'+gh[m],gh[m]<=td?gh[m]:td,m+' weeks in a row with every workout done');else{next.push(m+' perfect gym weeks in a row ('+(m-gc)+' to go)');break}}
@@ -1650,7 +1650,7 @@ if(wk.length){
 const mx=Math.max(...wk.map(w=>w.vol),1);
 c1=`<div class="bars">${wk.map(w=>`<div class="bar"><i style="height:${Math.max(2,Math.round(w.vol/mx*110))}px"></i><b>${w.n}</b><span>${E(dfmt(w.k))}</span></div>`).join('')}</div><p class="hint">Bar height is weekly volume (weight × reps).${window.__SA?asNote(null,0,1):' Pull-ups and dips count your body weight minus the assistance.'} The number is workouts that week.</p>`}
 const cnt={};
-for(const e of S.log){if(wkKey(e.t)!==ck)continue;for(const[n,r]of Object.entries(e.s)){const m=M2[n];if(m)cnt[m]=(cnt[m]||0)+r.filter(a=>a[2]!=='w').length}}
+for(const e of S.log){if(logWk(e)!==ck)continue;for(const[n,r]of Object.entries(e.s)){const m=M2[n];if(m)cnt[m]=(cnt[m]||0)+r.filter(a=>a[2]!=='w').length}}
 const c2=Object.keys(MUS).map(m=>{const v=cnt[m]||0;return `<div class="mrow"><span>${E(m)}</span><div class="mt"><i style="width:${Math.min(100,v*5)}%"></i></div><b>${v}</b></div>`}).join('');
 const nn={};
 for(const e of S.log)for(const n in e.s)nn[n]=(nn[n]||0)+1;
@@ -1668,14 +1668,18 @@ const dots=xy.map(q=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r=
 let best=null;for(const e of S.log.slice().reverse()){const b=sbest(pSel,e.s[pSel],e.t);if(b&&better(b,best&&best.b))best={t:e.t,b}}
 const lp=use[use.length-1];
 c3=`<select class="sel" data-sel="1" aria-label="Choose a lift">${lifts.map(n=>`<option${n===pSel?' selected':''}>${E(n)}</option>`).join('')}</select>${lpOK?`<div class="chips lpm">${[['top','Top set'],['e1','Est. max'],['bw','× body weight']].map(([k,l])=>`<button class="chip" aria-pressed="${lm===k}" data-a="lpm" data-v="${k}">${l}</button>`).join('')}</div>`:''}<svg class="ch" viewBox="0 0 ${CW} ${H}" width="100%" role="img" aria-label="Top set trend"><path d="${path}"></path>${dots}</svg><p class="hint">${lm==='e1'?`Estimated one-rep max (lb) from your best set each session, sets over 12 reps counted as 12, so more reps at the same weight show as progress. Latest ${Math.round(use[use.length-1].e)} lb, first here ${Math.round(use[0].e)} lb.`:lm==='bw'?`Estimated max divided by your body weight that day. ${phase().k==='cut'?'On a cut it climbs while you hold strength.':'It climbs as you get stronger for your size.'} Latest ${use[use.length-1].x.toFixed(2)}× BW, first here ${use[0].x.toFixed(2)}×.`:''}${lm!=='top'?'</p><p class="hint">':''}${AS.has(pSel)?'Top set (higher means less assistance)':byW?'Top set weight (lb)':'Top set reps'} over your last ${use.length} sessions. Latest ${E(tsx(lp))}${best?`, best ${E(bsx(best.b))} on ${E(dfmt(best.t))}`:''}.</p>`}
-return `<h1>Gym progress</h1><p class="sub">Your lifts over time. Updates when you finish a workout.${window.__SA?' <button class="edit" data-a="schopen" style="padding:0">Change workout days</button>':''}</p>${phaseLine()}${checkSec()}${recSec()}<section class="ex"><h2>Lift progress</h2>${c3}</section><section class="ex"><h2>Weekly volume</h2>${c1}</section><section class="ex"><h2>Sets per muscle this week</h2>${c2}<p class="hint">${window.__SA?'Direct sets from this week’s finished workouts (Monday to Sunday), scale 0-20.':'Direct sets, scale 0-20.'} The line marks 10. Presses and pulls also work your arms.</p></section>${stallSec()}`}
+return `<h1>Gym progress</h1><p class="sub">Your lifts over time. Updates when you finish a workout.${window.__SA?' <button class="edit" data-a="schopen" style="padding:0">Change workout days</button>':''}</p>${phaseLine()}${checkSec()}${recSec()}<section class="ex"><h2>Lift progress</h2>${c3}</section><section class="ex"><h2>Weekly volume</h2>${c1}</section><section class="ex"><h2>Sets per muscle this week</h2>${c2}<p class="hint">${window.__SA?'Direct sets from this week’s finished workouts ('+FN[wkDow()]+' to '+FN[(wkDow()+6)%7]+'), scale 0-20.':'Direct sets, scale 0-20.'} The line marks 10. Presses and pulls also work your arms.</p></section>${stallSec()}`}
 function progressHtml(){return `<h1>Progress</h1><p class="sub">Your weekly check-in, recap, body composition and blood work. Your phase and daily numbers are under Plan; lifting progress is under Gym.</p>${goalCard()}${msSec()}${ciCard()}${recapSec()}${bodySec()}${labSec()}${FEM?cyProg():''}${window.__SA?'':bkSec()}`}
 function planHtml(){return `<h1>Plan</h1><p class="sub">Your phase, your daily numbers and your full plan. The weekly check-in on the Progress tab adjusts the numbers; changing your phase, goal or steps here resets them.</p>${phaseWarn()}${phaseCard()}${planCard()}${window.__SA?'':aboutSec()}`}
-function wkKey(t){const d=new Date(t+'T12:00:00');d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+// workout weeks start on the weekday of the first weigh-in, the same weeks as the weigh-ins and check-ins (Monday before any)
+function wkDow(){return memo('wkd',[S.wt,(S.wt||[]).length],()=>{const w=wtS();return w.length?new Date(w[0].t+'T12:00:00').getDay():1})}
+// the week a workout counts toward: the week of the day it was for (that weekday nearest the date it was done, within 3 days)
+function logWk(e){const d=new Date(e.t+'T12:00:00'),dd=+e.day;if(!(dd>=0&&dd<=6&&dd%1===0))return wkKey(e.t);let df=(dd-d.getDay()+7)%7;if(df>3)df-=7;d.setDate(d.getDate()+df);return wkKey(isoD(d))}
+function wkKey(t){const d=new Date(t+'T12:00:00');d.setDate(d.getDate()-(d.getDay()-wkDow()+7)%7);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function weeks(){
 const m={};
 for(const e of S.log){
-const k=wkKey(e.t),w=m[k]||(m[k]={k,n:0,sets:0,vol:0});
+const k=logWk(e),w=m[k]||(m[k]={k,n:0,sets:0,vol:0});
 w.n++;
 for(const[n,r]of Object.entries(e.s))for(const a of r){if(a[2]==='w')continue;w.sets++;const x=parseFloat(a[0])||0;w.vol+=(AS.has(n)?Math.max(0,bwAt(e.t)-x):x)*(parseFloat(a[1])||0)}}
 return Object.values(m).sort((a,b)=>a.k<b.k?1:-1)}
@@ -1894,7 +1898,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'ec71380042',d:'Oct 24, 2026 at 10:25 AM'};
+const APP_V={h:'f40df0bb91',d:'Oct 24, 2026 at 10:56 AM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2416,7 +2420,7 @@ if(needSetup()){app.innerHTML=initDone?setupHtml():'';return}
 if(window.__SA)for(const k in S.draft){const x=S.draft[k];if(x&&typeof x.ed==='string'&&x.ed!==today()){delete S.draft[k];save()}}
 GEN++;autoCheck();STP('drawing '+day);
 const p=P[day];
-const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&wkKey(e.t)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}${st?`<i class="dot ${st}" aria-hidden="true"></i>`:''}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}${window.__SA?`<button class="tgear${updAvail||bkWhy()?' up':''}" role="tab" aria-selected="${day==='set'}" aria-label="${updAvail?'Settings, update ready':bkWhy()?'Settings, backup due':'Settings'}" data-a="tab" data-d="set"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>`:''}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
+const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&logWk(e)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}${st?`<i class="dot ${st}" aria-hidden="true"></i>`:''}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}${window.__SA?`<button class="tgear${updAvail||bkWhy()?' up':''}" role="tab" aria-selected="${day==='set'}" aria-label="${updAvail?'Settings, update ready':bkWhy()?'Settings, backup due':'Settings'}" data-a="tab" data-d="set"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>`:''}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
 if(day==='w'){app.innerHTML=`${tabs}${todayBar()}${weightHtml()}`;return}
 if(day==='p'){app.innerHTML=`${tabs}${todayBar()}${progressHtml()}`;return}
 if(day==='g'){app.innerHTML=`${tabs}${todayBar()}${gymProgHtml()}`;return}
@@ -2567,7 +2571,7 @@ if(d.ed&&d.id)S.log=S.log.filter(e=>e.id!==d.id);
 let nid=d.id;if(!nid||S.log.some(e=>e.id===nid)){do{nid=Date.now().toString(36)+Math.random().toString(36).slice(2,6)}while(S.log.some(e=>e.id===nid))}
 const ent={id:nid,t:d.t||today(),day,s,pr:prs.length};if((FEM||window.__SA)&&d.nt){const nt={};for(const k in d.nt){const v=String(d.nt[k]||'').trim();if(s[k]&&v)nt[k]=v.slice(0,200)}if(Object.keys(nt).length)ent.nt=nt}if(FEM){const ca=cyAt(ent.t);if(ca){ent.cd=ca.day;if(ca.ph)ent.cp=ca.ph}}{const bx=window.__SA?(P[day]&&P[day].x.find(q=>q.id==='b1')):(day===4?P[4].x[0]:null);if(bx)ent.b1=nm(bx)}S.log.unshift(ent);S.log.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0);if(S.log.length>120){const x=S.log.slice(120),gone=x.filter(e=>e.a&&coll);if(gone.length){recFold(gone);S.log=S.log.slice(0,120).concat(x.filter(e=>!(e.a&&coll)))}}arch(ent);delete S.draft[day];
 const wasEd=!!(window.__SA&&d.ed);if(window.__SA)wTouch.clear();
-wkAlert=wasEd?'':(()=>{const k=wkKey(ent.t),w=weeks().find(x=>x.k===k);return w&&w.n>=ORDER.length?recapHtml(k,'Week complete'):''})();prAlert=wasEd?[]:prs;upAlert=wasEd?[]:ups;dnAlert=wasEd?[]:downs;save();render();window.scrollTo(0,0);say(wasEd?'Changes saved':prs.length?'Workout saved. New best!':'Workout saved')}
+wkAlert=wasEd?'':(()=>{const k=logWk(ent),w=weeks().find(x=>x.k===k);return w&&w.n>=ORDER.length?recapHtml(k,'Week complete'):''})();prAlert=wasEd?[]:prs;upAlert=wasEd?[]:ups;dnAlert=wasEd?[]:downs;save();render();window.scrollTo(0,0);say(wasEd?'Changes saved':prs.length?'Workout saved. New best!':'Workout saved')}
 app.onclick=e=>{
 {const g=e.target.closest('a[data-clgo]');if(g){clGo(g.dataset.clgo);return}}
 const b=e.target.closest('[data-a]');if(!b)return;
@@ -2726,8 +2730,8 @@ app.addEventListener('paste',e=>{const t=e.target;if(t&&t.id==='cltx'){e.prevent
 app.addEventListener('toggle',e=>{const t=e.target;if(t.classList&&t.classList.contains('prog')){t.open?OPEN.add(t.dataset.n):OPEN.delete(t.dataset.n)}},true);
 try{const j=JSON.parse(localStorage.getItem(LK));if(j&&Array.isArray(j.log))S=pick(j)}catch(e){}
 applyProg();
-// opening day: the next workout this week (today or later, Monday-to-Sunday weeks) not logged yet; if none, next week's first
-function nextGymDay(){if(!ORDER.length)return null;const td=today(),wk=wkKey(td),mi=d=>(d+6)%7,ti=mi(new Date(td+'T12:00:00').getDay()),done=new Set(S.log.filter(e=>e&&e.t&&wkKey(e.t)===wk).map(e=>+e.day)),ds=ORDER.slice().sort((a,b)=>mi(a)-mi(b)),up=ds.find(d=>mi(d)>=ti&&!done.has(d));return up!=null?up:ds[0]}
+// opening day: the next workout this week (today or later, weeks as above) not logged yet; if none, next week's first
+function nextGymDay(){if(!ORDER.length)return null;const td=today(),wk=wkKey(td),w0=wkDow(),mi=d=>(d-w0+7)%7,ti=mi(new Date(td+'T12:00:00').getDay()),done=new Set(S.log.filter(e=>e&&e.t&&logWk(e)===wk).map(e=>+e.day)),ds=ORDER.slice().sort((a,b)=>mi(a)-mi(b)),up=ds.find(d=>mi(d)>=ti&&!done.has(d));if(up!=null)return up;const nx=new Set(S.log.filter(e=>e&&e.t&&logWk(e)===addD(wk,7)).map(e=>+e.day)),n2=ds.find(d=>!nx.has(d));return n2!=null?n2:ds[0]}
 if(window.__SA){const nx=nextGymDay();if(nx!=null){day=nx;gymLast=nx}}
 if((FEM||window.__SA)&&new Date().getHours()<12&&!(S.wt||[]).some(x=>x.t===today()))day=window.__SA?'hk':'w';
 if(FEM)document.documentElement.classList.add('fem');
