@@ -239,7 +239,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='fb35b1ec5f',sfT0=Date.now();
+const SFV='d9274ce130',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1899,7 +1899,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'fb35b1ec5f',d:'Oct 24, 2026 at 11:53 AM'};
+const APP_V={h:'d9274ce130',d:'Oct 24, 2026 at 12:16 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -1911,7 +1911,7 @@ try{const v=updAvail||await updLatest();const r=await fetch('index.html?u='+Date
 if(!body.includes("h:'"+v+"'")||!/<\/html>\s*$/i.test(body)){updBusy=false;updMsg='The update is still on its way to your phone. Try again in a few minutes.';render();return}
 if(window.caches)for(const k of await caches.keys())if(/^gym-/.test(k)){const c=await caches.open(k);await c.put('index.html',new Response(body,{headers:{'content-type':'text/html; charset=utf-8'}}))}
 try{const g=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(g)g.update().catch(()=>{})}catch(e){}
-try{sessionStorage.setItem('gym-sa-up','1')}catch(e){}location.reload()}
+try{sessionStorage.setItem('gym-sa-up','1');sessionStorage.setItem('gym-sa-pg',JSON.stringify({d:day,y:Math.round(scrollY)}))}catch(e){}location.reload()}
 catch(e){updBusy=false;updMsg='Couldn’t download the update. Make sure you’re online, then try again.';render()}}
 function setVer(){const pr=S.prof||{};
 return `<section class="ex" id="setev"><h2>Evening sync</h2><div class="chips">${[18,19,20,21].map(h=>`<button class="chip" aria-pressed="${evH()===h}" data-a="evset" data-v="${h}">${h-12} pm</button>`).join('')}</div><p class="hint">Today’s food and steps are only saved when you paste after this time, so a half-finished day doesn’t count against you. Pick when you’re usually done eating for the day. Any earlier paste still brings in everything else, and the next morning’s paste fills in the full day.</p></section>`
@@ -2413,7 +2413,14 @@ return `<section class="ex" id="bm"><h2>Last one</h2><p class="hint">${last?`<b>
 function lbFix(t){return t.replace(/(?<![Ll]ean[ -])\b([Bb])ulk(ing|s|ed)?\b/g,(m,b,x)=>(b==='B'?'Lean b':'lean b')+'ulk'+(x||''))}
 function lbWords(){if(!FEM||!app)return;const w=document.createTreeWalker(app,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode()))if(/ulk/.test(n.nodeValue)){const v=lbFix(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}}
 var rdOk=null;
-function render(){try{render0();lbWords();rdOk=day;STP('drawn')}catch(e){rdErr(e)}}
+// keep what you tapped in place: a tap that redraws the same page scrolls so the tapped button (or its card) stays put
+let tapAnc=null;
+function ancSel(el){const ks=el&&el.dataset?Object.keys(el.dataset):[];if(!ks.length)return null;try{return ks.map(k=>'[data-'+k.replace(/[A-Z]/g,m=>'-'+m.toLowerCase())+'="'+CSS.escape(el.dataset[k])+'"]').join('')}catch(e){return null}}
+function ancSet(t){tapAnc=null;const b=t&&t.closest?t.closest('[data-a]'):null;if(!b||!app.contains(b))return;const c=b.closest('section.ex[data-ex]');let s2=null;try{s2=c?'section.ex[data-ex="'+CSS.escape(c.dataset.ex)+'"]':null}catch(e){}tapAnc={s1:ancSel(b),s2,ex:c?c.dataset.ex:null,y1:b.getBoundingClientRect().top,y2:c?c.getBoundingClientRect().top:null,d:day};setTimeout(()=>{tapAnc=null},0)}
+// the tapped button's exercise card when it's still the same exercise (so Add set still grows the card downward);
+// the button itself when the card changed (an exercise option); the card when the button is gone
+function ancFix(){const a=tapAnc;tapAnc=null;if(!a||a.d!==day)return;let el=null,y=null,b=null;try{b=a.s1&&app.querySelector(a.s1)}catch(e){}if(b){const c=b.closest('section.ex[data-ex]');if(c&&a.ex!=null&&c.dataset.ex===a.ex){el=c;y=a.y2}else{el=b;y=a.y1}}else if(a.s2){try{el=app.querySelector(a.s2)}catch(e){}y=a.y2}if(!el||!el.offsetParent||y==null)return;const dy=el.getBoundingClientRect().top-y;if(Math.abs(dy)>2)window.scrollBy(0,dy)}
+function render(){try{render0();lbWords();rdOk=day;STP('drawn');ancFix()}catch(e){rdErr(e)}}
 function rdErr(e){const m=String(e&&e.message||e),st=String(e&&e.stack||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,4).join(' ← '),v=(()=>{try{return String(APP_V.h).slice(0,7)}catch(x){return '?'}})();try{if(window.__saErr)window.__saErr('page '+day+': '+m)}catch(x){}STP('page error');try{e.__rd=1}catch(x){}setTimeout(()=>{throw e},0);app.innerHTML=`<section class="ex" id="rderr"><h2>This page hit a problem</h2><p class="hint">Your data is safe on this phone. A screenshot of this helps get it fixed.</p><p class="hint" style="word-break:break-word;font-size:.8rem"><b>${E(m)}</b>${st?'<br>'+E(st.slice(0,500)):''}<br>Page: ${E(String(day))} · Version ${E(v)}</p>${rdOk!=null&&rdOk!==day?'<button class="fin" data-a="rdback">Go back</button>':''}${window.__SA&&day!=='set'?'<button class="fin" data-a="rdset">Open Settings</button>':''}${window.__SA?'<button class="edit" data-a="bk" style="padding:.4rem 0">Save a backup</button>':''}</section>`}
 function render0(){
 acApply();
@@ -2443,7 +2450,7 @@ const lab=x.ss?num+(x.ss===1?'a':'b'):num;
 const n=nm(x),r=rows(n),l=last(n);
 const chips=Array.isArray(x.o)?`<div class="chips">${x.o.map(o=>`<button class="chip" aria-pressed="${o===n}" data-a="v" data-x="${x.id}" data-o="${E(o)}">${E(o)}</button>`).join('')}</div>`:'';
 const hint=x.o==='rest'?'<p class="hint">Opposite of your first bench</p>':x.ss===1?'<p class="hint">Superset: go straight to the next exercise, then rest</p>':x.ss===2?'<p class="hint">Superset: rest after this set</p>':'';
-const lnt='';
+const lnt=FEM?(()=>{for(const e of S.log)if(e.s[n]&&e.s[n].length)return e.nt&&e.nt[n]||'';return ''})():'';
 const lt=l?`<p class="last">Last time: ${l.map(a=>E((a[2]==='w'?'W ':'')+(a[0]?(AS.has(n)?a[0]+' assist':a[0]):'BW')+'×'+a[1])).join(', ')}${lnt?`<br><span class="lnt">Note: ${E(lnt)}</span>`:''}</p>`:'';
 const lw=l?l.filter(a=>a[2]!=='w'):null;
 const tp=x.r?+String(x.r).split('-').pop():0;
@@ -2464,7 +2471,7 @@ const ph=window.__SA?(((a[2]==='w')?lWu:lWk)[r.slice(0,i).filter(b=>(b[2]==='w')
 return `<div class="set"><span>${i+1}</span><input inputmode="decimal" placeholder="${E(ph[0]||'lb')}" value="${E(a[0])}" data-n="${E(n)}" data-i="${i}" data-j="0" aria-label="Set ${i+1} weight in pounds"><input inputmode="numeric" placeholder="${E(ph[1]||'reps')}" value="${E(a[1])}" data-n="${E(n)}" data-i="${i}" data-j="1" aria-label="Set ${i+1} reps"><button class="wu" aria-pressed="${a[2]==='w'}" data-a="wu" data-n="${E(n)}" data-i="${i}" aria-label="Warm-up set ${i+1}">W</button><button class="x${armed==='x'+n+'|'+i?' warn':''}" data-a="del" data-n="${E(n)}" data-i="${i}" aria-label="${armed==='x'+n+'|'+i?'Tap again to remove':'Remove'} set ${i+1}">×</button></div>`}).join('');
 const gr=goalRows(x,n),canFill=!!gr&&gr.some((v,i)=>rowEmpty(r[i]));
 const done=exDone(n),fold=done&&n!==lastEx&&n!==openEx,sum=done?r.map(a=>(a[2]==='w'?'W ':'')+(String(a[0]).trim()?(AS.has(n)?a[0]+' assist':a[0]):'BW')+'×'+String(a[1]).trim()).join(', '):'';
-return `<section class="ex${fold?' col':''}" data-ex="${E(n)}">${done?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${seatLine(n)}${hint}${lt}${gl}${up}${dn}${prog(n)}<div class="sets">${sets}</div><div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill today’s goal</button>`:''}</div></section>`}).join('');
+return `<section class="ex${fold?' col':''}" data-ex="${E(n)}">${done?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${seatLine(n)}${hint}${lt}${gl}${up}${dn}${prog(n)}<div class="sets">${sets}</div><div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill today’s goal</button>`:''}${FEM&&!(D().nt&&n in D().nt)?`<button class="add" data-a="ntadd" data-n="${E(n)}">Add note</button>`:''}</div>${FEM&&D().nt&&n in D().nt?`<input class="sel ntin" maxlength="200" data-nt="${E(n)}" value="${E(D().nt[n]||'')}" placeholder="Note for ${E(n)} (optional)" aria-label="Note for ${E(n)}">`:''}</section>`}).join('');
 const hist=S.log.slice(0,6).map((e,i)=>{
 const ds=new Date(e.t+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 const ex=Object.keys(e.s).length,st=Object.values(e.s).reduce((a,r)=>a+r.filter(q=>q[2]!=='w').length,0);
@@ -2573,6 +2580,7 @@ let nid=d.id;if(!nid||S.log.some(e=>e.id===nid)){do{nid=Date.now().toString(36)+
 const ent={id:nid,t:d.t||today(),day,s,pr:prs.length};if((FEM||window.__SA)&&d.nt){const nt={};for(const k in d.nt){const v=String(d.nt[k]||'').trim();if(s[k]&&v)nt[k]=v.slice(0,200)}if(Object.keys(nt).length)ent.nt=nt}if(FEM){const ca=cyAt(ent.t);if(ca){ent.cd=ca.day;if(ca.ph)ent.cp=ca.ph}}{const bx=window.__SA?(P[day]&&P[day].x.find(q=>q.id==='b1')):(day===4?P[4].x[0]:null);if(bx)ent.b1=nm(bx)}S.log.unshift(ent);S.log.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0);if(S.log.length>120){const x=S.log.slice(120),gone=x.filter(e=>e.a&&coll);if(gone.length){recFold(gone);S.log=S.log.slice(0,120).concat(x.filter(e=>!(e.a&&coll)))}}arch(ent);delete S.draft[day];
 const wasEd=!!(window.__SA&&d.ed);if(window.__SA)wTouch.clear();
 wkAlert=wasEd?'':(()=>{const k=logWk(ent),w=weeks().find(x=>x.k===k);return w&&w.n>=ORDER.length?recapHtml(k,'Week complete'):''})();prAlert=wasEd?[]:prs;upAlert=wasEd?[]:ups;dnAlert=wasEd?[]:downs;save();render();window.scrollTo(0,0);say(wasEd?'Changes saved':prs.length?'Workout saved. New best!':'Workout saved')}
+app.addEventListener('click',e=>ancSet(e.target),true);
 app.onclick=e=>{
 {const g=e.target.closest('a[data-clgo]');if(g){clGo(g.dataset.clgo);return}}
 const b=e.target.closest('[data-a]');if(!b)return;
@@ -2735,10 +2743,12 @@ applyProg();
 function nextGymDay(){if(!ORDER.length)return null;const td=today(),wk=wkKey(td),w0=wkDow(),mi=d=>(d-w0+7)%7,ti=mi(new Date(td+'T12:00:00').getDay()),done=new Set(S.log.filter(e=>e&&e.t&&logWk(e)===wk).map(e=>+e.day)),ds=ORDER.slice().sort((a,b)=>mi(a)-mi(b)),up=ds.find(d=>mi(d)>=ti&&!done.has(d));if(up!=null)return up;const nx=new Set(S.log.filter(e=>e&&e.t&&logWk(e)===addD(wk,7)).map(e=>+e.day)),n2=ds.find(d=>!nx.has(d));return n2!=null?n2:ds[0]}
 if(window.__SA){const nx=nextGymDay();if(nx!=null){day=nx;gymLast=nx}}
 if((FEM||window.__SA)&&new Date().getHours()<12&&!(S.wt||[]).some(x=>x.t===today()))day=window.__SA?'hk':'w';
+let pgBack=null;try{pgBack=JSON.parse(sessionStorage.getItem('gym-sa-pg')||'null');sessionStorage.removeItem('gym-sa-pg')}catch(e){}
+if(window.__SA&&pgBack&&pgBack.d!=null&&(typeof pgBack.d==='number'?ORDER.includes(pgBack.d):typeof pgBack.d==='string')){day=pgBack.d;if(inGym(day))gymLast=day;if(inHl(day))hlLast=day}else pgBack=null;
 if(FEM)document.documentElement.classList.add('fem');
 cleanDrafts();
 const boot0=JSON.parse(J(pick(S)));
-STP('first screen');render();
+STP('first screen');render();if(pgBack&&pgBack.y>0)window.scrollTo(0,pgBack.y);
 try{if(window.__SA&&sessionStorage.getItem('gym-sa-hi')){sessionStorage.removeItem('gym-sa-hi');setTimeout(()=>say('All set. Log today’s weight to get started.'),50)}}catch(e){}
 async function dbLoad(){
 clearTimeout(ldT);
