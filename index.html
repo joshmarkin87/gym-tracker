@@ -239,7 +239,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='94854347b2',sfT0=Date.now();
+const SFV='9b2fa319bb',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1619,7 +1619,14 @@ function prevSets(n){const ed=new Set(Object.values(S.draft||{}).filter(d=>d&&d.
 const rowEmpty=a=>!a||(String(a[0]==null?'':a[0]).trim()===''&&String(a[1]==null?'':a[1]).trim()==='');
 function fillGoal(n){const x=P[day]&&P[day].x.find(q=>nm(q)===n);if(!x)return;const g=goalRows(x,n);if(!g)return;const r=rows(n);let c=0;g.forEach((v,i)=>{if(rowEmpty(r[i])){r[i]=v.slice();c++}});lastEx=n;openEx=null;say(c?'Filled '+c+' set'+(c>1?'s':'')+' with today’s goal. Change any that come out different.':'Those sets already have numbers')}
 const exDone=n=>{const r=(D().s||{})[n];return !!(r&&r.length&&r.every(a=>String(a[1]==null?'':a[1]).trim()!==''))};
-function foldOthers(n,el){const y0=el?el.getBoundingClientRect().top:0;let ch=false;for(const c of app.querySelectorAll('section.ex[data-ex]')){const m=c.dataset.ex;if(m!==n&&!c.classList.contains('col')&&exDone(m)){if(!c.querySelector('.exsum')){const r=(D().s||{})[m]||[],sum=r.map(a=>(a[2]==='w'?'W ':'')+(String(a[0]).trim()?(AS.has(m)?a[0]+' assist':a[0]):'BW')+'×'+String(a[1]).trim()).join(', '),no=c.querySelector('header .no'),lab=no?no.textContent:'';c.insertAdjacentHTML('afterbegin',`<button class="exsum" data-a="exopen" data-n="${E(m)}" aria-label="${E(m)}, done: ${E(sum)}. Tap to edit"><span class="no">${E(lab)}</span><b>${E(m)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`)}c.classList.add('col');ch=true}}if(ch&&el){const dy=el.getBoundingClientRect().top-y0;if(dy)window.scrollBy(0,dy)}}
+// standalone: an exercise you moved on from with a set logged folds too; not between the two halves of a superset
+const exSome=n=>{const r=(D().s||{})[n];return !!(r&&r.some(a=>String(a[1]==null?'':a[1]).trim()!==''))};
+const exLeft=new Set();
+const exFold=n=>exDone(n)||(!!window.__SA&&exLeft.has(day+'|'+n)&&exSome(n));
+function exMate(a){const xs=(P[day]&&P[day].x)||[],i=xs.findIndex(q=>nm(q)===a);if(i<0)return null;const x=xs[i];if(x.ss===1&&xs[i+1]&&xs[i+1].ss===2)return nm(xs[i+1]);if(x.ss===2&&xs[i-1]&&xs[i-1].ss===1)return nm(xs[i-1]);return null}
+function exLeave(p,n){if(n)exLeft.delete(day+'|'+n);if(!window.__SA||!p||!n||p===n)return;const m=exMate(p);if(m===n)return;for(const q of [p,m])if(q&&q!==n&&exSome(q))exLeft.add(day+'|'+q)}
+function exSum(m){const r=(D().s||{})[m]||[],f=r.filter(a=>String(a[1]==null?'':a[1]).trim()!==''),bl=r.length-f.length;return f.map(a=>(a[2]==='w'?'W ':'')+(String(a[0]==null?'':a[0]).trim()?(AS.has(m)?a[0]+' assist':a[0]):'BW')+'×'+String(a[1]).trim()).join(', ')+(window.__SA&&bl?' · '+bl+' set'+(bl>1?'s':'')+' not logged':'')}
+function foldOthers(n,el){const y0=el?el.getBoundingClientRect().top:0;let ch=false;for(const c of app.querySelectorAll('section.ex[data-ex]')){const m=c.dataset.ex;if(m!==n&&!c.classList.contains('col')&&exFold(m)){{const o=c.querySelector('.exsum');if(o)o.remove();const sum=exSum(m),no=c.querySelector('header .no'),lab=no?no.textContent:'';c.insertAdjacentHTML('afterbegin',`<button class="exsum" data-a="exopen" data-n="${E(m)}" aria-label="${E(m)}, done: ${E(sum)}. Tap to edit"><span class="no">${E(lab)}</span><b>${E(m)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`)}c.classList.add('col');ch=true}}if(ch&&el){const dy=el.getBoundingClientRect().top-y0;if(dy)window.scrollBy(0,dy)}}
 // the workout being edited isn't its own "last time"
 function last(n){const ed=window.__SA?new Set(Object.values(S.draft||{}).filter(d=>d&&d.ed&&d.id).map(d=>d.id)):null;for(const e of S.log){if(ed&&ed.has(e.id))continue;const r=e.s[n];if(r&&r.length)return r}return null}
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -1903,7 +1910,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'94854347b2',d:'Oct 24, 2026 at 1:10 PM'};
+const APP_V={h:'9b2fa319bb',d:'Oct 24, 2026 at 1:42 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2388,7 +2395,10 @@ function pgNew(n,mu,ty,fl){fl=fl||'';const t=PTY[ty]||PTY.comp,x={id:pgId(),n,r:
 // a copy of one of your own exercises keeps its options, rep range, rest and history (history is kept by name)
 function pgCopy(o){const x=JSON.parse(JSON.stringify(o.x));delete x.ss;const r=x.rs||RS[x.id];if(!x.id||P[pgEd].x.some(y=>y.id===x.id)||o.k[0]==='h'){x.id=pgId();if(r)x.rs=r}if(o.k[0]==='h'){x.ty=pgTy(x.mu);if(x.mu&&!M2[x.n])x.mu=x.mu;else delete x.mu}return x}
 function pgPut(x){const p=pgPick;if(!p)return;const ns=pgNs(x);if(P[pgEd].x.some((y,j)=>pgNs(y).some(n=>ns.includes(n))&&!(p.mode==='swap'&&j===p.i))){say(pgName(x)+' is already on this day');return}
-pgSet(a=>{if(p.mode==='swap'){const o=a[p.i];if(o.k)x.k=o.k;if(o.ss)x.ss=o.ss;a[p.i]=x;if(o.id==='b1'&&x.id!=='b1'&&Array.isArray(o.o))for(const y of a)if(y.o==='rest')y.o=o.o.slice()}else a.push(x)});pgPick=null;say((p.mode==='swap'?'Swapped in ':'Added ')+pgName(x))}
+pgPick=null;pgOpen=null;let at=p.i;
+pgSet(a=>{if(p.mode==='swap'){const o=a[p.i];if(o.k)x.k=o.k;if(o.ss)x.ss=o.ss;a[p.i]=x;if(o.id==='b1'&&x.id!=='b1'&&Array.isArray(o.o))for(const y of a)if(y.o==='rest')y.o=o.o.slice()}else{a.push(x);at=a.length-1}});say((p.mode==='swap'?'Swapped in ':'Added ')+pgName(x));pgShow(at)}
+// after the swap / add panel closes, show the row that changed
+function pgShow(i){const r=app.querySelectorAll('.pgrow')[i];if(!r||!r.scrollIntoView)return;try{r.scrollIntoView({block:'center'})}catch(e){r.scrollIntoView()}}
 
 // ===== Standalone: seat settings, remembered per exercise =====
 let seatEd=null;
@@ -2474,8 +2484,8 @@ const sets=r.map((a,i)=>{
 const ph=window.__SA?(((a[2]==='w')?lWu:lWk)[r.slice(0,i).filter(b=>(b[2]==='w')===(a[2]==='w')).length]||[]):((l&&l[i])||[]);
 return `<div class="set"><span>${i+1}</span><input inputmode="decimal" placeholder="${E(ph[0]||'lb')}" value="${E(a[0])}" data-n="${E(n)}" data-i="${i}" data-j="0" aria-label="Set ${i+1} weight in pounds"><input inputmode="numeric" placeholder="${E(ph[1]||'reps')}" value="${E(a[1])}" data-n="${E(n)}" data-i="${i}" data-j="1" aria-label="Set ${i+1} reps"><button class="wu" aria-pressed="${a[2]==='w'}" data-a="wu" data-n="${E(n)}" data-i="${i}" aria-label="Warm-up set ${i+1}">W</button><button class="x${armed==='x'+n+'|'+i?' warn':''}" data-a="del" data-n="${E(n)}" data-i="${i}" aria-label="${armed==='x'+n+'|'+i?'Tap again to remove':'Remove'} set ${i+1}">×</button></div>`}).join('');
 const gr=goalRows(x,n),canFill=!!gr&&gr.some((v,i)=>rowEmpty(r[i]));
-const done=exDone(n),fold=done&&n!==lastEx&&n!==openEx,sum=done?r.map(a=>(a[2]==='w'?'W ':'')+(String(a[0]).trim()?(AS.has(n)?a[0]+' assist':a[0]):'BW')+'×'+String(a[1]).trim()).join(', '):'';
-return `<section class="ex${fold?' col':''}" data-ex="${E(n)}">${done?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${seatLine(n)}${hint}${lt}${gl}${up}${dn}${prog(n)}<div class="sets">${sets}</div><div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill today’s goal</button>`:''}${FEM&&!(D().nt&&n in D().nt)?`<button class="add" data-a="ntadd" data-n="${E(n)}">Add note</button>`:''}</div>${FEM&&D().nt&&n in D().nt?`<input class="sel ntin" maxlength="200" data-nt="${E(n)}" value="${E(D().nt[n]||'')}" placeholder="Note for ${E(n)} (optional)" aria-label="Note for ${E(n)}">`:''}</section>`}).join('');
+const done=exDone(n),fd=exFold(n),fold=fd&&n!==lastEx&&n!==openEx,sum=fd?exSum(n):'';
+return `<section class="ex${fold?' col':''}" data-ex="${E(n)}">${fd?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${seatLine(n)}${hint}${lt}${gl}${up}${dn}${prog(n)}<div class="sets">${sets}</div><div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill today’s goal</button>`:''}${FEM&&!(D().nt&&n in D().nt)?`<button class="add" data-a="ntadd" data-n="${E(n)}">Add note</button>`:''}</div>${FEM&&D().nt&&n in D().nt?`<input class="sel ntin" maxlength="200" data-nt="${E(n)}" value="${E(D().nt[n]||'')}" placeholder="Note for ${E(n)} (optional)" aria-label="Note for ${E(n)}">`:''}</section>`}).join('');
 const hist=S.log.slice(0,6).map((e,i)=>{
 const ds=new Date(e.t+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 const ex=Object.keys(e.s).length,st=Object.values(e.s).reduce((a,r)=>a+r.filter(q=>q[2]!=='w').length,0);
@@ -2488,10 +2498,10 @@ const wkb=wkAlert?`<section class="pr"><h2>Week in review</h2>${wkAlert}</sectio
 const dnb=dnAlert.length?`<section class="pr dn"><h2>Ease off next time</h2><p>${dnAlert.map(E).join(', ')}</p></section>`:'';
 const W=weeks(),ck=wkKey(today()),cur=W.find(w=>w.k===ck)||{n:0,sets:0,vol:0},pw=W.filter(w=>w.k!==ck);
 const stats=`<div class="wk"><div><b>${cur.n}/${ORDER.length}</b><small>Workouts this week</small></div><div><b>${cur.sets}</b><small>Sets</small></div><div><b>${fmt(cur.vol)}</b><small>Volume (lb)</small></div></div>`;
-const wkRows=(window.__SA&&cur.n?`<p><b>This week so far</b><span>${cur.n} workout${cur.n===1?'':'s'}, ${cur.sets} sets, ${fmt(cur.vol)} lb</span></p>`:'')+pw.slice(0,6).map((w,i)=>{
+const wkRows=(window.__SA&&cur.n?`<p><b>This week so far, ${E(wkRange(cur.k,addD(cur.k,6)))}</b><span>${cur.n} workout${cur.n===1?'':'s'}, ${cur.sets} sets, ${fmt(cur.vol)} lb</span></p>`:'')+pw.slice(0,6).map((w,i)=>{
 const o=pw[i+1],c=o&&o.vol>0&&w.vol>0?Math.round((w.vol/o.vol-1)*100):null;
-const d=new Date(w.k+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
-return `<p><b>Week of ${E(d)}</b><span>${w.n} workouts, ${w.sets} sets, ${fmt(w.vol)} lb${c===null?'':` (${c>=0?'+':''}${c}%)`}</span></p>`}).join('');
+const d=window.__SA?wkRange(w.k,addD(w.k,6)):'Week of '+new Date(w.k+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
+return `<p><b>${E(d)}</b><span>${w.n} workouts, ${w.sets} sets, ${fmt(w.vol)} lb${c===null?'':` (${c>=0?'+':''}${c}%)`}</span></p>`}).join('');
 app.innerHTML=`${tabs}${todayBar()}${prb}${upb}${dnb}${wkb}${alertCard()}${FEM?cyRough():''}<h1>${p.t}</h1><p class="sub">${FN[day]}${day===T?', today':''}${FEM&&p.m&&(!window.__SA||p===P0[day])?', about '+p.m+' min':''}. Weights in lb.${{cut:' Cut phase: holding strength is a win.',bulk:' Bulk phase: aim to beat last time.',maint:'',recomp:' Recomp: aim to beat last time.'}[phase().k]}</p>${(FEM||window.__SA)?(()=>{const d=S.draft[day]||{},td=today(),t=d.t||td;return d.id?`<p class="hint dn">Editing your ${E(wtLong(t))} workout. Finish saves the changes. <button class="edit" data-a="wkcancel" style="padding:0">Cancel</button></p>`:`<label class="pf"><span>Workout date</span><input type="date" class="sel" id="wkd" max="${td}" value="${t}"></label>${t!==td?`<p class="hint">Logging this workout for ${E(wtLong(t))}. <button class="edit" data-a="wktoday" style="padding:0">Use today</button></p>`:''}`})():window.__SA&&(S.draft[day]||{}).id?`<p class="hint dn">Editing your ${E(wtLong(S.draft[day].t||today()))} workout. Finish saves the changes.${S.draft[day].ed||S.draft[day].o?' <button class="edit" data-a="wkcancel" style="padding:0">Cancel</button>':''}</p>`:''}${slNote()}${stats}${cards}${window.__SA&&!p.x.length?`<p class="hint" style="margin:.6rem 0">No exercises yet. Tap Edit this day’s exercises to add some.</p>`:''}<button class="fin" data-a="fin">Finish workout</button>${window.__SA?`<button class="edit" data-a="pged" style="display:block;padding:.7rem 0 .3rem;margin:0 0 1.1rem">Edit this day’s exercises</button><button class="edit" data-a="schopen" style="display:block;padding:0 0 .3rem;margin:-.8rem 0 1.1rem">Change workout days</button>`:''}${wkRows?`<div class="hist"><h3>${window.__SA?'Weeks':'Past weeks'}</h3>${wkRows}</div>`:''}${hist?`<div class="hist"><h3>Recent workouts</h3>${hist}</div>`:''}`}
 let wkView=null;
 let docRef=null,coll=null,fcol=null,armed=null,prAlert=[],upAlert=[],dnAlert=[],wkAlert='',busy=false,again=false,tm,syncFail=0,rtT=null,ldT=null,ldN=0,ldBusy=false;
@@ -2631,10 +2641,10 @@ if(a==='pgcty'){if(pgPick&&PTY[b.dataset.v]){pgPick.ty=b.dataset.v;render()}retu
 if(a==='pgcas'){if(pgPick){pgPick.cas=!pgPick.cas;render()}return}
 if(a==='pgcadd'){if(!pgPick)return;const n=String(pgPick.cn||'').replace(/[<>"|]/g,'').replace(/\s+/g,' ').trim().slice(0,40);if(n.length<2){say('Type the exercise’s name first');return}const mu=pgPick.cmu!=null?pgPick.cmu:(pgPick.mu||'');if(!mu){say('Pick the muscle it works most');return}pgPut(pgNew(n,mu,pgPick.ty||'comp',pgPick.cas?'a':''));return}
 if(a==='pgcmu'){if(pgPick){pgPick.cmu=b.dataset.v;render()}return}
-if(a==='pgcancel'){pgPick=null;render();return}
+if(a==='pgcancel'){const p=pgPick;pgPick=null;render();if(p&&p.mode==='swap')pgShow(p.i);return}
 if(a==='pgreset'){if(armed!=='pgreset'){armed='pgreset';render();return}armed=null;const p2=Object.assign({},S.prog||{});delete p2[pgEd];S.prog=p2;applyProg();pgDraft(pgEd);save();pgOpen=null;pgPick=null;render();say('Back to the original program');return}
 if(a==='seated'){seatEd=b.dataset.n;render();const i=[...app.querySelectorAll('input[data-seat]')].find(x=>x.dataset.seat===b.dataset.n);if(i){i.focus();const l=i.value.length;try{i.setSelectionRange(l,l)}catch(e){}}return}
-if(a==='seatstep'){const n=b.dataset.n,v=+b.dataset.v;const o=Object.assign({},S.steps||{});if(v>0)o[n]=v;else delete o[n];S.steps=o;save();seatEd=n;render();return}
+if(a==='seatstep'){const n=b.dataset.n,v=+b.dataset.v;const o=Object.assign({},S.steps||{});if(v>0)o[n]=v;else delete o[n];S.steps=o;save();seatEd=null;seatKeep=null;render();say(v>0?'Weight goes up by '+v+' lb':'Weight steps set to auto');return}
 if(a==='seatdone'){seatKeep=null;seatClose(b.dataset.n);render();return}
 if(a==='bmnow'){bmUndo=(S.bm||[]).slice();S.bm=[bmNow()];bmEarly=false;save();render();say('Logged');return}
 if(a==='bmundo'){if(bmUndo){S.bm=bmUndo;bmUndo=null;save()}render();say('Put back');return}
@@ -2714,6 +2724,7 @@ if(a==='fdprev'||a==='fdnext'){const all=fdList(),e=all.find(x=>x.t===fdSel)||al
 if(a==='sdel'){const i=+b.dataset.i;if(armed!=='s'+i){armed='s'+i;render();return}armed=null;const a2=scans();a2.splice(i,1);S.scans=a2;save();render();say('Scan deleted');return}
 if(a==='fin'){finish();return}
 if(a==='edit'){editLog(+b.dataset.i);return}
+const pe=lastEx;
 if(a==='tab'){pgEd=null;pgPick=null;pgOpen=null;const d=b.dataset.d;day=d==='gym'?(inGym(day)?day:gymLast):d==='h'?(inHl(day)?day:(window.__SA?(hkMorn()?(hlLast||'w'):'hk'):(hlLast||(new Date().getHours()<15?'sl':'st')))):['p','w','f','g','pl','sl','st','set'].includes(d)||inHl(d)?d:+d;if(inGym(day))gymLast=day;if(inHl(d))hlLast=d;wtDate=null;window.scrollTo(0,0)}
 else if(a==='v')D().v[b.dataset.x]=b.dataset.o;
 else if(a==='add'){rows(b.dataset.n).push(['','']);lastEx=b.dataset.n;openEx=null}
@@ -2721,6 +2732,7 @@ else if(a==='fill')fillGoal(b.dataset.n);
 else if(a==='exopen'){openEx=b.dataset.n;lastEx=b.dataset.n}
 else if(a==='del'){const n=b.dataset.n,i=+b.dataset.i,k='x'+n+'|'+i;if(!rowEmpty(rows(n)[i])&&armed!==k){armed=k;lastEx=n;openEx=null;render();say('Tap the red × again to remove set '+(i+1));return}armed=null;rows(n).splice(i,1);lastEx=n}
 else if(a==='wu'){const q=rows(b.dataset.n)[+b.dataset.i];q[2]=q[2]==='w'?'':'w';lastEx=b.dataset.n}
+if(lastEx!==pe&&a!=='tab')exLeave(pe,lastEx);
 save();render()};
 app.oninput=e=>{
 const t=e.target,n=t.dataset.n;
@@ -2737,7 +2749,7 @@ if(t.dataset.j==='0'){const v=t.value.replace(/,/g,'.').replace(/[^\d.]/g,'').re
 if(window.__SA&&t.dataset.j==='0')wTouch.add(n+'|'+t.dataset.i);
 const gx=window.__SA&&t.dataset.j==='1'&&P[day]&&P[day].x.find(q=>nm(q)===n);
 if(gx&&!AS.has(n)&&!gx.hr&&!gx.er&&t.value&&!wTouch.has(n+'|'+t.dataset.i)){const rw=rows(n)[+t.dataset.i];if(rw&&String(rw[0]==null?'':rw[0]).trim()===''&&String(rw[1]==null?'':rw[1]).trim()===''){const wi=t.parentNode&&t.parentNode.querySelector('input[data-j="0"]'),ph=wi&&wi.placeholder;if(ph&&/^\d+(\.\d+)?$/.test(ph)&&+ph>0){rw[0]=ph;wi.value=ph}}}
-rows(n)[+t.dataset.i][+t.dataset.j]=t.value;liveIx[n]=+t.dataset.i;if(lastEx!==n){lastEx=n;openEx=null;foldOthers(n,t)}save();if(t.dataset.j==='1'){clearTimeout(liveT);liveT=setTimeout(()=>updLive(n),700)}};
+rows(n)[+t.dataset.i][+t.dataset.j]=t.value;liveIx[n]=+t.dataset.i;if(lastEx!==n){exLeave(lastEx,n);lastEx=n;openEx=null;foldOthers(n,t)}save();if(t.dataset.j==='1'){clearTimeout(liveT);liveT=setTimeout(()=>updLive(n),700)}};
 app.onchange=e=>{const t=e.target;if(t.id==='stp'){const p2=Object.assign({},S.prof||{},{st:+t.value});delete p2.steps;S.prof=p2;save();render();return}if(t.id==='suby'||t.id==='suht'){su[t.id==='suby'?'by':'ht']=t.value?+t.value:undefined;return}if(t.id==='pby'||t.id==='pht'){const k=t.id==='pby'?'by':'ht',p2=Object.assign({},S.prof||{});if(t.value)p2[k]=+t.value;else delete p2[k];S.prof=p2;save();render();return}if(t.id==='wkd'){const v=t.value,td=today();if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>td||v<'2020-01-01'){t.value=(S.draft[day]&&S.draft[day].t)||td;say('Pick a day up to today');return}const d=D();if(v===td)delete d.t;else d.t=v;save();render();return}if(t.id==='gwr'){setGoal('gw',+t.value);return}if(t.id==='cylen'){cySet({len:+t.value});return}if(t.id==='wtd'){setWtDate(t);return}if(t.id==='imf'){const f=t.files&&t.files[0];t.value='';if(f)imRead(f);return}if(t.id==='cyd'){const td=today();let v=t.value;if(!v||v>td||v<'2020-01-01'){v=td;say('Pick a date from 2020 up to today')}wtDate=v===td?null:v;armed=null;render();return}if(t.id==='wsd'){setWsDate(t);return}if(t.id==='lbf'){const f=t.files&&t.files[0];t.value='';if(f)lbRead(f);return}if(t.id==='dxf'){const f=t.files&&t.files[0];t.value='';if(f)dxRead(f);return}if(t.id==='fdf'){const f=[...(t.files||[])];t.value='';fdRead(f);return}if(t.id==='hlf'){const f=[...(t.files||[])];t.value='';hlRead(f);return}if(t.dataset&&t.dataset.hd!==undefined){const d=hlPend&&hlPend.days[+t.dataset.hd];if(d){const v=t.value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>today()||v<'2020-01-01'){t.value=d.t;say('Pick a day up to today');return}d.t=v;d.df=true;render()}return}if(t.id==='fdd'){if(fdPend){const v=t.value,td=today();if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>td||v<'2020-01-01'){t.value=fdPend.t;say('Pick a day up to today');return}fdPend.t=v;render()}return}if(t.dataset&&t.dataset.sel!==undefined){pSel=t.value;render()}};
 app.addEventListener('paste',e=>{const t=e.target;if(t&&t.id==='cltx'){e.preventDefault();clTake((e.clipboardData||window.clipboardData).getData('text'),t.dataset.k);return}if(t&&t.id==='hkta'){e.preventDefault();hkTake((e.clipboardData||window.clipboardData).getData('text'))}});
 app.addEventListener('toggle',e=>{const t=e.target;if(t.classList&&t.classList.contains('prog')){t.open?OPEN.add(t.dataset.n):OPEN.delete(t.dataset.n)}},true);
