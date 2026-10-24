@@ -132,6 +132,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .wk b.up{color:var(--acc)}
 .wk b.dn{color:#d98a2b}
 .ch text{fill:var(--mute);font-size:9px;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.ch text.v{fill:var(--ink);font-size:10px;font-weight:600;paint-order:stroke;stroke:var(--card);stroke-width:3.5px;stroke-linejoin:round}
 .upl{display:block;box-sizing:border-box;text-align:center;margin:.6rem 0 .2rem}
 .fdl b{white-space:nowrap}
 .fdnav{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
@@ -239,7 +240,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='6713a5e71b',sfT0=Date.now();
+const SFV='7a9abcbd94',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1654,6 +1655,19 @@ if(FEM||window.__SA){const add={'Chest':['Incline chest press','Chest bench pres
 const M2={};for(const m in MUS)for(const n of MUS[m])M2[n]=m;
 let pSel=null,lpMode='top';
 const tsx=t=>(t.w<0?(-t.w)+' assist':(t.w||'BW'))+'×'+t.r;
+// standalone: label the lift chart's first, latest and best points, with the first and last dates underneath
+function lpLabels(use,ys,xy,lm,H){
+const n=use.length;if(!n)return '';
+const f=i=>{const p=use[i];return lm==='e1'?Math.round(p.e)+' lb':lm==='bw'?p.x.toFixed(2)+'×':ys[i]===p.r&&p.w===0&&!use.some(q=>q.w!==0)?p.r+' reps':p.w<0?(-p.w)+' assist':p.w===0?'BW':p.w+' lb'};
+let bi=0;for(let i=1;i<n;i++)if(ys[i]>=ys[bi])bi=i;
+const anc=i=>n<2?'middle':i===0?'start':i===n-1?'end':'middle';
+const pick=n>1?[0,n-1]:[0];
+if(!pick.includes(bi)&&!pick.some(j=>Math.abs(xy[j][0]-xy[bi][0])<48&&Math.abs(xy[j][1]-xy[bi][1])<14))pick.push(bi);
+// above the point, unless the line climbs out of it toward the label (first or latest point): then below
+const up=i=>{const j=n<2?-1:i===0?1:i===n-1?n-2:-1;return j<0||xy[j][1]>=xy[i][1]};
+const v=i=>`<text class="v" x="${xy[i][0].toFixed(1)}" y="${(up(i)?xy[i][1]-8:xy[i][1]+16).toFixed(1)}" text-anchor="${anc(i)}">${E(f(i))}</text>`;
+const dt=i=>`<text x="${xy[i][0].toFixed(1)}" y="${H+11}" text-anchor="${anc(i)}">${E(dfmt(use[i].t))}</text>`;
+return pick.map(v).join('')+dt(0)+(n>1?dt(n-1):'')}
 function gymProgHtml(){
 const W=weeks(),ck=wkKey(today());
 const wk=W.slice(0,8).reverse();
@@ -1673,13 +1687,13 @@ if(pSel){
 const pts=[];
 for(const e of S.log.slice().reverse()){const r=e.s[pSel],t=r&&topSet(r,pSel);if(t){const b=sbest(pSel,r,e.t),bw=bwAt(e.t);pts.push({t:e.t,w:t.w,r:t.r,e:b&&b.k!=='b'&&b.e>0?b.e:null,x:b&&b.k!=='b'&&b.e>0&&bw?b.e/bw:null})}}
 const lpOK=window.__SA&&pts.some(p=>p.e!=null),lm=lpOK?lpMode:'top',use=(lm==='top'?pts:pts.filter(p=>lm==='e1'?p.e!=null:p.x!=null)).slice(-12),byW=use.some(p=>p.w!==0),ys=use.map(p=>lm==='e1'?p.e:lm==='bw'?p.x:byW?p.w:p.r);
-const lo=Math.min(...ys),sp=(Math.max(...ys)-lo)||1,CW=300,H=110,pd=10;
-const xy=use.map((p,i)=>[pd+(use.length>1?i*(CW-2*pd)/(use.length-1):0),H-pd-((ys[i]-lo)/sp)*(H-2*pd)]);
+const lo=Math.min(...ys),sp=(Math.max(...ys)-lo)||1,CW=300,H=110,pd=10,LB=!!window.__SA,pT=LB?24:pd,pB=LB?24:pd,VH=LB?H+14:H;
+const xy=use.map((p,i)=>[pd+(use.length>1?i*(CW-2*pd)/(use.length-1):0),H-pB-((ys[i]-lo)/sp)*(H-pT-pB)]);
 const path=xy.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ');
 const dots=xy.map(q=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="3.5"></circle>`).join('');
 let best=null;for(const e of S.log.slice().reverse()){const b=sbest(pSel,e.s[pSel],e.t);if(b&&better(b,best&&best.b))best={t:e.t,b}}
 const lp=use[use.length-1];
-c3=`<select class="sel" data-sel="1" aria-label="Choose a lift">${lifts.map(n=>`<option${n===pSel?' selected':''}>${E(n)}</option>`).join('')}</select>${lpOK?`<div class="chips lpm">${[['top','Top set'],['e1','Est. max'],['bw','× body weight']].map(([k,l])=>`<button class="chip" aria-pressed="${lm===k}" data-a="lpm" data-v="${k}">${l}</button>`).join('')}</div>`:''}<svg class="ch" viewBox="0 0 ${CW} ${H}" width="100%" role="img" aria-label="Top set trend"><path d="${path}"></path>${dots}</svg><p class="hint">${lm==='e1'?`Estimated one-rep max (lb) from your best set each session, sets over 12 reps counted as 12, so more reps at the same weight show as progress. Latest ${Math.round(use[use.length-1].e)} lb, first here ${Math.round(use[0].e)} lb.`:lm==='bw'?`Estimated max divided by your body weight that day. ${phase().k==='cut'?'On a cut it climbs while you hold strength.':'It climbs as you get stronger for your size.'} Latest ${use[use.length-1].x.toFixed(2)}× BW, first here ${use[0].x.toFixed(2)}×.`:''}${lm!=='top'?'</p><p class="hint">':''}${AS.has(pSel)?'Top set (higher means less assistance)':byW?'Top set weight (lb)':'Top set reps'} over your last ${use.length} sessions. Latest ${E(tsx(lp))}${best?`, best ${E(bsx(best.b))} on ${E(dfmt(best.t))}`:''}.</p>`}
+c3=`<select class="sel" data-sel="1" aria-label="Choose a lift">${lifts.map(n=>`<option${n===pSel?' selected':''}>${E(n)}</option>`).join('')}</select>${lpOK?`<div class="chips lpm">${[['top','Top set'],['e1','Est. max'],['bw','× body weight']].map(([k,l])=>`<button class="chip" aria-pressed="${lm===k}" data-a="lpm" data-v="${k}">${l}</button>`).join('')}</div>`:''}<svg class="ch" viewBox="0 0 ${CW} ${VH}" width="100%" role="img" aria-label="Top set trend"><path d="${path}"></path>${dots}${LB?lpLabels(use,ys,xy,lm,H):''}</svg><p class="hint">${lm==='e1'?`Estimated one-rep max (lb) from your best set each session, sets over 12 reps counted as 12, so more reps at the same weight show as progress. Latest ${Math.round(use[use.length-1].e)} lb, first here ${Math.round(use[0].e)} lb.`:lm==='bw'?`Estimated max divided by your body weight that day. ${phase().k==='cut'?'On a cut it climbs while you hold strength.':'It climbs as you get stronger for your size.'} Latest ${use[use.length-1].x.toFixed(2)}× BW, first here ${use[0].x.toFixed(2)}×.`:''}${lm!=='top'?'</p><p class="hint">':''}${AS.has(pSel)?'Top set (higher means less assistance)':byW?'Top set weight (lb)':'Top set reps'} over your last ${use.length} sessions. Latest ${E(tsx(lp))}${best?`, best ${E(bsx(best.b))} on ${E(dfmt(best.t))}`:''}.</p>`}
 return `<h1>Gym progress</h1><p class="sub">Your lifts over time. Updates when you finish a workout.${window.__SA?' <button class="edit" data-a="schopen" style="padding:0">Change workout days</button>':''}</p>${phaseLine()}${checkSec()}${recSec()}<section class="ex"><h2>Lift progress</h2>${c3}</section><section class="ex"><h2>Weekly volume</h2>${c1}</section><section class="ex"><h2>Sets per muscle this week</h2>${c2}<p class="hint">${window.__SA?'Direct sets from this week’s finished workouts ('+FN[wkDow()]+' to '+FN[(wkDow()+6)%7]+'), scale 0-20.':'Direct sets, scale 0-20.'} The line marks 10. Presses and pulls also work your arms.</p></section>${stallSec()}`}
 function progressHtml(){return `<h1>Progress</h1><p class="sub">Your weekly check-in, recap, body composition and blood work. Your phase and daily numbers are under Plan; lifting progress is under Gym.</p>${goalCard()}${msSec()}${ciCard()}${recapSec()}${bodySec()}${labSec()}${FEM?cyProg():''}${window.__SA?'':bkSec()}`}
 function planHtml(){return `<h1>Plan</h1><p class="sub">Your phase, your daily numbers and your full plan. The weekly check-in on the Progress tab adjusts the numbers; changing your phase, goal or steps here resets them.</p>${phaseWarn()}${phaseCard()}${planCard()}${window.__SA?'':aboutSec()}`}
@@ -1910,7 +1924,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'6713a5e71b',d:'Oct 24, 2026 at 5:45 PM'};
+const APP_V={h:'7a9abcbd94',d:'Oct 24, 2026 at 6:53 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
