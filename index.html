@@ -239,7 +239,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='9b2fa319bb',sfT0=Date.now();
+const SFV='6713a5e71b',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1621,10 +1621,10 @@ function fillGoal(n){const x=P[day]&&P[day].x.find(q=>nm(q)===n);if(!x)return;co
 const exDone=n=>{const r=(D().s||{})[n];return !!(r&&r.length&&r.every(a=>String(a[1]==null?'':a[1]).trim()!==''))};
 // standalone: an exercise you moved on from with a set logged folds too; not between the two halves of a superset
 const exSome=n=>{const r=(D().s||{})[n];return !!(r&&r.some(a=>String(a[1]==null?'':a[1]).trim()!==''))};
-const exLeft=new Set();
-const exFold=n=>exDone(n)||(!!window.__SA&&exLeft.has(day+'|'+n)&&exSome(n));
+const exLf=()=>{const d=S.draft[day];return d&&Array.isArray(d.lf)?d.lf:[]};
+const exFold=n=>exDone(n)||(!!window.__SA&&exSome(n)&&exLf().includes(n));
 function exMate(a){const xs=(P[day]&&P[day].x)||[],i=xs.findIndex(q=>nm(q)===a);if(i<0)return null;const x=xs[i];if(x.ss===1&&xs[i+1]&&xs[i+1].ss===2)return nm(xs[i+1]);if(x.ss===2&&xs[i-1]&&xs[i-1].ss===1)return nm(xs[i-1]);return null}
-function exLeave(p,n){if(n)exLeft.delete(day+'|'+n);if(!window.__SA||!p||!n||p===n)return;const m=exMate(p);if(m===n)return;for(const q of [p,m])if(q&&q!==n&&exSome(q))exLeft.add(day+'|'+q)}
+function exLeave(p,n){const d=S.draft[day];if(!window.__SA||!d)return;const l=exLf().filter(x=>x!==n);if(p&&n&&p!==n){const m=exMate(p);if(m!==n)for(const q of [p,m])if(q&&q!==n&&exSome(q)&&!l.includes(q))l.push(q)}if(l.length)d.lf=l;else delete d.lf}
 function exSum(m){const r=(D().s||{})[m]||[],f=r.filter(a=>String(a[1]==null?'':a[1]).trim()!==''),bl=r.length-f.length;return f.map(a=>(a[2]==='w'?'W ':'')+(String(a[0]==null?'':a[0]).trim()?(AS.has(m)?a[0]+' assist':a[0]):'BW')+'×'+String(a[1]).trim()).join(', ')+(window.__SA&&bl?' · '+bl+' set'+(bl>1?'s':'')+' not logged':'')}
 function foldOthers(n,el){const y0=el?el.getBoundingClientRect().top:0;let ch=false;for(const c of app.querySelectorAll('section.ex[data-ex]')){const m=c.dataset.ex;if(m!==n&&!c.classList.contains('col')&&exFold(m)){{const o=c.querySelector('.exsum');if(o)o.remove();const sum=exSum(m),no=c.querySelector('header .no'),lab=no?no.textContent:'';c.insertAdjacentHTML('afterbegin',`<button class="exsum" data-a="exopen" data-n="${E(m)}" aria-label="${E(m)}, done: ${E(sum)}. Tap to edit"><span class="no">${E(lab)}</span><b>${E(m)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`)}c.classList.add('col');ch=true}}if(ch&&el){const dy=el.getBoundingClientRect().top-y0;if(dy)window.scrollBy(0,dy)}}
 // the workout being edited isn't its own "last time"
@@ -1910,7 +1910,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'9b2fa319bb',d:'Oct 24, 2026 at 1:42 PM'};
+const APP_V={h:'6713a5e71b',d:'Oct 24, 2026 at 5:45 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
