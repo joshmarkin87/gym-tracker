@@ -238,7 +238,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='80921a8b08',sfT0=Date.now();
+const SFV='158fdd438e',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1891,7 +1891,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'80921a8b08',d:'Oct 23, 2026 at 6:05 PM'};
+const APP_V={h:'158fdd438e',d:'Oct 23, 2026 at 9:58 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2439,7 +2439,7 @@ const lnt='';
 const lt=l?`<p class="last">Last time: ${l.map(a=>E((a[2]==='w'?'W ':'')+(a[0]?(AS.has(n)?a[0]+' assist':a[0]):'BW')+'×'+a[1])).join(', ')}${lnt?`<br><span class="lnt">Note: ${E(lnt)}</span>`:''}</p>`:'';
 const lw=l?l.filter(a=>a[2]!=='w'):null;
 const tp=x.r?+String(x.r).split('-').pop():0;
-const tg=x.r?`${(FEM||window.__SA)&&(x.tl||x.pa||AS.has(n))?`<p class="tags">${x.tl?'<i>Test lift</i>':''}${x.pa?'<i>Reps per arm or leg</i>':''}${AS.has(n)?'<i>Assisted: less is harder</i>':''}</p>`:''}<p class="hint">Target: ${x.k||3} × ${E(x.r)} reps${(x.rs||RS[x.id])&&x.ss!==1?` · Rest ${x.rs||RS[x.id]}`:''}</p>`:'';
+const tg=x.r?`${(FEM||window.__SA)&&(x.tl||AS.has(n))?`<p class="tags">${x.tl?'<i>Test lift</i>':''}${AS.has(n)?'<i>Assisted: less is harder</i>':''}</p>`:''}<p class="hint">Target: ${x.k||3} × ${E(x.r)} reps${(x.rs||RS[x.id])&&x.ss!==1?` · Rest ${x.rs||RS[x.id]}`:''}</p>`:'';
 const asx=AS.has(n),ws=lw?lw.map(a=>parseFloat(a[0])||0):[],mw=lw&&lw.length?(asx?Math.min(...ws):Math.max(...ws)):0;
 const rc=lw&&lw.length&&tp?rec(x,n,mw,tp,x.r?+String(x.r).split('-')[0]:0,tp,1):'';
 const up=!x.nn&&tp&&lw&&lw.length&&l.length>=3&&lw.filter(a=>(parseFloat(a[0])||0)===mw).every(a=>(parseFloat(a[1])||0)>=tp)?`<p class="hint up">Hit ${tp} reps${mw||asx?` at ${mw} lb${asx?' of assistance':''}`:''} last time. ${rc?rc+' '+TD+'.':(x.hr||'Go heavier today.').replace(/ today\.$/,' '+TD+'.')}</p>`:'';
