@@ -239,7 +239,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='d9274ce130',sfT0=Date.now();
+const SFV='94854347b2',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1611,7 +1611,11 @@ const sw=(w,r,d)=>asx?sugA(w,r,lo,tp,d,bwAt(today()),stepOf(n)):(x.hr||x.er||!(w
 let out=lw.map(plus);
 if(!x.nn&&tp&&l.length>=3&&lw.filter(a=>F(a[0])===mw).every(a=>F(a[1])>=tp)){const g=sw(mw,tp,1);if(g!=null)out=lw.map(a=>F(a[0])===mw?[S2(g),String(mid)]:plus(a))}
 else if(!x.nn&&lo&&F(lw[0][1])<lo&&weak2(n,lo,1)&&!gainUR(n,lw,1)){const w0=F(lw[0][0]),g=sw(w0,F(lw[0][1]),-1);if(g!=null)out=lw.map(a=>F(a[0])===w0?[S2(g),String(mid)]:plus(a))}
+// standalone: any later set under the range in the last two workouts, not improving, gets a lighter goal (the first set's rule, for every set)
+if(window.__SA&&!x.nn&&lo){const pv=(prevSets(n)||[]).filter(a=>a[2]!=='w');for(let i=1;i<lw.length;i++){const a=lw[i],b=pv[i];if(!b||out[i][0]!==S2(F(a[0])))continue;const cw=F(a[0]),pw=F(b[0]),cr=F(a[1]),pr=F(b[1]);if(!(cr<lo&&pr<lo))continue;if(asx?cw<pw:cw>pw)continue;if(cw===pw&&cr>pr)continue;const g=sw(cw,cr,-1);if(g!=null)out[i]=[S2(g),String(mid)]}}
 return wu.concat(out)}
+// the workout before the last one with this exercise (the one being edited doesn't count, like last())
+function prevSets(n){const ed=new Set(Object.values(S.draft||{}).filter(d=>d&&d.ed&&d.id).map(d=>d.id));let c=0;for(const e of S.log){if(ed.has(e.id))continue;const r=e.s[n];if(r&&r.length){if(c===1)return r;c++}}return null}
 const rowEmpty=a=>!a||(String(a[0]==null?'':a[0]).trim()===''&&String(a[1]==null?'':a[1]).trim()==='');
 function fillGoal(n){const x=P[day]&&P[day].x.find(q=>nm(q)===n);if(!x)return;const g=goalRows(x,n);if(!g)return;const r=rows(n);let c=0;g.forEach((v,i)=>{if(rowEmpty(r[i])){r[i]=v.slice();c++}});lastEx=n;openEx=null;say(c?'Filled '+c+' set'+(c>1?'s':'')+' with today’s goal. Change any that come out different.':'Those sets already have numbers')}
 const exDone=n=>{const r=(D().s||{})[n];return !!(r&&r.length&&r.every(a=>String(a[1]==null?'':a[1]).trim()!==''))};
@@ -1899,7 +1903,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'d9274ce130',d:'Oct 24, 2026 at 12:16 PM'};
+const APP_V={h:'94854347b2',d:'Oct 24, 2026 at 1:10 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
