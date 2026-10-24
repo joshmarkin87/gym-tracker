@@ -238,7 +238,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='a221d00b53',sfT0=Date.now();
+const SFV='39cd15437c',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1894,7 +1894,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'a221d00b53',d:'Oct 24, 2026 at 9:43 AM'};
+const APP_V={h:'39cd15437c',d:'Oct 24, 2026 at 10:00 AM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2726,6 +2726,9 @@ app.addEventListener('paste',e=>{const t=e.target;if(t&&t.id==='cltx'){e.prevent
 app.addEventListener('toggle',e=>{const t=e.target;if(t.classList&&t.classList.contains('prog')){t.open?OPEN.add(t.dataset.n):OPEN.delete(t.dataset.n)}},true);
 try{const j=JSON.parse(localStorage.getItem(LK));if(j&&Array.isArray(j.log))S=pick(j)}catch(e){}
 applyProg();
+// opening day: the next workout this week (today or later, Monday-to-Sunday weeks) not logged yet; if none, next week's first
+function nextGymDay(){if(!ORDER.length)return null;const td=today(),wk=wkKey(td),mi=d=>(d+6)%7,ti=mi(new Date(td+'T12:00:00').getDay()),done=new Set(S.log.filter(e=>e&&e.t&&wkKey(e.t)===wk).map(e=>+e.day)),ds=ORDER.slice().sort((a,b)=>mi(a)-mi(b)),up=ds.find(d=>mi(d)>=ti&&!done.has(d));return up!=null?up:ds[0]}
+if(window.__SA){const nx=nextGymDay();if(nx!=null){day=nx;gymLast=nx}}
 if((FEM||window.__SA)&&new Date().getHours()<12&&!(S.wt||[]).some(x=>x.t===today()))day=window.__SA?'hk':'w';
 if(FEM)document.documentElement.classList.add('fem');
 cleanDrafts();
