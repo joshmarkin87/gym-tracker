@@ -238,7 +238,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='39cd15437c',sfT0=Date.now();
+const SFV='ec71380042',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -977,7 +977,7 @@ const td=today(),inP=done.filter(x=>x.s>=p.since),nm={cut:'cut',maint:'maintenan
 const sc=scans(),dx=sc[sc.length-1],rmr=dx?dx.rmr||0:(rmrMSJ(ws.a7!=null?ws.a7:ws.L.w)||0),flo=Math.max(FLOOR(),rmr),wks=(wtD(td)-wtD(p.since))/6048e5;
 if(p.k==='cut'&&!dx){const gw=goalW(),ref=ws.a7!=null?ws.a7:ws.L.w;if(gw&&ref<=gw)return{v:'goal',nx:['maint'],m:`You’ve reached your goal weight of ${Math.round(gw)} lb. Start maintenance before deciding what’s next.`}}
 else if(p.k==='cut'){const gw=goalW(p.g.bf),ref=ws.a7!=null?ws.a7:ws.L.w;if(ref<=gw)return{v:'goal',nx:['maint'],m:`You’ve reached your ${p.g.bf}% goal weight (about ${Math.round(gw)} lb). Rescan DEXA to confirm your body fat, then start maintenance before deciding on a bulk.`}}
-if(p.k==='bulk'){const ls=sc.filter(x=>x.t>=p.since&&x.t<=td).pop();if(wks>=p.g.wk||(ls&&bfp(ls)>=p.g.cap))return{v:'goal',nx:FEM?['maint','cut']:['maint'],m:wks>=p.g.wk?`Your ${p.g.wk}-week ${phN('bulk')} is done. Rescan DEXA, then hold at maintenance for a few weeks before your next cut.`:`Your latest DEXA shows ${f1(bfp(ls))}% body fat, at or above your ${p.g.cap}% ceiling. Time to end the ${phN('bulk')}.`}}
+if(p.k==='bulk'){const ls=sc.filter(x=>x.t>=p.since&&x.t<=td).pop();if(wks>=p.g.wk||(ls&&bfp(ls)>=p.g.cap))return{v:'goal',nx:['maint','cut'],m:wks>=p.g.wk?`Your ${p.g.wk}-week ${phN('bulk')} is done. Rescan DEXA, then hold at maintenance for a few weeks before your next cut.`:`Your latest DEXA shows ${f1(bfp(ls))}% body fat, at or above your ${p.g.cap}% ceiling. Time to end the ${phN('bulk')}.`}}
 if(p.k==='maint'&&wks>=p.g.wk)return{v:'goal',nx:FEM?['cut','bulk','recomp']:['cut','bulk'],m:`Your ${p.g.wk}-week maintenance block is done. Pick your next phase.`};
 if(p.k==='recomp'&&wks>=p.g.wk)return{v:'goal',nx:['cut','bulk','maint'],m:`Your ${p.g.wk}-week recomp is done. Rescan DEXA to see whether it worked (less fat and more lean at about the same weight), then pick your next phase.`};
 if(inP.length<3)return{v:'wait',m:`${wkN} week${wkN===1?'':'s'} into your ${nm}. The first weeks of a phase are mostly water and food volume, so there’s nothing to judge yet. Stay the course.`};
@@ -1113,7 +1113,7 @@ const pc=s.pace,ov=` (${sg(pc)} lb a week over the last ${f1(s.pw)} weeks)`;let 
 if(p.k==='cut'&&pc>=.3){h='Still cutting?';x=`Your weight has been going up${ov}, but your phase is Cut. If you’ve switched to ${FEM?'a lean bulk, a recomp':'a bulk'} or maintenance, change your phase. If not, check your calories on the Food tab.`}
 else if(p.k==='bulk'&&pc<=-.3){h='Still bulking?';x=`Your weight has been going down${ov}, but your phase is ${PH.bulk.l}. If you’ve switched to a cut, change your phase. If not, check you’re hitting your calories on the Food tab; the weekly check-in raises them if your weight keeps dropping.`}
 else if(p.k==='recomp'&&Math.abs(pc)>=.5){h='Still recomping?';x=`Your weight has been going ${pc>0?'up':'down'}${ov}, but your phase is Recomp, which eats at maintenance. If you meant to ${pc>0?'lean bulk':'cut'}, change your phase. If not, check you’re hitting your calories on the Food tab; the weekly check-in adjusts them if this keeps up.`}
-else if(p.k==='maint'&&Math.abs(pc)>=(FEM?.5:.75)){h='Still maintaining?';x=`Your weight has been going ${pc>0?'up':'down'}${ov}, but your phase is Maintain. If you meant to ${pc>0?phN('bulk'):'cut'}, change your phase. If not, the weekly check-in adjusts your calories if this keeps up.`}
+else if(p.k==='maint'&&Math.abs(pc)>=.0035*(s.a7!=null?s.a7:s.L.w)){h='Still maintaining?';x=`Your weight has been going ${pc>0?'up':'down'}${ov}, but your phase is Maintain. If you meant to ${pc>0?phN('bulk'):'cut'}, change your phase. If not, the weekly check-in adjusts your calories if this keeps up.`}
 return h?`<section class="pr dn"><h2>${h}</h2><p>${E(x)} <button class="edit" data-a="phgo">Change phase</button></p></section>`:''}
 // ===== Standalone: goal progress =====
 // a third goal date, one chip per way of measuring pace
@@ -1894,7 +1894,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'39cd15437c',d:'Oct 24, 2026 at 10:00 AM'};
+const APP_V={h:'ec71380042',d:'Oct 24, 2026 at 10:25 AM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
