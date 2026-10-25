@@ -179,7 +179,8 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .cyw{margin:.4rem 0}.cyr{display:grid;grid-template-columns:3.6rem 1fr 1.6rem;align-items:center;gap:.4rem;margin:.25rem 0;font-size:.8rem;color:var(--mute)}.cyr b{text-align:right;color:var(--ink)}.cyst{display:flex;gap:1px;min-width:0}.cyst i{flex:1 1 0;height:.8rem;border-radius:2px;min-width:0}.cyl i{display:inline-block;width:.6rem;height:.6rem;border-radius:2px;margin:0 .25rem 0 .5rem;vertical-align:-.05em}.cyl i:first-child{margin-left:0}.cyt{grid-template-columns:1.3fr 1fr .8fr}.cmp.cyt:has(b.h:nth-of-type(4)){grid-template-columns:1.2fr .9fr .9fr .7fr}.cyt2{grid-template-columns:1fr 2fr}
 .ntin{margin:.3rem 0 0}.lnt{color:var(--mute);font-style:italic}
 .hkd{display:flex;flex-direction:column;gap:.15rem;padding:.45rem 0;border-bottom:1px solid var(--line)}.hkd span{color:var(--ink);font-size:.92rem}.hkd small{color:var(--mute);font-size:.8rem}.hkd small.hkw{color:#d98a2b;font-weight:600}.hkta{margin:.4rem 0 .2rem}.hkg li{margin:.35rem 0}
-.pgrow{padding:.55rem 0;border-bottom:1px solid var(--line)}.pgh{display:flex;gap:.6rem;align-items:flex-start}.pgh small{display:block;color:var(--mute);font-size:.82rem;margin-top:.1rem}.pgb{display:flex;flex-wrap:wrap;gap:.2rem .75rem;margin:.35rem 0 0 1.6rem}.pgb .edit{padding:.2rem 0;font-size:.92rem}.pgb .edit[disabled]{opacity:.3}.pgset{margin:.3rem 0 0 1.6rem}.pgl{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:.55rem 0;color:var(--ink);font:inherit;cursor:pointer}.pgl small{display:block;color:var(--mute);font-size:.8rem}#pgres{max-height:22rem;overflow-y:auto;margin:.2rem 0 .6rem}
+.pgrow{padding:.55rem 0;border-bottom:1px solid var(--line)}.pgh{display:flex;gap:.6rem;align-items:flex-start}.pgh small{display:block;color:var(--mute);font-size:.82rem;margin-top:.1rem}.pgb{display:flex;flex-wrap:wrap;gap:.2rem .75rem;margin:.35rem 0 0 1.6rem}.pgb .edit{padding:.2rem 0;font-size:.92rem}.pgb .edit[disabled]{opacity:.3}.pgset{margin:.3rem 0 0 1.6rem}.pgl{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:.55rem 0;color:var(--ink);font:inherit;cursor:pointer}.pgl small{display:block;color:var(--mute);font-size:.8rem}
+.pgl:disabled{opacity:.55;cursor:default}#pgres{max-height:22rem;overflow-y:auto;margin:.2rem 0 .6rem}
 .seatin{margin:.25rem 0 .1rem}.seatbox{margin:.1rem 0 .3rem}.seatadd{display:block;padding:.15rem 0 .35rem;font-size:.9rem}.seat{margin:.1rem 0 .3rem}
 :root{--warn:#9a5a0b}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--warn:#d98a2b}}:root[data-theme="dark"]{--warn:#d98a2b}
 .tchip.late{border-color:var(--warn);color:var(--warn)}.hint.dn,.srow i.slip,.cmp b.w,.cmp small.fl,.wk b.dn,.ring b.ov,.ins.dn b,.hkd small.hkw{color:var(--warn)}
@@ -248,7 +249,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='868aa5f7c6',sfT0=Date.now();
+const SFV='65fe3e117e',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1940,7 +1941,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'868aa5f7c6',d:'Oct 25, 2026 at 8:53 AM'};
+const APP_V={h:'65fe3e117e',d:'Oct 25, 2026 at 7:45 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2414,17 +2415,25 @@ let pgSnap=null;
 const pgRest=x=>x.rs||RS[x.id]||'';
 const pgNs=x=>[x.n].concat(Array.isArray(x.o)?x.o:[]);
 const pgTy=mu=>mu==='Abs'?'core':mu==='Calves'?'small':'comp';
+// standalone: exercise search by words (any order, brackets ignored, start of a word), with common other names
+const SRW={outer:'abduct',abduction:'abduct',abductor:'abduct',abductors:'abduct',inner:'adduct',adduction:'adduct',adductor:'adduct',adductors:'adduct',db:'dumbbell',dumbbells:'dumbbell',bb:'barbell',ext:'extension',tri:'tricep',triceps:'tricep',bi:'bicep',biceps:'bicep',lats:'lat',glutes:'glute',hams:'hamstring',hamstrings:'hamstring',quads:'quad',calves:'calf',abs:'ab',delts:'delt'};
+const srTok=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').split(' ').filter(Boolean).map(w=>SRW[w]||(w.length>3&&/[^s]s$/.test(w)?w.slice(0,-1):w));
+const srHit=(q,name)=>{const qt=srTok(q).filter(w=>!['machine','the','a','with','thigh','thighh','exercise'].includes(w)),nt=srTok(name);return qt.every(w=>nt.some(n=>n.startsWith(w)||(w.length>=5&&n.startsWith(w.slice(0,5)))))};
+const srKey=n=>[...new Set(srTok(n).filter(w=>!['machine','the','a','with'].includes(w)))].sort().join(' ');
 function pgSrc(){
 const out=[],seen=new Set(),add=(k,x,src)=>{const ns=pgNs(x);if(ns.some(n=>seen.has(n)))return;ns.forEach(n=>seen.add(n));const mu=x.mu||M2[x.n]||ns.map(n=>M2[n]).find(Boolean)||'';out.push({k,l:pgName(x),ns,mu,r:x.r,rs:x.rs||RS[x.id]||'',src,x})};
 for(const d of (window.__SA?Object.keys(P0):ORDER))for(const x of P0[d].x)if(x.o!=='rest')add('p:'+x.id,x,'From your original program');
 for(const d of ORDER){const o=S.prog&&S.prog[d];if(o&&Array.isArray(o.x))o.x.forEach((x,i)=>{if(x.o!=='rest')add('q:'+d+':'+i,x,'On your '+FN[d]+' program')})}
 const lib=new Set(LIB.map(e=>e[0]));for(const e of S.log)for(const n in (e.s||{}))if(!lib.has(n)&&!seen.has(n)){const mu=M2[n]||'',t=PTY[pgTy(mu)];add('h:'+n,{n,mu,r:t.r,rs:t.rs},'You’ve done this before')}
-for(const e of LIB)if(!seen.has(e[0])){const t=PTY[e[2]];seen.add(e[0]);out.push({k:'l:'+e[0],l:e[0],ns:[e[0]],mu:e[1],r:t.r,rs:t.rs,src:'',e})}
+const sk=window.__SA?new Set(out.flatMap(o=>o.ns.map(srKey))):null;
+for(const e of LIB)if(!seen.has(e[0])&&!(sk&&sk.has(srKey(e[0])))){const t=PTY[e[2]];seen.add(e[0]);out.push({k:'l:'+e[0],l:e[0],ns:[e[0]],mu:e[1],r:t.r,rs:t.rs,src:'',e})}
 return out}
 function pgList(){
 const p=pgPick,q=(p.q||'').trim().toLowerCase(),inDay=new Set(P[pgEd].x.flatMap(pgNs));
-const L=pgSrc().filter(o=>(!p.mu||o.mu===p.mu)&&(!q||o.l.toLowerCase().includes(q))&&!o.ns.some(n=>inDay.has(n)));
-return L.length?L.slice(0,60).map(o=>{const f=o.e?o.e[3]||'':o.x&&(o.x.as||AS.has(o.x.n))?'a':'';return `<button class="pgl" data-a="pgpick" data-k="${E(o.k)}"><b>${E(o.l)}</b><small>${[o.mu,o.r?o.r+' reps':'',o.rs?'rest '+o.rs:'',f.includes('a')?'assisted machine':f.includes('b')?'bodyweight':'',o.src].filter(Boolean).map(E).join(' · ')}</small></button>`}).join(''):'<p class="hint">Nothing in the list matches. Add it as your own below.</p>'}
+const hit=o=>!q||(window.__SA?srHit(q,o.l):o.l.toLowerCase().includes(q)),src=pgSrc(),L=src.filter(o=>(!p.mu||o.mu===p.mu)&&hit(o)&&!o.ns.some(n=>inDay.has(n)));
+// standalone: what you searched for that's already on this day shows greyed out, not missing
+const D0=window.__SA&&q?src.filter(o=>(!p.mu||o.mu===p.mu)&&hit(o)&&o.ns.some(n=>inDay.has(n))&&!(p.mode==='swap'&&pgNs(P[pgEd].x[p.i]).some(n=>o.ns.includes(n)))):[],dh=D0.map(o=>`<button class="pgl" disabled><b>${E(o.l)}</b><small>Already on this day</small></button>`).join('');
+return L.length||D0.length?L.slice(0,60).map(o=>{const f=o.e?o.e[3]||'':o.x&&(o.x.as||AS.has(o.x.n))?'a':'';return `<button class="pgl" data-a="pgpick" data-k="${E(o.k)}"><b>${E(o.l)}</b><small>${[o.mu,o.r?o.r+' reps':'',o.rs?'rest '+o.rs:'',f.includes('a')?'assisted machine':f.includes('b')?'bodyweight':'',o.src].filter(Boolean).map(E).join(' · ')}</small></button>`}).join('')+dh:'<p class="hint">Nothing in the list matches. Add it as your own below.</p>'}
 function pgPickHtml(){
 const p=pgPick,old=p.mode==='swap'?P[pgEd].x[p.i]:null,cty=p.ty||'comp';
 return `<section class="ex" id="pgpick"><h2>${old?'Swap '+E(pgName(old)):'Add an exercise'}</h2><div class="chips"><button class="chip" aria-pressed="${!p.mu}" data-a="pgmu" data-v="">All</button>${MUSN.map(m=>`<button class="chip" aria-pressed="${p.mu===m}" data-a="pgmu" data-v="${E(m)}">${E(m)}</button>`).join('')}</div><input class="sel" id="pgq" placeholder="Search exercises" value="${E(p.q||'')}" aria-label="Search exercises" autocomplete="off"><div id="pgres">${pgList()}</div><p class="hint"><b>Not in the list?</b> Add your own.</p><input class="sel" id="pgcn" maxlength="40" placeholder="Exercise name" value="${E(p.cn||'')}" aria-label="Your exercise’s name" autocomplete="off"><p class="hint">Which muscle does it work most?</p><div class="chips">${MUSN.map(m=>`<button class="chip" aria-pressed="${(p.cmu!=null?p.cmu:p.mu)===m}" data-a="pgcmu" data-v="${E(m)}">${E(m)}</button>`).join('')}</div><p class="hint">What kind of exercise is it? This sets the reps and rest.</p><div class="chips">${Object.entries(PTY).map(([k,t])=>`<button class="chip" aria-pressed="${cty===k}" data-a="pgcty" data-v="${k}">${E(t.l)}</button>`).join('')}</div><div class="chips"><button class="chip" aria-pressed="${!!p.cas}" data-a="pgcas">Assisted machine (less is harder)</button></div><p class="hint">${PTY[cty].r} reps, rest ${PTY[cty].rs}. You can change both after adding it.</p><div class="addrow"><button class="add" data-a="pgcadd">Add my exercise</button><button class="add" data-a="pgcancel">Cancel</button></div></section>`}
