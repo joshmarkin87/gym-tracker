@@ -200,7 +200,11 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .gpb{height:.8rem;margin:.45rem 0 .35rem}.gdt{margin:.4rem 0 .3rem;border-top:1px solid var(--line)}.gdt div{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--line)}.gdt span{color:var(--mute);font-size:.92rem}.gdt b{white-space:nowrap}
 .wk.ms4{grid-template-columns:repeat(2,minmax(0,1fr))}.msl li{margin:.3rem 0}.msl li b{color:var(--acc)}.msl .hint{margin-left:.3rem;font-size:.85rem}.lpm{margin:.5rem 0 .2rem}
 .msb{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin:.1rem 0 .7rem;padding:.6rem .8rem;border:1px solid var(--acc);border-radius:.8rem;background:var(--card)}.msb .edit{padding:0;white-space:nowrap}
-.tabs .tgear{position:relative}.tabs .tgear.up::after{content:'';position:absolute;top:.35rem;right:.15rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--warn)}
+.tabs .tgear{position:relative}.tabs button.td,.tabs2 button.td{position:relative}
+.tabs button.td::after{content:'';display:inline-block;width:.42rem;height:.42rem;border-radius:50%;background:var(--warn);margin-left:.2rem;vertical-align:.55em}
+.tabs2 button.td::after{content:'';position:absolute;top:.2rem;right:.35rem;width:.45rem;height:.45rem;border-radius:50%;background:var(--warn)}
+.tabs2 button[aria-selected="true"].td::after{box-shadow:0 0 0 2px var(--accink)}
+.tabs .tgear.up::after{content:'';position:absolute;top:.35rem;right:.15rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--warn)}
 a.fin{display:block;box-sizing:border-box;text-align:center;text-decoration:none}
 .chips.gfm{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin:.8rem 0 .15rem}.gfm .chip{min-width:0;padding-left:.3rem;padding-right:.3rem;white-space:nowrap;text-align:center}@media (max-width:350px){.gfm .chip{font-size:.82rem}}
 .bkb{align-items:flex-start}.bkbb{display:flex;flex-direction:column;align-items:flex-end;gap:.2rem;flex:none}
@@ -241,7 +245,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='b3177f3034',sfT0=Date.now();
+const SFV='9aef506711',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -900,8 +904,8 @@ const planId=()=>{const p=phase();return p.k+'|'+p.since};
 function liOff(f,L){return !!(f&&f.b&&L&&L.cal!=null&&(Math.abs(f.b-L.cal)>25||(f.pg&&L.prot!=null&&Math.abs(f.pg-L.prot)>5)))}
 // what changed since the full plan was written (null when it still matches)
 // Claude's review and plan: out of date once newer data is in
-function rvStale(v){const nd=fdList().filter(x=>x.t>v.t).length,age=Math.round((wtD(today())-wtD(v.t))/864e5);if(nd<2&&age<=7)return '';
-return `<p class="hint dn"><b>Out of date:</b> ${nd>=2?`${nd} more days logged since it was written`:'more than a week old'}. For a new one, tap Update with Claude below.</p>`}
+function rvStale(v){const nd=fdList().filter(x=>x.t>v.t).length,age=Math.round((wtD(today())-wtD(v.t))/864e5);if(nd<7&&age<=7)return '';
+return `<p class="hint dn"><b>Out of date:</b> ${nd>=7?`${nd} more days logged since it was written`:'more than a week old'}. For a new one, tap Update with Claude below.</p>`}
 function plStale(pl){const sc=scans().filter(x=>x.t>pl.t),lb=(S.labs||[]).filter(x=>x.t>pl.t),w=[];if(sc.length)w.push('a new DEXA scan ('+dsh(sc[sc.length-1])+')');if(lb.length)w.push('new blood work ('+dsh(lb[lb.length-1])+')');if(!w.length)return '';
 return `<p class="hint dn"><b>Out of date:</b> ${E(w.join(' and '))} came in after this plan was written. For an updated one, tap Update with Claude below.</p>`}
 function planStale(pl){
@@ -1928,7 +1932,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'b3177f3034',d:'Oct 24, 2026 at 9:53 PM'};
+const APP_V={h:'9aef506711',d:'Oct 24, 2026 at 10:04 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2481,6 +2485,19 @@ function ancSet(t){tapAnc=null;const b=t&&t.closest?t.closest('[data-a]'):null;i
 // the tapped button's exercise card when it's still the same exercise (so Add set still grows the card downward);
 // the button itself when the card changed (an exercise option); the card when the button is gone
 function ancFix(){const a=tapAnc;tapAnc=null;if(!a||a.d!==day)return;let el=null,y=null,b=null;try{b=a.s1&&app.querySelector(a.s1)}catch(e){}if(b){const c=b.closest('section.ex[data-ex]');if(c&&a.ex!=null&&c.dataset.ex===a.ex){el=c;y=a.y2}else{el=b;y=a.y1}}else if(a.s2){try{el=app.querySelector(a.s2)}catch(e){}y=a.y2}if(!el||!el.offsetParent||y==null)return;const dy=el.getBoundingClientRect().top-y;if(Math.abs(dy)>2)window.scrollBy(0,dy)}
+// standalone: a dot on each tab with something to do there, and on its top tab (the same dot as the settings gear's)
+function todos(){const o={};if(!window.__SA||needSetup())return o;const td=today(),wd=new Date(td+'T12:00:00').getDay(),wk=wkKey(td),hl=hlList(),fl=fdList(),wl=wtList(),set=(k,top)=>{o[k]=1;if(top)o[top]=1};
+if(ORDER.includes(wd)&&!S.log.some(e=>e.t===td||(e.day===wd&&logWk(e)===wk)))set(String(wd),'gym');
+const usual=(L,k)=>L.some(x=>x.t>=addD(td,-14)&&x.t<td&&x[k]!=null);
+if((usual(wl,'w')||usual(hl,'sl')||usual(hl,'st')||usual(fl,'c'))&&(!hkMorn()||hkMiss().some(x=>!x.ev)))set('hk','h');
+if((wd===0&&!wsList().some(x=>x.t===td))||phaseWarn())set('w','h');
+if(FEM&&cyNat()){const c=cyAt(td);if(c&&c.ph==='per'&&!(cyDay(td)||{}).f)set('cy','h')}
+{const v=S.rev&&rvFixV(S.rev);if(v&&v.r&&rvStale(v))set('f','h')}
+{const pl=S.plan;if(pl&&pl.r&&(pl.pid!==planId()||planStale(pl)||plStale(pl)))set('pl')}
+if(fl.length){const L=Object.assign({},planNums(),planT()||{});if(L.cal!=null&&!liOk(L))set('pl')}
+{const ci=(S.ci||[]).filter(c=>c.pid===planId()),last=ci[ci.length-1];if(last&&(last.v==='goal'||last.v==='reds')&&last.nx&&last.nx.length)set('p')}
+return o}
+const TDL={gym:'Gym',h:'Health',pl:'Plan',p:'Progress'};
 function render(){try{render0();lbWords();rdOk=day;STP('drawn');ancFix()}catch(e){rdErr(e)}}
 function rdErr(e){const m=String(e&&e.message||e),st=String(e&&e.stack||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,4).join(' ← '),v=(()=>{try{return String(APP_V.h).slice(0,7)}catch(x){return '?'}})();try{if(window.__saErr)window.__saErr('page '+day+': '+m)}catch(x){}STP('page error');try{e.__rd=1}catch(x){}setTimeout(()=>{throw e},0);app.innerHTML=`<section class="ex" id="rderr"><h2>This page hit a problem</h2><p class="hint">Your data is safe on this phone. A screenshot of this helps get it fixed.</p><p class="hint" style="word-break:break-word;font-size:.8rem"><b>${E(m)}</b>${st?'<br>'+E(st.slice(0,500)):''}<br>Page: ${E(String(day))} · Version ${E(v)}</p>${rdOk!=null&&rdOk!==day?'<button class="fin" data-a="rdback">Go back</button>':''}${window.__SA&&day!=='set'?'<button class="fin" data-a="rdset">Open Settings</button>':''}${window.__SA?'<button class="edit" data-a="bk" style="padding:.4rem 0">Save a backup</button>':''}</section>`}
 function render0(){
@@ -2489,7 +2506,7 @@ if(needSetup()){app.innerHTML=initDone?setupHtml():'';return}
 if(window.__SA)for(const k in S.draft){const x=S.draft[k];if(x&&typeof x.ed==='string'&&x.ed!==today()){delete S.draft[k];save()}}
 GEN++;autoCheck();STP('drawing '+day);
 const p=P[day];
-const g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&logWk(e)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${st?` class="wd-${st}" aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:''}>${DN[d]}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}">${DN[d]}</button>`).join('')}${window.__SA?`<button class="tgear${updAvail||bkWhy()?' up':''}" role="tab" aria-selected="${day==='set'}" aria-label="${updAvail?'Settings, update ready':bkWhy()?'Settings, backup due':'Settings'}" data-a="tab" data-d="set"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>`:''}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
+const TDO=todos(),tdc=d=>TDO[d]?' td':'',g=inGym(day)||day==='sch',hh=inHl(day),wkT=wkKey(today()),dot=d=>{if(!ORDER.includes(d))return '';if(S.log.some(e=>e.day===d&&logWk(e)===wkT))return 'done';const dr=S.draft[d];return dr&&dr.s&&Object.values(dr.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a)))?'prog':''},row2=(lbl,ds)=>`<nav class="tabs2" role="tablist" aria-label="${lbl}">${ds.map(d=>{const st=dot(d),c=(st?'wd-'+st:'')+tdc(d);return `<button role="tab" aria-selected="${d===day}" data-a="tab" data-d="${d}"${c.trim()?` class="${c.trim()}"`:''}${st?` aria-label="${DN[d]}, ${st==='done'?'done this week':'in progress'}"`:TDO[d]?` aria-label="${DN[d]}, something to do"`:''}>${DN[d]}</button>`}).join('')}</nav>`,tabs=`<div class="tabw"><nav class="tabs" role="tablist">${(window.__SA?['gym','h','pl','p']:['gym','w','h','f','pl','p']).map(d=>`<button role="tab" aria-selected="${d==='gym'?g:d==='h'?hh:d===day}" data-a="tab" data-d="${d}"${TDO[d]?` class="td" aria-label="${TDL[d]||DN[d]}, something to do"`:''}>${DN[d]}</button>`).join('')}${window.__SA?`<button class="tgear${updAvail||bkWhy()?' up':''}" role="tab" aria-selected="${day==='set'}" aria-label="${updAvail?'Settings, update ready':bkWhy()?'Settings, backup due':'Settings'}" data-a="tab" data-d="set"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>`:''}</nav>${g?row2('Gym',ORDER.concat('g')):hh?row2('Health',window.__SA?['hk','w','f','sl','st'].concat(FEM?['cy']:[],['bm']):['sl','st']):''}</div>`;
 if(day==='w'){app.innerHTML=`${tabs}${todayBar()}${weightHtml()}`;return}
 if(day==='p'){app.innerHTML=`${tabs}${todayBar()}${progressHtml()}`;return}
 if(day==='g'){app.innerHTML=`${tabs}${todayBar()}${gymProgHtml()}`;return}
