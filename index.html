@@ -206,6 +206,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .tabs2 button[aria-selected="true"].td::after{box-shadow:0 0 0 2px var(--accink)}
 .pr .fag{margin:.5rem 0 0}
 .chips.lpm .chip{flex:1 1 40%;text-align:center}
+.msb.tdl{border-color:var(--warn)}
 .tabs .tgear.up::after{content:'';position:absolute;top:.35rem;right:.15rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--warn)}
 a.fin{display:block;box-sizing:border-box;text-align:center;text-decoration:none}
 .chips.gfm{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin:.8rem 0 .15rem}.gfm .chip{min-width:0;padding-left:.3rem;padding-right:.3rem;white-space:nowrap;text-align:center}@media (max-width:350px){.gfm .chip{font-size:.82rem}}
@@ -247,7 +248,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='69bd792ac9',sfT0=Date.now();
+const SFV='868aa5f7c6',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1101,7 +1102,7 @@ if(pr.bkc){const n=bkCnt();if(n.s>(pr.bkc.s||0))return 'You added a DEXA scan si
 const ago=Math.round((wtD(td)-wtD(S.bk))/864e5);return ago>=14?`Your last backup was ${dsh({t:S.bk})}, ${Math.floor(ago/7)} weeks ago.`:''}
 function bkBan(){if(day==='set')return '';const w=bkWhy();if(!w)return '';
 return `<div class="msb bkb" role="status"><span><b>Back up:</b> ${E(w)}</span><span class="bkbb"><button class="edit" data-a="bkgo"${bkBusy?' disabled':''}>Back up now</button><button class="edit" data-a="bkno">Not now</button></span></div>`}
-function todayBar(){return todayBar0()+msBan()+bkBan()}
+function todayBar(){return todayBar0()+msBan()+bkBan()+todoLine()}
 function todayBar0(){
 const td=today(),yd=addD(td,-1),hr=new Date().getHours(),wd=new Date(td+'T12:00:00').getDay(),H=new Map(hlList().map(x=>[x.t,x])),F=new Set(fdList().map(x=>x.t)),Wt=new Set(wtList().map(x=>x.t)),has=(t,k)=>{const x=H.get(t);return !!(x&&x[k]!=null)};
 const it=[{d:'w',l:'Weight',ok:Wt.has(td)}];if(FEM&&cyNat()){const c=cyAt(td);if(c&&c.ph==='per')it.push({d:window.__SA?'cy':'w',l:'Flow',ok:!!(cyDay(td)||{}).f,id:'cycle'})}if(wd===0)it.push({d:'w',l:'Waist',ok:wsList().some(x=>x.t===td),id:'waist'});it.push({d:'sl',l:'Sleep',ok:has(td,'sl')});
@@ -1583,7 +1584,7 @@ rvErr=c==='cancelled'?'':c==='not_granted'?'You didn’t allow Claude for this t
 function fdRevSec(){
 const v=rvFixV(S.rev),n=fdList().length,off=smpReady&&!smp;
 const body=rvBusy?'<p class="hint goal">Claude is reviewing your food, weight, workouts, DEXA and labs. This can take a minute or two.</p><button class="edit" data-a="rvstop" style="padding:.4rem 0 0">Stop</button>':(v&&v.r?`<p class="hint">From ${E(wtLong(v.t))}, based on ${v.n} logged day${v.n===1?'':'s'}${!window.__SA&&Math.round((wtD(today())-wtD(v.t))/864e5)>7?'. More than a week old, so worth refreshing':''}.</p>${window.__SA?rvStale(v):''}${v.r.h?`<p class="hint goal">${E(v.r.h)}</p>`:''}${v.r.w.length?`<p class="hint"><b>Working</b></p><ul class="tl">${v.r.w.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:''}<p class="hint"><b>Recommendations</b></p><ol class="tl rv">${v.r.rc.map(x=>`<li><b>${E(x.t)}</b>${x.y?`<span>${E(x.y)}</span>`:''}${x.a?`<span class="rva">${E(x.a)}</span>`:''}</li>`).join('')}</ol>${v.r.wa.length?`<p class="hint"><b>Keep an eye on</b></p><ul class="tl">${v.r.wa.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:''}${v.r.m.length?`<p class="hint"><b>Would sharpen the next review</b></p><ul class="tl hint">${v.r.m.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:''}`:'<p class="hint">Claude looks over your food, weigh-ins, workouts, strength check, DEXA and any blood work, then tells you what’s working and what to change, with numbers.</p>')+(window.__SA?`${clLink('rv',v&&v.r?'Update with Claude':'Get a review from Claude',n<3)}<p class="hint">${n<3?`Log at least 3 days first (${n} so far). `:''}Copies your review request with your last 4 weeks of data and opens Claude. Paste it there and send. When Claude replies, press and hold the reply, tap Copy, then come back and tap Paste review from Claude.</p>${clBox('rv')}<button class="edit" data-a="rvcp" style="padding:.2rem 0 .4rem"${n<3?' disabled':''}>Copy only</button>`:off?'<p class="hint dn">Reviews aren’t available in this view. Ask in a Claude chat instead.</p>':`<button class="fin" data-a="rv" style="margin:.6rem 0 .2rem"${n<3?' disabled':''}>${v?'Get a new review':'Get a review'}</button>${n<3?`<p class="hint">Log at least 3 days first (${n} so far).</p>`:''}`);
-return `<section class="ex"><h2>Nutrition review</h2>${body}${rvErr?`<p class="hint dn">${E(rvErr)}</p>`:''}<p class="hint">Suggestions from Claude based on your tracker data, not medical advice. Check big changes with your doctor, especially anything about your blood work.</p></section>`}
+return `<section class="ex" id="fdrev"><h2>Nutrition review</h2>${body}${rvErr?`<p class="hint dn">${E(rvErr)}</p>`:''}<p class="hint">Suggestions from Claude based on your tracker data, not medical advice. Check big changes with your doctor, especially anything about your blood work.</p></section>`}
 function fdVsWeight(){
 const m=fdMaint(),T=(v,l)=>`<div><b>${v}</b><small>${E(l)}</small></div>`;
 if(!m||m.n<MT_N)return `<section class="ex"><h2>Calories vs your weight</h2><p class="hint">Once you have about ${MT_N} logged days alongside your weigh-ins, this estimates your maintenance calories: what you could eat without gaining or losing.${m?' Days logged in your current pace window ('+E(wkRange(m.s,m.e>today()?today():m.e))+'): '+m.n+' of '+MT_N+'.':''}${window.__SA?' A day under 800 calories counts as not fully logged.':''}</p></section>`;
@@ -1881,7 +1882,7 @@ const ss=await grab(coll),fd=await grab(fcol);if(ss)out.sessions=ss;if(fd)out.fo
 await d.save({filename:'gym-tracker-backup-'+today()+'.json',data:JSON.stringify(out,null,1)});S.bk=today();S.prof=Object.assign({},S.prof||{},{bkc:bkCnt()});delete S.prof.bks;save();say('Backup saved')
 }catch(e){const c=e&&e.code;say(c==='declined'?'Backup cancelled':c==='rate_limited'?'Another save is open. Try again in a moment.':c==='too_large'?'The backup is too large to save here. Ask in a Claude chat instead.':'Backup isn’t available in this view. Ask in a Claude chat instead.')}
 finally{bkBusy=false;render()}}
-function bkSec(){const off=dlReady&&!dlNs;return `<section class="ex"><h2>Backup</h2><p class="hint">Download everything in one file: workouts (including archived ones), weights, waist, food, health, scans, labs, plan and check-ins. Keep it somewhere safe. ${window.__SA?'To restore it, or to add a DEXA, blood work or weight file made in a Claude chat, use Import a file.':'To restore it, send the file in a Claude chat.'}${S.bk?' Last backup: '+E(dsh({t:S.bk}))+'.':''}</p>${off?'<p class="hint dn">Backups aren’t available in this view. Ask in a Claude chat instead.</p>':`<button class="fin" data-a="bk" style="margin:.6rem 0 .2rem"${bkBusy?' disabled':''}>${bkBusy?'Preparing…':'Download backup'}</button>`}${window.__SA?`<label class="add upl">Import a file<input type="file" id="imf" accept=".json,application/json" hidden></label>`:''}</section>${window.__SA?imCard():''}`}
+function bkSec(){const off=dlReady&&!dlNs;return `<section class="ex" id="setbk"><h2>Backup</h2><p class="hint">Download everything in one file: workouts (including archived ones), weights, waist, food, health, scans, labs, plan and check-ins. Keep it somewhere safe. ${window.__SA?'To restore it, or to add a DEXA, blood work or weight file made in a Claude chat, use Import a file.':'To restore it, send the file in a Claude chat.'}${S.bk?' Last backup: '+E(dsh({t:S.bk}))+'.':''}</p>${off?'<p class="hint dn">Backups aren’t available in this view. Ask in a Claude chat instead.</p>':`<button class="fin" data-a="bk" style="margin:.6rem 0 .2rem"${bkBusy?' disabled':''}>${bkBusy?'Preparing…':'Download backup'}</button>`}${window.__SA?`<label class="add upl">Import a file<input type="file" id="imf" accept=".json,application/json" hidden></label>`:''}</section>${window.__SA?imCard():''}`}
 let dlReady=false;dlP.then(()=>{dlReady=true});
 // ===== Standalone: restore a backup or import a file made in a Claude chat =====
 let imPend=null;
@@ -1939,7 +1940,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'69bd792ac9',d:'Oct 25, 2026 at 8:26 AM'};
+const APP_V={h:'868aa5f7c6',d:'Oct 25, 2026 at 8:53 AM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2078,7 +2079,7 @@ const fl=cyFlags(),rd=fl.length&&phase().k==='cut'&&cyIrreg()?'<p class="hint dn
 const recent=st.P.slice(-6).reverse().map(p=>{const k='cyp'+p.s;return `<p><b>${E(dsh({t:p.s}))}${p.e?'–'+E(dsh({t:p.e})):''}</b><span>${p.e?(ddays(p.s,p.e)+1)+' days':(ddays(p.s,today())>10?'no end logged':'ongoing')}</span><button class="edit${armed===k?' warn':''}" data-a="cyrm" data-s="${p.s}">${armed===k?'Tap again to remove':'Remove'}</button></p>`}).join('');
 return `<section class="ex" id="cycle"><h2>Period and symptoms</h2><p class="hint">${E(status)}</p>${wn}${fl.map(f=>`<p class="hint dn">${E(f.x)}</p>`).join('')}${rd}<div class="addrow"><button class="add" data-a="cyps">Period started ${E(t===td?'today':dsh({t}))}</button><button class="add" data-a="cype">Period ended ${E(t===td?'today':dsh({t}))}</button></div><p class="hint"><b>Flow, ${E(lab)}</b></p><div class="chips">${Object.entries(CYF).map(([k,l])=>`<button class="chip" aria-pressed="${x.f===k}" data-a="cyf" data-v="${k}">${l}</button>`).join('')}</div><p class="hint"><b>Symptoms, ${E(lab)}</b> (optional)</p><div class="chips">${Object.entries(CYS).map(([k,l])=>`<button class="chip" aria-pressed="${!!(x.sy&&x.sy.includes(k))}" data-a="cysy" data-v="${k}">${l}</button>`).join('')}</div>${hasX?`<button class="edit${rm?' warn':''}" data-a="cyclr" style="padding:.3rem 0 0">${rm?'Tap again to clear '+E(lab):'Clear '+E(lab)}</button>`:''}${recent?`<p class="hint"><b>Recent ${nat?'periods':'bleeds'}</b></p><div class="hist" style="margin:.2rem 0 0">${recent}</div>`:''}${settings}</section>`}
 // its own tab: a day to log for (today unless she picks another), then the card
-function cyHtml(){const td=today(),sd=wtDate||td;return `<h1>Cycle</h1><p class="sub">Log your period, flow and symptoms. Your cycle day and phase show next to your weight, workouts and food.</p>${cyOn()?`<section class="ex"><h2>Day to log</h2><input class="sel" type="date" id="cyd" style="margin-top:.6rem" value="${sd}" min="2020-01-01" max="${td}" aria-label="Day to log"><p class="hint" style="margin-top:.4rem">${sd===td?'Today. Pick another day to log a past period or symptoms.':'Logging for <b>'+E(wtLong(sd))+'</b>. <button class="edit" data-a="cytd" style="padding:0">Back to today</button>'}</p></section>`:''}${cySec()}`}
+function cyHtml(){const td=today(),sd=wtDate||td;return `<h1>Cycle</h1><p class="sub">Log your period, flow and symptoms. Your cycle day and phase show next to your weight, workouts and food.</p>${cyOn()?`<section class="ex" id="cylog"><h2>Day to log</h2><input class="sel" type="date" id="cyd" style="margin-top:.6rem" value="${sd}" min="2020-01-01" max="${td}" aria-label="Day to log"><p class="hint" style="margin-top:.4rem">${sd===td?'Today. Pick another day to log a past period or symptoms.':'Logging for <b>'+E(wtLong(sd))+'</b>. <button class="edit" data-a="cytd" style="padding:0">Back to today</button>'}</p></section>`:''}${cySec()}`}
 // on the Weight tab: just the cycle day, and the water note when it applies
 function cyWt(){if(!cyOn())return '';const td=today(),a=cyAt(td),nat=cyNat();if(!a)return `<p class="hint" style="margin:-.2rem 0 .8rem">Cycle: log your next period on the <button class="edit" data-a="tab" data-d="cy" style="padding:0">Cycle tab</button>.</p>`;
 return `<p class="hint${nat&&cyWater(td,3)?' up':''}" style="margin:-.2rem 0 .8rem">Cycle day ${a.day}${nat?' · '+E(CYP[a.ph]):''}.${nat&&cyWater(td,3)?' Water retention peaks just before your period and in its first days, so a jump of a few pounds now is water, not fat.':''} <button class="edit" data-a="tab" data-d="cy" style="padding:0">Cycle tab</button></p>`}
@@ -2493,17 +2494,24 @@ function ancSet(t){tapAnc=null;const b=t&&t.closest?t.closest('[data-a]'):null;i
 // the button itself when the card changed (an exercise option); the card when the button is gone
 function ancFix(){const a=tapAnc;tapAnc=null;if(!a||a.d!==day)return;let el=null,y=null,b=null;try{b=a.s1&&app.querySelector(a.s1)}catch(e){}if(b){const c=b.closest('section.ex[data-ex]');if(c&&a.ex!=null&&c.dataset.ex===a.ex){el=c;y=a.y2}else{el=b;y=a.y1}}else if(a.s2){try{el=app.querySelector(a.s2)}catch(e){}y=a.y2}if(!el||!el.offsetParent||y==null)return;const dy=el.getBoundingClientRect().top-y;if(Math.abs(dy)>2)window.scrollBy(0,dy)}
 // standalone: a dot on each tab with something to do there, and on its top tab (the same dot as the settings gear's)
-function todos(){const o={};if(!window.__SA||needSetup())return o;const td=today(),wd=new Date(td+'T12:00:00').getDay(),wk=wkKey(td),hl=hlList(),fl=fdList(),wl=wtList(),set=(k,top)=>{o[k]=1;if(top)o[top]=1};
-if(ORDER.includes(wd)&&!S.log.some(e=>e.t===td||(e.day===wd&&logWk(e)===wk)))set(String(wd),'gym');
+// standalone: what's to do, by tab: drives the dots, and the "To do" line at the top of the tab (t = what, sel = where)
+function todoList(){const o=[];if(!window.__SA||needSetup())return o;const td=today(),wd=new Date(td+'T12:00:00').getDay(),wk=wkKey(td),hl=hlList(),fl=fdList(),wl=wtList(),add=(k,top,t,sel)=>o.push({k,top,t,sel});
+if(ORDER.includes(wd)&&!S.log.some(e=>e.t===td||(e.day===wd&&logWk(e)===wk)))add(String(wd),'gym','',null);
 const usual=(L,k)=>L.some(x=>x.t>=addD(td,-14)&&x.t<td&&x[k]!=null);
-if((usual(wl,'w')||usual(hl,'sl')||usual(hl,'st')||usual(fl,'c'))&&(!hkMorn()||hkMiss().some(x=>!x.ev)))set('hk','h');
-if((wd===0&&!wsList().some(x=>x.t===td))||phaseWarn())set('w','h');
-if(FEM&&cyNat()){const c=cyAt(td);if(c&&c.ph==='per'&&!(cyDay(td)||{}).f)set('cy','h')}
-{const v=S.rev&&rvFixV(S.rev);if(v&&v.r&&rvStale(v))set('f','h')}
-{const pl=S.plan;if(pl&&pl.r&&(pl.pid!==planId()||planStale(pl)||plStale(pl)))set('pl')}
-if(fl.length){const L=Object.assign({},planNums(),planT()||{});if(L.cal!=null&&!liOk(L))set('pl')}
-{const ci=(S.ci||[]).filter(c=>c.pid===planId()),last=ci[ci.length-1];if(last&&(last.v==='goal'||last.v==='reds')&&last.nx&&last.nx.length)set('p')}
+if(usual(wl,'w')||usual(hl,'sl')||usual(hl,'st')||usual(fl,'c')){const ms=hkMiss().filter(x=>!x.ev);if(!hkMorn())add('hk','h','this morning’s Apple Health paste','#hk');else if(ms.length)add('hk','h','it didn’t bring '+hkMissTxt(ms,'and'),'#hksync')}
+if(wd===0&&!wsList().some(x=>x.t===td))add('w','h','Sunday’s waist','#waist');
+if(phaseWarn())add('w','h','',null);
+if(FEM&&cyNat()){const c=cyAt(td);if(c&&c.ph==='per'&&!(cyDay(td)||{}).f)add('cy','h','today’s flow','#cylog')}
+{const v=S.rev&&rvFixV(S.rev);if(v&&v.r&&rvStale(v))add('f','h','Claude’s food review is out of date','[data-clgo="rv"]')}
+{const pl=S.plan;if(pl&&pl.r&&(pl.pid!==planId()||planStale(pl)||plStale(pl)))add('pl',null,'your Claude plan is out of date','[data-clgo="pl"]')}
+if(fl.length){const L=Object.assign({},planNums(),planT()||{});if(L.cal!=null&&!liOk(L))add('pl',null,`set Lose It to ${fmt(L.cal)} cal and ${L.prot} g protein`,'[data-a="lidone"]')}
+{const ci=(S.ci||[]).filter(c=>c.pid===planId()),last=ci[ci.length-1];if(last&&(last.v==='goal'||last.v==='reds')&&last.nx&&last.nx.length)add('p',null,'pick your next phase','#checkin')}
+// Settings (the gear's dot): a new version ready; a backup due (its banner shows on every other page)
+if(updAvail)add('set',null,'a new version of the app is ready','[data-a="upgo"]');
+if(bkWhy())add('set',null,'back up your data','#setbk');
 return o}
+function todos(){const o={};for(const x of todoList()){o[x.k]=1;if(x.top)o[x.top]=1}return o}
+function todoLine(){if(!window.__SA)return '';return todoList().filter(x=>x.k===String(day)&&x.t).map(x=>`<div class="msb tdl" role="status"><span><b>To do:</b> ${E(x.t.charAt(0).toUpperCase()+x.t.slice(1))}.</span><button class="edit" data-a="todo" data-t="${E(x.sel)}">Show me</button></div>`).join('')}
 const TDL={gym:'Gym',h:'Health',pl:'Plan',p:'Progress'};
 function render(){try{render0();lbWords();rdOk=day;STP('drawn');ancFix()}catch(e){rdErr(e)}}
 function rdErr(e){const m=String(e&&e.message||e),st=String(e&&e.stack||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,4).join(' ← '),v=(()=>{try{return String(APP_V.h).slice(0,7)}catch(x){return '?'}})();try{if(window.__saErr)window.__saErr('page '+day+': '+m)}catch(x){}STP('page error');try{e.__rd=1}catch(x){}setTimeout(()=>{throw e},0);app.innerHTML=`<section class="ex" id="rderr"><h2>This page hit a problem</h2><p class="hint">Your data is safe on this phone. A screenshot of this helps get it fixed.</p><p class="hint" style="word-break:break-word;font-size:.8rem"><b>${E(m)}</b>${st?'<br>'+E(st.slice(0,500)):''}<br>Page: ${E(String(day))} · Version ${E(v)}</p>${rdOk!=null&&rdOk!==day?'<button class="fin" data-a="rdback">Go back</button>':''}${window.__SA&&day!=='set'?'<button class="fin" data-a="rdset">Open Settings</button>':''}${window.__SA?'<button class="edit" data-a="bk" style="padding:.4rem 0">Save a backup</button>':''}</section>`}
@@ -2765,6 +2773,7 @@ if(a==='wtrm'){const t=b.dataset.t,x=wtList().find(y=>y.t===t);if(!x)return;if(a
 if(a==='ws'){addWs();return}
 if(a==='wsdel'){delWs();return}
 if(a==='wsopen'){wsOpen=true;wsDate=null;render();const i=app.querySelector('#wsin');if(i)i.focus();return}
+if(a==='todo'){const t=b.dataset.t;if(t==='#waist'){wsOpen=true;wsDate=null;render()}let el=null;try{el=app.querySelector(t)}catch(e){}if(el&&el.scrollIntoView)el.scrollIntoView({block:'center'});if(t==='#waist'){const i=app.querySelector('#wsin');if(i)try{i.focus({preventScroll:true})}catch(e){i.focus()}}return}
 if(a==='wsclose'){wsOpen=false;wsDate=null;render();return}
 if(a==='wted'){editWt(b.dataset.t);return}
 if(a==='wtall'){wtAll=!wtAll;render();return}
