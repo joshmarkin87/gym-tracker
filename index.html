@@ -245,7 +245,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='9aef506711',sfT0=Date.now();
+const SFV='d3193dec17',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1116,13 +1116,16 @@ return `<div class="today"><span>Today</span>${it.map(ch).join('')}${late.map(x=
 function phaseLine(){const p=phase();return `<p class="hint" style="margin:.2rem 0 .7rem">Phase: <b>${E(phLbl(p))}</b>, since ${E(dsh({t:p.since}))}, ${E(phGoal(p))}. <button class="edit" data-a="phgo" style="padding:0">Change</button></p>`}
 function phaseWarn(){
 const s=wtStats(),p=phase();if(!s||s.pace==null||!(s.pw>=1.5))return '';
+// standalone: answered Yes in the last 2 weeks for this phase
+{const k=S.prof&&S.prof.pwk;if(window.__SA&&k&&k.id===planId()&&k.t>addD(today(),-14))return ''}
 if((wtD(today())-wtD(p.since))/864e5<14)return '';
 const pc=s.pace,ov=` (${sg(pc)} lb a week over the last ${f1(s.pw)} weeks)`;let h='',x='';
-if(p.k==='cut'&&pc>=.3){h='Still cutting?';x=`Your weight has been going up${ov}, but your phase is Cut. If you’ve switched to ${FEM?'a lean bulk, a recomp':'a bulk'} or maintenance, change your phase. If not, check your calories on the Food tab.`}
+if(p.k==='cut'&&pc>=.3){h='Still cutting?';x=`Your weight has been going up${ov}, but your phase is Cut. If you’ve switched to ${FEM?'a lean bulk, a recomp':'a bulk'} or maintenance, change your phase. ${window.__SA?'If you are, the weekly check-in lowers your calories if this keeps up.':'If not, check your calories on the Food tab.'}`}
 else if(p.k==='bulk'&&pc<=-.3){h='Still bulking?';x=`Your weight has been going down${ov}, but your phase is ${PH.bulk.l}. If you’ve switched to a cut, change your phase. If not, check you’re hitting your calories on the Food tab; the weekly check-in raises them if your weight keeps dropping.`}
 else if(p.k==='recomp'&&Math.abs(pc)>=.5){h='Still recomping?';x=`Your weight has been going ${pc>0?'up':'down'}${ov}, but your phase is Recomp, which eats at maintenance. If you meant to ${pc>0?'lean bulk':'cut'}, change your phase. If not, check you’re hitting your calories on the Food tab; the weekly check-in adjusts them if this keeps up.`}
 else if(p.k==='maint'&&Math.abs(pc)>=.0035*(s.a7!=null?s.a7:s.L.w)){h='Still maintaining?';x=`Your weight has been going ${pc>0?'up':'down'}${ov}, but your phase is Maintain. If you meant to ${pc>0?phN('bulk'):'cut'}, change your phase. If not, the weekly check-in adjusts your calories if this keeps up.`}
-return h?`<section class="pr dn"><h2>${h}</h2><p>${E(x)} <button class="edit" data-a="phgo">Change phase</button></p></section>`:''}
+const yes={cut:'Yes, still cutting',bulk:FEM?'Yes, still lean bulking':'Yes, still bulking',recomp:'Yes, still recomping',maint:'Yes, still maintaining'}[p.k];
+return h?`<section class="pr dn"><h2>${h}</h2><p>${E(x)}</p><p>${window.__SA&&yes?`<button class="edit" data-a="pwok">${E(yes)}</button> · `:''}<button class="edit" data-a="phgo">${window.__SA?'No, change phase':'Change phase'}</button></p></section>`:''}
 // ===== Standalone: goal progress =====
 // a third goal date, one chip per way of measuring pace
 const GFK=['2w','st','tr','tw','dd','fm','sd','dx'],GFL0=[['2w','2 weeks'],['st','Since start'],['tr','Trend'],['tw','This week'],['dd','Latest'],['fm','Food'],['sd','Slowdown'],['dx','DEXA']];
@@ -1932,7 +1935,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'9aef506711',d:'Oct 24, 2026 at 10:04 PM'};
+const APP_V={h:'d3193dec17',d:'Oct 24, 2026 at 10:40 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2766,6 +2769,7 @@ if(a==='wtz'){wtZoom=b.dataset.z==='goal'?'goal':'recent';render();return}
 if(a==='ph'){const k=b.dataset.k;if(!PH[k]||phase().k===k){armed=null;render();return}if(armed!=='ph'+k){armed='ph'+k;render();say('Tap '+PH[k].l+' again to switch your phase');return}armed=null;setPhase(k);return}
 if(a==='phr'){const r=+b.dataset.r,p=phase();if(PH[p.k].r.includes(r))setPhase(p.k,r);return}
 if(a==='phgo'){day='pl';render();window.scrollTo(0,0);return}
+if(a==='pwok'){S.prof=Object.assign({},S.prof||{},{pwk:{id:planId(),t:today()}});save();render();say('Got it. The weekly check-in keeps adjusting your calories. This comes back in 2 weeks only if your weight is still going the other way.');return}
 if(a==='tgo'){const d=b.dataset.d;day=['w','sl','st','f'].includes(d)||inHl(d)?d:+d;if(inGym(day))gymLast=day;if(inHl(day))hlLast=day;wtDate=null;render();const el=b.dataset.id&&document.getElementById(b.dataset.id);if(el&&el.scrollIntoView)el.scrollIntoView();else window.scrollTo(0,0);return}
 if(a==='pq'){const q=b.dataset.q,v=b.dataset.v;if(['bf','cap','wk'].includes(q))setGoal(q,+v);else if(q==='exp'&&EXP[v]){S.prof=Object.assign({},S.prof||{},{[q]:v});save();render()}return}
 if(a==='pb'){planBuild();return}
