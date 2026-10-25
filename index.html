@@ -185,6 +185,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .tchip.late{border-color:var(--warn);color:var(--warn)}.hint.dn,.srow i.slip,.cmp b.w,.cmp small.fl,.wk b.dn,.ring b.ov,.ins.dn b,.hkd small.hkw{color:var(--warn)}
 .pgb .edit[data-a="pgup"],.pgb .edit[data-a="pgdn"]{min-width:2.4rem;min-height:2rem;font-size:1.1rem;padding:.2rem .4rem;border:1px solid var(--line);border-radius:.5rem}
 .syr{display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--line)}.syr:last-child{border-bottom:0}.syr small{display:block;color:var(--mute);font-size:.82rem;margin-top:.1rem}.syr span{white-space:nowrap;color:var(--mute);font-weight:600}.syr span.ok{color:var(--acc)}
+.syr span.dn{color:#d98a2b}
 .schb{display:flex;gap:.9rem;white-space:nowrap}
 .hist p.wkp{cursor:pointer}.hist p.wkp b::after{content:' ›';color:var(--mute)}.hist p.wkp.on b::after{content:' ⌄'}.wkd{margin:0 0 .4rem;padding:.2rem .8rem;border-left:3px solid var(--acc);background:var(--card);border-radius:0 .5rem .5rem 0}.wkd p{border-top:0;padding:.3rem 0;font-size:.92rem}.wkd .lnt{display:block;margin:-.2rem 0 .2rem;font-size:.85rem}
 .rch{margin:.7rem 0 .1rem}
@@ -240,7 +241,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='c293e07891',sfT0=Date.now();
+const SFV='b3177f3034',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1103,7 +1104,7 @@ it.push({d:'st',l:'Steps',ok:has(td,'st'),pm:1},{d:'f',l:'Food',ok:F.has(td),pm:
 const hs=hlList().filter(x=>x.st!=null),fs=fdList(),late=[];
 if(hs.length&&hs[0].t<=yd&&!has(yd,'st'))late.push({d:'st',l:'Yesterday’s steps'});
 if(fs.length&&fs[0].t<=yd&&!F.has(yd))late.push({d:'f',l:'Yesterday’s food'});
-for(const m of hkMiss())late.push({d:'hk',l:m.l.charAt(0).toUpperCase()+m.l.slice(1)});
+for(const m of hkMiss())if(m.k==='hr'||m.k==='mac')late.push({d:'hk',l:m.l.charAt(0).toUpperCase()+m.l.slice(1)});
 if(window.__SA)for(const x of it.concat(late))if(!x.ok&&!x.id&&['w','sl','st','f'].includes(x.d))x.d='hk';
 if(it.every(x=>x.ok)&&!late.length)return `<p class="today all">Today: everything’s logged ✓</p>`;
 const ch=x=>{const lt=!x.ok&&x.pm&&hr<18;return `<button class="tchip${x.ok?' done':lt?' later':''}" data-a="tgo" data-d="${x.d}"${x.id?` data-id="${x.id}"`:''} aria-label="${E(x.l)}${x.ok?', logged':lt?', tonight':', not logged yet'}">${x.ok?'✓ ':''}${E(x.l)}${lt?' <small>tonight</small>':''}</button>`};
@@ -1927,7 +1928,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'c293e07891',d:'Oct 24, 2026 at 9:24 PM'};
+const APP_V={h:'b3177f3034',d:'Oct 24, 2026 at 9:53 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2309,13 +2310,30 @@ async function hkPaste(){hkErr='';try{if(!navigator.clipboard||!navigator.clipbo
 const hkSl=m=>Math.floor(m/60)+'h '+String(Math.round(m%60)).padStart(2,'0')+'m';
 // standalone: what usually comes in from Apple Health but hasn't for the day it's due (came in at least once in the
 // 14 days before). Weigh-in, sleep, steps and food have their own Today chips; this adds heart rate and food macros.
-function hkMiss(){if(!window.__SA)return[];const td=today(),yd=addD(td,-1),hl=hlList(),fl=fdList(),H=new Map(hl.map(x=>[x.t,x])),F=new Map(fl.map(x=>[x.t,x])),out=[];
-const usual=(L,k,t)=>L.some(x=>x.t>=addD(t,-14)&&x.t<t&&x[k]!=null);
-const h=H.get(td);if(h&&h.sl!=null&&h.hr==null&&usual(hl,'hr',td))out.push({k:'hr',l:'last night’s heart rate'});
-for(const t of new Date().getHours()>=evH()?[yd,td]:[yd]){const f=F.get(t);if(!f||f.c==null)continue;const nm=[['p','protein'],['cb','carbs'],['f','fat'],['fb','fiber']].filter(([k])=>f[k]==null&&usual(fl,k,t)).map(x=>x[1]);if(nm.length)out.push({k:'mac',ev:t===td,l:(t===td?'today’s ':'yesterday’s ')+nm.join(', ').replace(/, ([^,]*)$/,' and $1')})}
+function hkMiss(){if(!window.__SA)return[];const td=today(),yd=addD(td,-1),hl=hlList(),fl=fdList(),wl=wtList(),H=new Map(hl.map(x=>[x.t,x])),F=new Map(fl.map(x=>[x.t,x])),out=[];
+const usual=(L,k,t)=>L.some(x=>x.t>=addD(t,-14)&&x.t<t&&x[k]!=null),mo=!!hkT('m'),ev=!!hkT('e')&&new Date().getHours()>=evH(),h=H.get(td)||{};
+const mac=(t,e)=>{const f=F.get(t);if(!f||f.c==null)return;const nm=[['p','protein'],['cb','carbs'],['f','fat'],['fb','fiber']].filter(([k])=>f[k]==null&&usual(fl,k,t)).map(x=>x[1]);if(nm.length)out.push({k:'mac',ev:e,l:(t===td?'today’s ':'yesterday’s ')+nm.join(', ').replace(/, ([^,]*)$/,' and $1')})};
+// after the morning paste: what it brings
+if(mo&&!wl.some(x=>x.t===td)&&usual(wl,'w',td))out.push({k:'wt',l:'today’s weigh-in'});
+if(mo&&h.sl==null&&usual(hl,'sl',td))out.push({k:'sl',l:'last night’s sleep'});
+if(h.sl!=null&&h.hr==null&&usual(hl,'hr',td))out.push({k:'hr',l:'last night’s heart rate'});
+if(mo&&(H.get(yd)||{}).st==null&&usual(hl,'st',yd))out.push({k:'st',l:'yesterday’s steps'});
+if(mo&&!(F.get(yd)||{}).c&&usual(fl,'c',yd))out.push({k:'c',l:'yesterday’s food'});
+mac(yd,false);
+// after the evening paste: today's food and steps
+if(ev&&h.st==null&&usual(hl,'st',td))out.push({k:'st',ev:true,l:'today’s steps'});
+if(ev&&!(F.get(td)||{}).c&&usual(fl,'c',td))out.push({k:'c',ev:true,l:'today’s food'});
+if(new Date().getHours()>=evH())mac(td,true);
 return out}
 const hkMissTxt=(ms,cj)=>ms.map(x=>x.l).join(', ').replace(/, ([^,]*)$/,' '+(cj||'or')+' $1');
-const hkMissHow=ms=>(ms.some(x=>x.k==='hr')?(hkT('hro')?` The shortcut sent your lowest heart rate from ${dsh({t:hkT('hro')})}, not last night: in Shortcuts, open Gym Health and set the Heart Rate step’s Start Date to “is today”, then run it and paste again.`:' Open your ring or watch app so it syncs to Apple Health, then run Gym Health and paste again.'):'')+(ms.some(x=>x.k==='mac')?' Check that Lose It has them for that day, then paste again.':'');
+const hkMissHow=ms=>{const k=new Set(ms.map(x=>x.k)),o=[];
+if(k.has('wt'))o.push('Open your scale’s app so the weigh-in syncs to Apple Health.');
+if(k.has('hr')&&hkT('hro'))o.push(`The shortcut sent your lowest heart rate from ${dsh({t:hkT('hro')})}, not last night: in Shortcuts, open Gym Health and set the Heart Rate step’s Start Date to “is today”.`);
+if(k.has('sl')||(k.has('hr')&&!hkT('hro')))o.push('Open your ring or watch app so last night syncs to Apple Health.');
+if(k.has('st'))o.push('Open the app that counts your steps so they sync to Apple Health.');
+if(k.has('c')||k.has('mac'))o.push('Check that Lose It has that day’s food.');
+return o.length?' '+o.join(' ')+' Then run Gym Health and paste again.':''};
+
 function hkCard(w){
 if(w&&!hkBox&&!hkErr){const td=today(),h=hlList().find(x=>x.t===td);if(wtList().some(x=>x.t===td)&&h&&h.sl!=null){const ms=hkMiss();return `<p class="hint${ms.length?' dn':''}" style="margin:-.3rem 0 .7rem">This morning’s weigh-in and sleep are in from Apple Health${ms.length?`, but not ${E(hkMissTxt(ms))}.${E(hkMissHow(ms))}`:'.'} <button class="edit" data-a="hkpaste" style="padding:0">Paste again</button></p>`}}
 return `<section class="ex" id="hk"><h2>Add from Apple Health</h2><p class="hint">Tap <b>Run Gym Health</b>, come back here when it finishes, then tap <b>Paste from Health</b>. It saves on its own unless something needs a look. In the morning it brings in your weigh-in, last night’s sleep and lowest heart rate, and yesterday’s food and steps. After ${evT()}, today’s food and steps come in too.</p><a class="fin fin2" href="shortcuts://run-shortcut?name=Gym%20Health" style="margin:.4rem 0 .5rem">Run Gym Health</a><button class="fin" data-a="hkpaste" style="margin:0 0 .2rem">Paste from Health</button>${hkBox?`<textarea class="sel hkta" id="hkta" rows="2" placeholder="Long-press here and tap Paste" aria-label="Paste the shortcut’s text here"></textarea><p class="hint">Your phone didn’t let the app read the clipboard directly. Long-press the box and tap Paste.</p>`:''}${hkErr?`<p class="hint dn">${E(hkErr)}</p>`:''}</section>`}
