@@ -240,7 +240,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='7a9abcbd94',sfT0=Date.now();
+const SFV='521a3f2dc3',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1687,7 +1687,7 @@ if(pSel){
 const pts=[];
 for(const e of S.log.slice().reverse()){const r=e.s[pSel],t=r&&topSet(r,pSel);if(t){const b=sbest(pSel,r,e.t),bw=bwAt(e.t);pts.push({t:e.t,w:t.w,r:t.r,e:b&&b.k!=='b'&&b.e>0?b.e:null,x:b&&b.k!=='b'&&b.e>0&&bw?b.e/bw:null})}}
 const lpOK=window.__SA&&pts.some(p=>p.e!=null),lm=lpOK?lpMode:'top',use=(lm==='top'?pts:pts.filter(p=>lm==='e1'?p.e!=null:p.x!=null)).slice(-12),byW=use.some(p=>p.w!==0),ys=use.map(p=>lm==='e1'?p.e:lm==='bw'?p.x:byW?p.w:p.r);
-const lo=Math.min(...ys),sp=(Math.max(...ys)-lo)||1,CW=300,H=110,pd=10,LB=!!window.__SA,pT=LB?24:pd,pB=LB?24:pd,VH=LB?H+14:H;
+const lo0=Math.min(...ys),hi0=Math.max(...ys),sp0=hi0-lo0,ms=window.__SA?Math.max(...ys.map(Math.abs))*.1:0,sp=Math.max(sp0,ms)||1,lo=sp0<ms?(lo0+hi0)/2-sp/2:lo0,CW=300,H=110,pd=10,LB=!!window.__SA,pT=LB?24:pd,pB=LB?24:pd,VH=LB?H+14:H;
 const xy=use.map((p,i)=>[pd+(use.length>1?i*(CW-2*pd)/(use.length-1):0),H-pB-((ys[i]-lo)/sp)*(H-pT-pB)]);
 const path=xy.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ');
 const dots=xy.map(q=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="3.5"></circle>`).join('');
@@ -1924,7 +1924,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'7a9abcbd94',d:'Oct 24, 2026 at 6:53 PM'};
+const APP_V={h:'521a3f2dc3',d:'Oct 24, 2026 at 8:54 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
