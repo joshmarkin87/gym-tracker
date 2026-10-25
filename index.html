@@ -205,6 +205,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .tabs2 button.td::after{content:'';position:absolute;top:.2rem;right:.35rem;width:.45rem;height:.45rem;border-radius:50%;background:var(--warn)}
 .tabs2 button[aria-selected="true"].td::after{box-shadow:0 0 0 2px var(--accink)}
 .pr .fag{margin:.5rem 0 0}
+.chips.lpm .chip{flex:1 1 40%;text-align:center}
 .tabs .tgear.up::after{content:'';position:absolute;top:.35rem;right:.15rem;width:.5rem;height:.5rem;border-radius:50%;background:var(--warn)}
 a.fin{display:block;box-sizing:border-box;text-align:center;text-decoration:none}
 .chips.gfm{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin:.8rem 0 .15rem}.gfm .chip{min-width:0;padding-left:.3rem;padding-right:.3rem;white-space:nowrap;text-align:center}@media (max-width:350px){.gfm .chip{font-size:.82rem}}
@@ -246,7 +247,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='d17da9dc9a',sfT0=Date.now();
+const SFV='69bd792ac9',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1670,7 +1671,7 @@ const tsx=t=>(t.w<0?(-t.w)+' assist':(t.w||'BW'))+'×'+t.r;
 // standalone: label the lift chart's first, latest and best points, with the first and last dates underneath
 function lpLabels(use,ys,xy,lm,H){
 const n=use.length;if(!n)return '';
-const f=i=>{const p=use[i];return lm==='e1'?Math.round(p.e)+' lb':lm==='bw'?p.x.toFixed(2)+'×':ys[i]===p.r&&p.w===0&&!use.some(q=>q.w!==0)?p.r+' reps':p.w<0?(-p.w)+' assist':p.w===0?'BW':p.w+' lb'};
+const f=i=>{const p=use[i];return lm==='vol'?(p.vu==='lb'?fmt(p.v)+' lb':p.v+' reps'):lm==='e1'?Math.round(p.e)+' lb':lm==='bw'?p.x.toFixed(2)+'×':ys[i]===p.r&&p.w===0&&!use.some(q=>q.w!==0)?p.r+' reps':p.w<0?(-p.w)+' assist':p.w===0?'BW':p.w+' lb'};
 let bi=0;for(let i=1;i<n;i++)if(ys[i]>=ys[bi])bi=i;
 const anc=i=>n<2?'middle':i===0?'start':i===n-1?'end':'middle';
 const pick=n>1?[0,n-1]:[0];
@@ -1697,15 +1698,17 @@ if(!lifts.includes(pSel))pSel=lifts[0]||null;
 let c3='<p class="hint">Log a lift in two workouts to see its chart.</p>';
 if(pSel){
 const pts=[];
-for(const e of S.log.slice().reverse()){const r=e.s[pSel],t=r&&topSet(r,pSel);if(t){const b=sbest(pSel,r,e.t),bw=bwAt(e.t);pts.push({t:e.t,w:t.w,r:t.r,e:b&&b.k!=='b'&&b.e>0?b.e:null,x:b&&b.k!=='b'&&b.e>0&&bw?b.e/bw:null})}}
-const lpOK=window.__SA&&pts.some(p=>p.e!=null),lm=lpOK?lpMode:'top',use=(lm==='top'?pts:pts.filter(p=>lm==='e1'?p.e!=null:p.x!=null)).slice(-12),byW=use.some(p=>p.w!==0),ys=use.map(p=>lm==='e1'?p.e:lm==='bw'?p.x:byW?p.w:p.r);
+for(const e of S.log.slice().reverse()){const r=e.s[pSel],t=r&&topSet(r,pSel);if(t){const b=sbest(pSel,r,e.t),bw=bwAt(e.t);const wk=r.filter(a=>a[2]!=='w'&&(parseFloat(a[1])||0)>0),as=AS.has(pSel);pts.push({t:e.t,w:t.w,r:t.r,e:b&&b.k!=='b'&&b.e>0?b.e:null,x:b&&b.k!=='b'&&b.e>0&&bw?b.e/bw:null,vl:wk.reduce((q,a)=>{const x=parseFloat(a[0])||0;return q+(as?Math.max(0,(bw||0)-x):x)*(parseFloat(a[1])||0)},0),vr:wk.reduce((q,a)=>q+(parseFloat(a[1])||0),0)})}}
+// standalone: All sets: lb across the working sets, or total reps for a lift with no weight
+{const vu=pts.some(p=>p.vl>0)?'lb':'reps';for(const p of pts){p.v=vu==='lb'?p.vl:p.vr;p.vu=vu}}
+const lpOK=window.__SA&&pts.some(p=>p.e!=null),lms=window.__SA?(lpOK?['top','e1','bw','vol']:['top','vol']):['top'],lm=lms.includes(lpMode)?lpMode:'top',use=(lm==='top'||lm==='vol'?pts:pts.filter(p=>lm==='e1'?p.e!=null:p.x!=null)).slice(-12),byW=use.some(p=>p.w!==0),ys=use.map(p=>lm==='vol'?p.v:lm==='e1'?p.e:lm==='bw'?p.x:byW?p.w:p.r);
 const lo0=Math.min(...ys),hi0=Math.max(...ys),sp0=hi0-lo0,ms=window.__SA?Math.max(...ys.map(Math.abs))*.1:0,sp=Math.max(sp0,ms)||1,lo=sp0<ms?(lo0+hi0)/2-sp/2:lo0,CW=300,H=110,pd=10,LB=!!window.__SA,pT=LB?24:pd,pB=LB?24:pd,VH=LB?H+14:H;
 const xy=use.map((p,i)=>[pd+(use.length>1?i*(CW-2*pd)/(use.length-1):0),H-pB-((ys[i]-lo)/sp)*(H-pT-pB)]);
 const path=xy.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ');
 const dots=xy.map(q=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="3.5"></circle>`).join('');
 let best=null;for(const e of S.log.slice().reverse()){const b=sbest(pSel,e.s[pSel],e.t);if(b&&better(b,best&&best.b))best={t:e.t,b}}
 const lp=use[use.length-1];
-c3=`<select class="sel" data-sel="1" aria-label="Choose a lift">${lifts.map(n=>`<option${n===pSel?' selected':''}>${E(n)}</option>`).join('')}</select>${lpOK?`<div class="chips lpm">${[['top','Top set'],['e1','Est. max'],['bw','× body weight']].map(([k,l])=>`<button class="chip" aria-pressed="${lm===k}" data-a="lpm" data-v="${k}">${l}</button>`).join('')}</div>`:''}<svg class="ch" viewBox="0 0 ${CW} ${VH}" width="100%" role="img" aria-label="Top set trend"><path d="${path}"></path>${dots}${LB?lpLabels(use,ys,xy,lm,H):''}</svg><p class="hint">${lm==='e1'?`Estimated one-rep max (lb) from your best set each session, sets over 12 reps counted as 12, so more reps at the same weight show as progress. Latest ${Math.round(use[use.length-1].e)} lb, first here ${Math.round(use[0].e)} lb.`:lm==='bw'?`Estimated max divided by your body weight that day. ${phase().k==='cut'?'On a cut it climbs while you hold strength.':'It climbs as you get stronger for your size.'} Latest ${use[use.length-1].x.toFixed(2)}× BW, first here ${use[0].x.toFixed(2)}×.`:''}${lm!=='top'?'</p><p class="hint">':''}${AS.has(pSel)?'Top set (higher means less assistance)':byW?'Top set weight (lb)':'Top set reps'} over your last ${use.length} sessions. Latest ${E(tsx(lp))}${best?`, best ${E(bsx(best.b))} on ${E(dfmt(best.t))}`:''}.</p>`}
+c3=`<select class="sel" data-sel="1" aria-label="Choose a lift">${lifts.map(n=>`<option${n===pSel?' selected':''}>${E(n)}</option>`).join('')}</select>${lms.length>1?`<div class="chips lpm">${[['top','Top set'],['e1','Est. max'],['bw','× body weight'],['vol','All sets']].filter(([k])=>lms.includes(k)).map(([k,l])=>`<button class="chip" aria-pressed="${lm===k}" data-a="lpm" data-v="${k}">${l}</button>`).join('')}</div>`:''}<svg class="ch" viewBox="0 0 ${CW} ${VH}" width="100%" role="img" aria-label="Top set trend"><path d="${path}"></path>${dots}${LB?lpLabels(use,ys,xy,lm,H):''}</svg><p class="hint">${lm==='e1'?`Estimated one-rep max (lb) from your best set each session, sets over 12 reps counted as 12, so more reps at the same weight show as progress. Latest ${Math.round(use[use.length-1].e)} lb, first here ${Math.round(use[0].e)} lb.`:lm==='bw'?`Estimated max divided by your body weight that day. ${phase().k==='cut'?'On a cut it climbs while you hold strength.':'It climbs as you get stronger for your size.'} Latest ${use[use.length-1].x.toFixed(2)}× BW, first here ${use[0].x.toFixed(2)}×.`:lm==='vol'?(use[0].vu==='lb'?`All your working sets each workout added up: weight × reps${AS.has(pSel)?', with your body weight minus the assistance':''}, warm-ups left out. It climbs when your later sets hold up better, even if your top set doesn’t. Adding or dropping a set moves it too. Latest ${fmt(use[use.length-1].v)} lb, first here ${fmt(use[0].v)} lb.`:`Your reps across all working sets each workout, warm-ups left out. It climbs when your later sets hold up better. Adding or dropping a set moves it too. Latest ${use[use.length-1].v} reps, first here ${use[0].v}.`):''}${lm!=='top'?'</p><p class="hint">':''}${AS.has(pSel)?'Top set (higher means less assistance)':byW?'Top set weight (lb)':'Top set reps'} over your last ${use.length} sessions. Latest ${E(tsx(lp))}${best?`, best ${E(bsx(best.b))} on ${E(dfmt(best.t))}`:''}.</p>`}
 return `<h1>Gym progress</h1><p class="sub">Your lifts over time. Updates when you finish a workout.${window.__SA?' <button class="edit" data-a="schopen" style="padding:0">Change workout days</button>':''}</p>${phaseLine()}${checkSec()}${recSec()}<section class="ex"><h2>Lift progress</h2>${c3}</section><section class="ex"><h2>Weekly volume</h2>${c1}</section><section class="ex"><h2>Sets per muscle this week</h2>${c2}<p class="hint">${window.__SA?'Direct sets from this week’s finished workouts ('+FN[wkDow()]+' to '+FN[(wkDow()+6)%7]+'), scale 0-20.':'Direct sets, scale 0-20.'} The line marks 10. Presses and pulls also work your arms.</p></section>${stallSec()}`}
 function progressHtml(){return `<h1>Progress</h1><p class="sub">Your weekly check-in, recap, body composition and blood work. Your phase and daily numbers are under Plan; lifting progress is under Gym.</p>${goalCard()}${msSec()}${ciCard()}${recapSec()}${bodySec()}${labSec()}${FEM?cyProg():''}${window.__SA?'':bkSec()}`}
 function planHtml(){return `<h1>Plan</h1><p class="sub">Your phase, your daily numbers and your full plan. The weekly check-in on the Progress tab adjusts the numbers; changing your phase, goal or steps here resets them.</p>${phaseWarn()}${phaseCard()}${planCard()}${window.__SA?'':aboutSec()}`}
@@ -1936,7 +1939,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'d17da9dc9a',d:'Oct 24, 2026 at 11:04 PM'};
+const APP_V={h:'69bd792ac9',d:'Oct 25, 2026 at 8:26 AM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
