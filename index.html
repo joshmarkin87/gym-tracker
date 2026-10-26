@@ -250,7 +250,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='9317269436',sfT0=Date.now();
+const SFV='1ca967bb0d',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -515,16 +515,22 @@ const vz=v=>v<15.5?'Normal':v<24.8?'Increased':'High';
 const rz=v=>FEM?(v>=8.3?'Athlete':v>=7.5?'Fitness':v>=6.8?'Healthy':v>=5.45?'Low muscle':'Sarcopenia range'):v>11?'Athlete':v>=10?'Fitness':v>=9?'Healthy':v>=7.26?'Low muscle':'Sarcopenia range';
 const rsmi=s=>s.rs||(s.al&&s.ll&&HTm()?((s.al+s.ll)/2.2046)/(HTm()*HTm()):undefined);
 const CR=[
-{l:'Body fat',g:s=>bfp(s),f:v=>f1(v)+'%',lb:1,dp:1},
-{l:'Fat mass',g:s=>s.fm,f:v=>f1(v)+' lb',lb:1,dp:1},
-{l:'Lean mass',g:s=>s.lm,f:v=>f1(v)+' lb',lb:0,dp:1},
-{l:'Total mass',g:s=>s.tm,f:v=>f1(v)+' lb',lb:1,dp:1},
-{l:'Visceral fat',g:s=>s.vat,f:v=>v.toFixed(2)+' in²',lb:1,dp:2,z:vz},
-{l:'RMR (est.)',g:s=>s.rmr,f:v=>Math.round(v)+' cal',lb:0,dp:0},
-{l:'Arms lean',g:s=>s.al,f:v=>f1(v)+' lb',lb:0,dp:1},
-{l:'Legs lean',g:s=>s.ll,f:v=>f1(v)+' lb',lb:0,dp:1},
-{l:'Trunk lean',g:s=>s.tl,f:v=>f1(v)+' lb',lb:0,dp:1},
-{l:'Muscle index',g:rsmi,f:v=>v.toFixed(2),lb:0,dp:2,z:rz}];
+{l:'Body fat',g:s=>bfp(s),f:v=>f1(v)+'%',lb:1,dp:1,q:'fat'},
+{l:'Fat mass',g:s=>s.fm,f:v=>f1(v)+' lb',lb:1,dp:1,q:'fat'},
+{l:'Lean mass',g:s=>s.lm,f:v=>f1(v)+' lb',lb:0,dp:1,q:'lean'},
+{l:'Total mass',g:s=>s.tm,f:v=>f1(v)+' lb',lb:1,dp:1,q:'wt'},
+{l:'Visceral fat',g:s=>s.vat,f:v=>v.toFixed(2)+' in²',lb:1,dp:2,z:vz,q:'fat'},
+{l:'RMR (est.)',g:s=>s.rmr,f:v=>Math.round(v)+' cal',lb:0,dp:0,q:'lean'},
+{l:'Arms lean',g:s=>s.al,f:v=>f1(v)+' lb',lb:0,dp:1,q:'lean'},
+{l:'Legs lean',g:s=>s.ll,f:v=>f1(v)+' lb',lb:0,dp:1,q:'lean'},
+{l:'Trunk lean',g:s=>s.tl,f:v=>f1(v)+' lb',lb:0,dp:1,q:'lean'},
+{l:'Muscle index',g:rsmi,f:v=>v.toFixed(2),lb:0,dp:2,z:rz,q:'lean'}];
+// the DEXA check's view of two scans inside the current cut or bulk (null outside one); the table colours follow it
+function dxCtx(a,b){const ph=phase();if(ph.k!=='cut'&&ph.k!=='bulk')return null;if(!a||!b||!(b.t>ph.since)||a.t<addD(ph.since,-42)||(wtD(b.t)-wtD(a.t))/6048e5<4)return null;return{k:ph.k,J:dxJudge(ph.k,a,b)}}
+// colour for a change d of a row kind q inside a cut or bulk; undefined keeps the usual colour
+function dxCl(x,q,d){if(!x||!q||!d)return undefined;if(q==='wt')return (x.k==='cut')===(d<0)?'g':'w';if(!(x.k==='cut'?q==='lean'&&d<0:q==='fat'&&d>0))return undefined;return x.J&&x.J.v!=='ok'?'w':''}
+// row kind in Every number from your report: lean, fat or weight, for rows that are coloured by direction
+const dxQ=(k,d)=>d!==0&&d!==1?null:k==='rmr'||k==='rsmi'||/^[a-zA-Z]+\.l$/.test(k)?'lean':/^(vat|sat)/.test(k)||k==='fpc'||/^[a-zA-Z]+\.(f|tf|rf)$/.test(k)?'fat':k==='wkg'?'wt':null;
 function cmpHtml(sc){
 const b=sc[0],c=sc[sc.length-1],ds=s=>new Date(s.t+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
 const ok=(r,s)=>{const v=r.g(s);return v!=null&&!isNaN(v)};
@@ -532,9 +538,9 @@ const rows=CR.map(r=>{
 const l=sc.length>1?sc.slice(1).reverse().find(s=>ok(r,s)):null;
 const cell=(s,old)=>{if(!s||!ok(r,s))return '-';const v=r.g(s),sm=[r.z?r.z(v):'',old?ds(s):''].filter(Boolean).join(' · ');return r.f(v)+(sm?`<small>${sm}</small>`:'')};
 let ch='-',cl='';
-if(l&&ok(r,b)){const d=r.g(l)-r.g(b);ch=(d>0?'+':'')+d.toFixed(r.dp);cl=Math.abs(d)<0.005?'':(d<0)===!!r.lb?'g':'w'}
+if(l&&ok(r,b)){const d=r.g(l)-r.g(b);ch=(d>0?'+':'')+d.toFixed(r.dp);cl=Math.abs(d)<0.005?'':(d<0)===!!r.lb?'g':'w';if(cl){const o=dxCl(dxCtx(b,l),r.q,d);if(o!==undefined)cl=o}}
 return `<span>${r.l}</span><span>${cell(b,false)}</span><span>${cell(l,l&&l!==c)}</span><b class="${cl}">${ch}</b>`}).join('');
-return `<p class="hint"><b>Side by side</b></p><div class="cmp"><b class="h">Metric</b><b class="h">Baseline</b><b class="h">Latest</b><b class="h">Change</b>${rows}</div><p class="hint">RMR is estimated from fat-free mass, so it tracks lean and bone mass, not metabolic slowdown. Muscle index is arm and leg lean mass divided by height squared${FEM?' (for women, under about 5.45 is low)':''}. Visceral fat under 15.5 in² is in the normal zone.</p>`}
+return `<p class="hint"><b>Side by side</b></p><div class="cmp"><b class="h">Metric</b><b class="h">Baseline</b><b class="h">Latest</b><b class="h">Change</b>${rows}</div><p class="hint">RMR is estimated from fat-free mass, so it tracks lean and bone mass, not metabolic slowdown.${(()=>{const x=dxCtx(b,c);return !x?'':x.k==='cut'?' On a cut some lean loss is expected, so drops in lean mass and RMR stay uncoloured unless the DEXA line on your Goal card says to watch your lean mass.':' On a '+phN('bulk')+' some fat gain is expected, so fat increases stay uncoloured unless the DEXA line on your Goal card says the gain is mostly fat.'})()} Muscle index is arm and leg lean mass divided by height squared${FEM?' (for women, under about 5.45 is low)':''}. Visceral fat under 15.5 in² is in the normal zone.</p>`}
 const RN={arms:'Arms',legs:'Legs',trunk:'Trunk',android:'Android',gynoid:'Gynoid',tot:'Total body',armR:'Right arm',armL:'Left arm',legR:'Right leg',legL:'Left leg',trR:'Right trunk',trL:'Left trunk',totR:'Right side',totL:'Left side',armD:'Arms diff.',legD:'Legs diff.',trD:'Trunk diff.',totD:'Total diff.'};
 const RM=[['tf','Tissue % fat','%',1],['rf','Region % fat','%',1],['tl','Tissue mass','lb',-1],['f','Fat mass','lb',1],['l','Lean mass','lb',0],['b','Bone mineral content','lb',-1],['t','Total mass','lb',-1]];
 const mk=(gs,df)=>gs.flatMap(g=>RM.map(m=>[RN[g]+': '+m[1],g+'.'+m[0],m[2],df?2:m[3],1]));
@@ -551,7 +557,7 @@ const f=v=>(u==='cal'?String(Math.round(v)):v.toFixed(dp))+(u==='%'?'%':u?' '+u:
 const b=sc[0],c=sc[sc.length-1],lt=sc.length>1?sc.slice(1).reverse().find(ok):null;
 const cell=(s,old)=>s&&ok(s)?f(g(s))+(old?`<small>${dsh(s)}</small>`:''):'-';
 let ch='-',cl='';
-if(lt&&ok(b)){const x=g(lt)-g(b);ch=(x>0?'+':'')+(u==='cal'?String(Math.round(x)):x.toFixed(dp));if(Math.abs(x)>=Math.pow(10,-dp)/2&&d>=0){const good=d===2?Math.abs(g(lt))<Math.abs(g(b)):(x<0)===(d===1);cl=good?'g':'w'}}
+if(lt&&ok(b)){const x=g(lt)-g(b);ch=(x>0?'+':'')+(u==='cal'?String(Math.round(x)):x.toFixed(dp));if(Math.abs(x)>=Math.pow(10,-dp)/2&&d>=0){const good=d===2?Math.abs(g(lt))<Math.abs(g(b)):(x<0)===(d===1);cl=good?'g':'w';const o=dxCl(dxCtx(b,lt),dxQ(k,d),x);if(o!==undefined)cl=o}}
 return `<span>${E(l)}</span><span>${cell(b,false)}</span><span>${cell(lt,lt&&lt!==c)}</span><b class="${cl}">${ch}</b>`}
 function fullCmp(sc){
 const grp=(t,rows)=>`<details class="mf"><summary>${t} (${rows.length})</summary><div class="cmp"><b class="h">Metric</b><b class="h">Baseline</b><b class="h">Latest</b><b class="h">Change</b>${rows.map(r=>rowHtml(r,sc)).join('')}</div></details>`;
@@ -1942,7 +1948,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'9317269436',d:'Oct 25, 2026 at 10:21 PM'};
+const APP_V={h:'1ca967bb0d',d:'Oct 26, 2026 at 2:00 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
