@@ -250,7 +250,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='1b619a87de',sfT0=Date.now();
+const SFV='9317269436',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1942,7 +1942,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'1b619a87de',d:'Oct 25, 2026 at 7:57 PM'};
+const APP_V={h:'9317269436',d:'Oct 25, 2026 at 10:21 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2495,7 +2495,7 @@ let bmEarly=false,bmUndo=null;
 const bmNow=()=>{const d=new Date();return hkDay(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
 const bmDate=t=>{const[a,b]=String(t).split('T'),[y,m,d]=a.split('-').map(Number),[h,mi]=(b||'0:0').split(':').map(Number);return new Date(y,m-1,d,h,mi)};
 function bmWhen(t){const d=bmDate(t),tm=d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});return wtLong(t.slice(0,10))+' at '+tm}
-function bmAgo(t){const m=Math.max(0,Math.round((Date.now()-bmDate(t))/6e4));if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<36)return h+(h===1?' hour':' hours')+' ago';const d=Math.round(m/1440);return d+' days ago'}
+function bmAgo(t){const m=Math.max(0,Math.round((Date.now()-bmDate(t))/6e4));if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<36)return h+(h===1?' hour':' hours')+' ago';const d=Math.round((bmDate(today()+'T0:0')-bmDate(String(t).slice(0,10)+'T0:0'))/864e5);return d<=1?'yesterday':d+' days ago'}
 const bmHtml=()=>`<h1>Bowel movements</h1><p class="sub">Log one when you go. Each one you log replaces the last.</p>${bmSec()}`;
 function bmSec(){if(!window.__SA)return '';if(Array.isArray(S.bm)&&S.bm.length>1){S.bm=[S.bm.slice().sort().pop()];save()}const last=(S.bm||[]).slice().sort().pop();
 return `<section class="ex" id="bm"><h2>Last one</h2><p class="hint">${last?`<b>${E(bmWhen(last))}</b> (${E(bmAgo(last))})${!bmUndo?` <button class="edit${armed==='bm'+last?' warn':''}" data-a="bmrm" data-t="${E(last)}" style="padding:0">${armed==='bm'+last?'Tap again to remove':'Remove'}</button>`:''}${bmUndo?` <button class="edit" data-a="bmundo" style="padding:0">Undo</button>`:''}`:'None logged yet.'}</p><div class="addrow"><button class="add" data-a="bmnow">Log one now</button><button class="add" data-a="bmearly">${bmEarly?'Cancel':'Earlier'}</button></div>${bmEarly?`<div class="addrow" style="align-items:center;gap:.6rem"><input type="datetime-local" class="sel" id="bmt" value="${bmNow()}" max="${bmNow()}" min="${addD(today(),-30)}T00:00" aria-label="When"><button class="add" data-a="bmadd">Save</button></div>`:''}</section>`}
