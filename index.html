@@ -187,7 +187,7 @@ h2{margin:0;font:600 1.45rem/1.1 "Barlow Condensed","Arial Narrow",system-ui,san
 .tchip.late{border-color:var(--warn);color:var(--warn)}.hint.dn,.srow i.slip,.cmp b.w,.cmp small.fl,.wk b.dn,.ring b.ov,.ins.dn b,.hkd small.hkw{color:var(--warn)}
 .pgb .edit[data-a="pgup"],.pgb .edit[data-a="pgdn"]{min-width:2.4rem;min-height:2rem;font-size:1.1rem;padding:.2rem .4rem;border:1px solid var(--line);border-radius:.5rem}
 .syr{display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.55rem 0;border-bottom:1px solid var(--line)}.syr:last-child{border-bottom:0}.syr small{display:block;color:var(--mute);font-size:.82rem;margin-top:.1rem}.syr span{white-space:nowrap;color:var(--mute);font-weight:600}.syr span.ok{color:var(--acc)}
-.syr span.dn{color:#d98a2b}
+.syr span.dn{color:var(--warn)}
 .schb{display:flex;gap:.9rem;white-space:nowrap}
 .hist p.wkp{cursor:pointer}.hist p.wkp b::after{content:' ›';color:var(--mute)}.hist p.wkp.on b::after{content:' ⌄'}.wkd{margin:0 0 .4rem;padding:.2rem .8rem;border-left:3px solid var(--acc);background:var(--card);border-radius:0 .5rem .5rem 0}.wkd p{border-top:0;padding:.3rem 0;font-size:.92rem}.wkd .lnt{display:block;margin:-.2rem 0 .2rem;font-size:.85rem}
 .rch{margin:.7rem 0 .1rem}
@@ -328,7 +328,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='ef58639170',sfT0=Date.now();
+const SFV='7d2c5bca1d',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -344,7 +344,8 @@ let sfFile=null;
 // p93: the newest copy, complete: the database (the saved copy) with every archived workout and food day; the quick copy
 // instead when it holds changes the database doesn't have (gym-tracker-v1-meta says so), or when the database can't be read.
 // When it can't tell which is newer (data saved by an older version), anything only one copy has is added to the other.
-const KF={log:e=>e&&e.id,wt:e=>e&&e.t,waist:e=>e&&e.t,food:e=>e&&e.t,hl:e=>e&&e.t,labs:e=>e&&e.t,scans:e=>e&&e.t,ci:e=>e&&e.pid+'|'+e.w};
+// p96: a DEXA, pace or floor change (logged by the day it happened) can share its date with a week's check-in; keep both
+const KF={log:e=>e&&e.id,wt:e=>e&&e.t,waist:e=>e&&e.t,food:e=>e&&e.t,hl:e=>e&&e.t,labs:e=>e&&e.t,scans:e=>e&&e.t,ci:e=>e&&e.pid+'|'+e.w+(e.v==='change'&&['dexa','pace','floor'].includes(e.f)?'|'+e.f:'')};
 function sfUnion(a,b){const o=Object.assign({},a);for(const f in KF){const x=Array.isArray(a[f])?a[f]:[],y=Array.isArray(b[f])?b[f]:[],ks=new Set(x.map(KF[f])),add=y.filter(e=>e&&!ks.has(KF[f](e)));if(add.length){o[f]=x.concat(add).sort((p,q)=>(p.t||p.w||'')<(q.t||q.w||'')?-1:(p.t||p.w||'')>(q.t||q.w||'')?1:0);if(f==='log')o.log.reverse()}}return o}
 async function sfData(){const ok=x=>!!(x&&typeof x==='object'&&Array.isArray(x.log));const lk=sfGet('gym-tracker-v1'),m=sfGet('gym-tracker-v1-meta'),out={app:'gym-tracker',kind:'backup',exported:new Date().toISOString()};
 let db=null,dbOK=false;try{db=(await getRev(TK)).data();dbOK=true}catch(e){}
@@ -552,7 +553,7 @@ const lead=c.ph.k==='cut'?`Holding or up on ${c.ok} of ${c.rows.length} lifts. O
 const base=c.inP===c.rows.length?'your first session this phase':c.inP?'your first session this phase (or your first ever, for lifts with fewer than 2 sessions this phase)':'your first session';
 const dp=FEM?cyDipNow():null;
 return `<section class="ex"><h2>Strength check</h2><p class="hint">${lead}${dp?` Your lifts usually run a little lower in your ${CYP[dp].toLowerCase()} phase, so a dip now is normal for you at this point in your cycle.`:''}</p>${c.rows.map(r=>`<div class="srow"><span>${E(r.n)}</span><b>${Math.round(r.cur)} lb</b><i class="${r.st}">${r.st==='up'?'+'+r.pc+'%':r.st==='hold'?(c.ph.k==='bulk'||c.ph.k==='recomp'?'Flat':'Holding'):r.pc+'%'}</i></div>`).join('')}<p class="hint">Estimated 1RM from your best recent set (sets over 20 reps count as 20), compared with ${base}.${window.__SA?asNote(c.rows.map(r=>r.n),2):' Pull-ups and dips use your current body weight minus the assistance for every session, so losing weight doesn’t read as losing strength.'}</p></section>`}
-function stalls(){const o=[],nn={};for(const e of S.log)for(const n in e.s)nn[n]=1;for(const n in nn){const a=[];for(const e of S.log.slice().reverse()){const b=sbest(n,e.s[n],e.t);if(b)a.push(b)}if(a.length<5||a.some(b=>b.k==='b'||!(b.e>0)))continue;let best=null;for(const b of a.slice(0,-4))if(better(b,best))best=b;if(!a.slice(-4).some(b=>better(b,best)))o.push(n)}return o}
+function stalls(){const o=[],nn={};for(const e of S.log)for(const n in e.s)nn[n]=1;for(const n in nn){const a=[];for(const e of S.log.slice().reverse()){const b=sbest(n,e.s[n],e.t,asT());if(b)a.push(b)}if(a.length<5||a.some(b=>b.k==='b'||!(b.e>0)))continue;let best=null;for(const b of a.slice(0,-4))if(better(b,best))best=b;if(!a.slice(-4).some(b=>better(b,best)))o.push(n)}return o}
 // slipping lifts the way the Strength check and the weekly check-in count them: a quarter of them (2 or more), or an
 // eighth (1 or more) with resting heart rate up 5+; quiet for 3 weeks after an easy week is marked Done
 function dlSlip(){if(S.dl&&S.dl>addD(today(),-21))return '';const c=checkRows(),n=c.rows.length,sl=c.rows.filter(r=>r.st==='slip').length;if(!sl)return '';const gr=c.ph.k==='bulk'||(FEM&&c.ph.k==='recomp'),w=`${sl} of your ${n} lifts ${sl===1?'is':'are'} slipping (down more than ${gr?3:5}% on the Strength check)`,tl='. Consider an easier week: same weights, half the sets.';if(slipMany(sl,n))return w+tl;const u=slipSome(sl,n)?hrUp():null;return u?w+` and your resting heart rate is up ${u} bpm on its 4-week average`+tl:''}
@@ -585,23 +586,23 @@ return `<p><b>${E(title)}:</b> ${w.n} workouts, ${w.sets} sets, ${fmt(w.vol)} lb
 // ===== Standalone: the recap by weigh-in week =====
 function recapSA(){
 const ws=wtStats();if(!ws)return null;
-const td=today(),a0=wtD(ws.st.t),i=Math.floor(Math.round((wtD(td)-a0)/864e5)/7);
+const td=today(),a0=wtD(wkA0()),i=Math.floor(Math.round((wtD(td)-a0)/864e5)/7);
 const rng=k=>{const s0=new Date(a0),e0=new Date(a0);s0.setDate(s0.getDate()+7*k);e0.setDate(e0.getDate()+7*k+6);return[isoD(s0),isoD(e0)]};
 const[cs,ce]=rng(i),dn=t=>FN[new Date(t+'T12:00:00').getDay()];
 const how=`<p class="hint">Your weeks run ${dn(cs)} to ${dn(ce)} (they start on the weekday of your first weigh-in), the same weeks the check-in uses. Read last week’s recap on ${dn(cs)}, the day it closes and the check-in runs.</p>`;
-const gym=(s0,e0)=>{const L=S.log.filter(e=>{const k=logWk(e);return k>=s0&&k<=e0});let sets=0,vol=0,pr=0;for(const e of L){pr+=e.pr||0;for(const[n,r]of Object.entries(e.s))for(const a of r){if(a[2]==='w')continue;sets++;const x=parseFloat(a[0])||0;vol+=(AS.has(n)?Math.max(0,(bwAt(e.t)||0)-x):x)*(parseFloat(a[1])||0)}}return{n:L.length,sets,vol,pr}};
+const gym=(s0,e0)=>{const L=S.log.filter(e=>{const k=logWk(e);return k>=s0&&k<=e0});let sets=0,vol=0,pr=0;for(const e of L){pr+=e.pr||0;for(const[n,r]of Object.entries(e.s))for(const a of r){if(a[2]==='w')continue;sets++;const x=parseFloat(a[0])||0;vol+=(AS.has(n)?Math.max(0,(bwAt(e.t)||0)-x):x)*(parseFloat(a[1])||0)}}return{n:L.length,d:new Set(L.filter(e=>ORDER.includes(+e.day)).map(e=>+e.day)).size,sets,vol,pr}};
 const out=[how];
 // one week's lines; now = this week so far
 const wkLines=(s0,e0,now)=>{const g=gym(s0,e0),w=ws.wk.find(x=>x.s===s0),f=fdWeeks().find(x=>x.s===s0),h=hlWeeks().find(x=>x.s===s0),c=now?null:checkRows(e0),av=now?'averaging':'averaged',th=now?'this week so far':'that week',o=[];
-o.push(`<p><b>Workouts:</b> ${g.n} of ${ORDER.length}${now?' so far':''}${g.n?`, ${g.sets} sets, ${fmt(g.vol)} lb. ${g.pr} new best${g.pr===1?'':'s'}`:''}.${c&&c.rows.length?' Strength: '+strLine(c)+'.':''}</p>`);
+o.push(`<p><b>Workouts:</b> ${g.d} of ${ORDER.length}${now?' so far':''}${g.n>g.d?' ('+g.n+' workouts, counting repeats)':''}${g.n?`, ${g.sets} sets, ${fmt(g.vol)} lb. ${g.pr} new best${g.pr===1?'':'s'}`:''}.${c&&c.rows.length?' Strength: '+strLine(c)+'.':''}</p>`);
 o.push(w?`<p><b>Weight:</b> ${av} ${f1(w.a)} lb over ${w.n} weigh-in${w.n===1?'':'s'}${w.ch!=null?', '+sg(w.ch)+' lb ('+sg(w.pc)+'%) vs '+(now?'last week':'the week before'):''}.</p>`:`<p><b>Weight:</b> no weigh-ins ${th}.</p>`);
 {const D=fdList().filter(x=>x.t>=s0&&x.t<=e0),avg=k=>{const a=D.filter(x=>x[k]!=null);return a.length?Math.round(a.reduce((q,x)=>q+x[k],0)/a.length):null},L=Object.assign({},planNums(),planT()||{}),gl=(v,g,n)=>n+' '+v+' g'+(g?' (goal '+Math.round(g)+')':'');
 const mac=[[avg('p'),L.prot,'protein'],[avg('cb'),L.carb,'carbs'],[avg('f'),L.fat,'fat'],[avg('fb'),null,'fiber']].filter(m=>m[0]!=null).map(m=>gl(m[0],m[1],m[2]));
-o.push(f?`<p><b>Food:</b> ${av} ${fmt(f.c)} cal a day (budget ${fmt(f.b)}) over ${f.n} logged day${f.n===1?'':'s'}${mac.length?': '+mac.join(', '):''}.</p>`:`<p><b>Food:</b> no food logged ${th}.</p>`)}
+o.push(f?`<p><b>Food:</b> ${av} ${fmt(f.c)} cal a day${f.b>0?` (budget ${fmt(f.b)})`:''} over ${f.n} logged day${f.n===1?'':'s'}${mac.length?': '+mac.join(', '):''}.</p>`:`<p><b>Food:</b> no food logged ${th}.</p>`)}
 o.push(h&&(h.sd||h.nd)?`<p><b>Steps and sleep:</b> ${h.sa!=null?fmt(h.sa)+' steps a day ('+h.hit+' of '+h.sd+' day'+(h.sd===1?'':'s')+' at '+fmt(h.tg)+')':'no steps logged'}${h.sla!=null?', '+hm(h.sla)+' of sleep a night':''}${h.ha!=null?', resting heart rate '+Math.round(h.ha)+' bpm':''}.</p>`:`<p><b>Steps and sleep:</b> none logged ${th}.</p>`);
 return o.join('')};
 {const g=gym(cs,ce),nw=wtList().filter(x=>x.t>=cs&&x.t<=ce).length,nf=fdList().filter(x=>x.t>=cs&&x.t<=ce).length,el=Math.round((wtD(td)-wtD(cs))/864e5)+1;
-out.push(`<p class="rch"><b>This week so far, ${E(wkRange(cs,ce))}</b>${el>1?` (day ${el} of 7)`:''}</p>`+(el===1&&!g.n&&nw<=1&&!nf?'<p>It started today. It fills in as the days come in; today’s food and steps arrive with the evening sync.</p>':wkLines(cs,ce,true)))}
+out.push(`<p class="rch"><b>This week so far, ${E(wkRange(cs,ce))}</b>${el>1?` (day ${el} of 7)`:''}</p>`+(el===1&&!g.n&&nw<=1&&!nf?'<p>It started today. It fills in as the days come in; today’s steps arrive with the evening sync, and today’s food after 10 pm or with the next morning’s sync.</p>':wkLines(cs,ce,true)))}
 if(i>=1){const[ls,le]=rng(i-1);out.push(`<p class="rch"><b>Last week, ${E(wkRange(ls,le))}</b></p>`+wkLines(ls,le,false))}
 else out.push(`<p class="hint">Your first full week ends ${E(wtLong(ce))}. Its recap shows here from ${E(wtLong(addD(ce,1)))}.</p>`);
 const wn=wtRecap();if(wn.length)out.push(wn[wn.length-1]);
@@ -621,7 +622,7 @@ function rmrMSJ(bw){const pr=S.prof||{},h=+pr.ht,a=ageNow();if(!(bw>0&&h>0&&a>0)
 const FLOOR=()=>S.prof&&S.prof.sex==='f'?1200:1500;
 // cut goal weight with no DEXA: the one picked on the Plan tab, else 10% under the weight at the phase start
 function gwNoDexa(){const p=phase();if(p.g.gw>0)return p.g.gw;const w=wtList(),s=w.filter(x=>x.t<=p.since).pop()||w.find(x=>x.t>=p.since);return s?Math.round(s.w*.9/5)*5:null}
-const f1=n=>(Math.round(n*10)/10).toFixed(1);
+const f1=n=>window.__SA?(n<0&&Math.round(-n*10)>0?'-':'')+(Math.round(Math.abs(n)*10)/10).toFixed(1):(Math.round(n*10)/10).toFixed(1);
 const sg=n=>(Math.round(n*10)>0?'+':'')+f1(n);
 function addScan(){
 const q=id=>parseFloat((app.querySelector('#'+id)||{}).value),dt=(app.querySelector('#sd')||{}).value||today();
@@ -645,7 +646,7 @@ const CR=[
 {l:'Trunk lean',g:s=>s.tl,f:v=>f1(v)+' lb',lb:0,dp:1,q:'lean'},
 {l:'Muscle index',g:rsmi,f:v=>v.toFixed(2),lb:0,dp:2,z:rz,q:'lean'}];
 // the DEXA check's view of two scans inside the current cut or bulk (null outside one); the table colours follow it
-function dxCtx(a,b){const ph=phase();if(ph.k!=='cut'&&ph.k!=='bulk')return null;if(!a||!b||!(b.t>ph.since)||a.t<addD(ph.since,-42)||(wtD(b.t)-wtD(a.t))/6048e5<4)return null;return{k:ph.k,J:dxJudge(ph.k,a,b)}}
+function dxCtx(a,b){const ph=phase();if(ph.k!=='cut'&&ph.k!=='bulk')return null;if(!a||!b||!(b.t>ph.since)||a.t<addD(ph.since,-42)||cdGap(a.t,b.t)<28)return null;return{k:ph.k,J:dxJudge(ph.k,a,b)}}
 // colour for a change d of a row kind q inside a cut or bulk; undefined keeps the usual colour
 function dxCl(x,q,d){if(!x||!q||!d)return undefined;if(q==='wt')return (x.k==='cut')===(d<0)?'g':'w';if(!(x.k==='cut'?q==='lean'&&d<0:q==='fat'&&d>0))return undefined;return x.J&&x.J.v!=='ok'?'w':''}
 // row kind in Every number from your report: lean, fat or weight, for rows that are coloured by direction
@@ -737,7 +738,8 @@ if(x.vata!=null)sc.vat=x.vata;if(x.rmr!=null)sc.rmr=x.rmr;if(x['arms.l']!=null)s
 const pf={},bd=T.match(/Birth Date:\s+\d{1,2}\/\d{1,2}\/(\d{4})/),hc=m1(/Height:\s+([\d.]+)\s*cm/);if(bd)pf.by=+bd[1];if(hc)pf.ht=Math.round(hc);
 return{scan:sc,n:Object.keys(x).length,pf:Object.keys(pf).length?pf:null,sex:sexOf((T.match(/\bSex:\s+([A-Za-z]+)/)||[])[1])}}
 let dxBusy=false,dxPend=null,dxErr='',dxPf=null,dxPfOk=false;
-const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+// standalone: pdf.js 3.11.174 comes with the app (pdf/, kept by the offline copy); inside Claude it loads from cdnjs
+const PDFJS=window.__SA?'pdf/':'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
 function dxLib(){return window.pdfjsLib?Promise.resolve(window.pdfjsLib):new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=PDFJS+'pdf.min.js';sc.onload=()=>{if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.js';res(pdfjsLib)}else rej(new Error('no reader'))};sc.onerror=()=>{sc.remove();rej(new Error('load'))};document.head.appendChild(sc)})}
 async function dxRead(f){dxErr='';dxPend=null;dxPfOk=false;dxBusy=true;render();
 try{let lib;try{lib=await dxLib()}catch(e){throw{u:1}}const pdf=await lib.getDocument({data:new Uint8Array(await f.arrayBuffer()),isEvalSupported:false}).promise;const r=dxParse(await dxLines(pdf));
@@ -869,6 +871,10 @@ function wtS(){return memo('wt',[S.wt,(S.wt||[]).length],()=>(S.wt||[]).slice().
 function wtList(){return wtS().slice()}
 let wtArm=null,wtDate=null,wtAll=false,wkAll=false,wtZoom='recent';
 const wtD=t=>new Date(t+'T12:00:00').getTime();
+// standalone: a date's calendar day number (whole days, the same across clock changes)
+const dN=t=>Date.UTC(+t.slice(0,4),+t.slice(5,7)-1,+t.slice(8,10))/864e5;
+// p96: whole calendar days from date a to date b, the same across a clock change (milliseconds / 7 days gave 15.994 weeks)
+const cdGap=(a,b)=>Math.round((wtD(b)-wtD(a))/864e5);
 const wtLong=t=>new Date(t+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 const wkRange=(s,e)=>{const a=new Date(s+'T12:00:00'),b=new Date(e+'T12:00:00');return dsh({t:s})+'–'+(a.getMonth()===b.getMonth()?b.getDate():dsh({t:e}))};
 function wtBody(sd){
@@ -910,7 +916,7 @@ function wsList(){return (Array.isArray(S.waist)?S.waist:[]).filter(x=>x&&/^\d{4
 function wsSun(){return wsList().filter(x=>dowOf(x.t)===0)}
 const inF=v=>String(Math.round(v*100)/100),wsg=v=>{const r=Math.round(v*100)/100;return(r>0?'+':'')+r},dowOf=t=>new Date(t+'T12:00:00').getDay(),sunOf=t=>addD(t,-dowOf(t));
 // fitted waist change between two dates (least squares over the measurements in that range)
-function wsTrend(a,b){const L=wsSun().filter(x=>x.t>=a&&x.t<=b);if(L.length<2)return null;const d=x=>wtD(x.t)/864e5,mx=L.reduce((q,x)=>q+d(x),0)/L.length,my=L.reduce((q,x)=>q+x.v,0)/L.length;let sxx=0,sxy=0;for(const x of L){sxx+=(d(x)-mx)**2;sxy+=(d(x)-mx)*(x.v-my)}const span=d(L[L.length-1])-d(L[0]);return{n:L.length,span,ch:sxx>0?sxy/sxx*span:0,first:L[0],last:L[L.length-1]}}
+function wsTrend(a,b){const L=wsSun().filter(x=>x.t>=a&&x.t<=b);if(L.length<2)return null;const d=x=>window.__SA?dN(x.t):wtD(x.t)/864e5,mx=L.reduce((q,x)=>q+d(x),0)/L.length,my=L.reduce((q,x)=>q+x.v,0)/L.length;let sxx=0,sxy=0;for(const x of L){sxx+=(d(x)-mx)**2;sxy+=(d(x)-mx)*(x.v-my)}const span=d(L[L.length-1])-d(L[0]);return{n:L.length,span,ch:sxx>0?sxy/sxx*span:0,first:L[0],last:L[L.length-1]}}
 // due on Sunday until that Sunday's reading is in
 function wsDue(){const td=today();return dowOf(td)===0&&!wsList().some(x=>x.t===td)?'today':null}
 function wsBody(sd){
@@ -942,7 +948,7 @@ if(!wsList().some(x=>x.t===sd))return;
 if(armed!=='z'+sd){armed='z'+sd;render();return}
 armed=null;S.waist=wsList().filter(x=>x.t!==sd);wsDate=null;save();render();say('Waist removed')}
 // average weigh-in within 3 days of a date (null if none)
-function wAvg(t){const c=wtD(t),a=wtList().filter(x=>Math.abs(wtD(x.t)-c)<=3*864e5);return a.length?a.reduce((q,x)=>q+x.w,0)/a.length:null}
+function wAvg(t){const c=wtD(t),a=wtList().filter(x=>window.__SA?Math.abs(dN(x.t)-dN(t))<=3:Math.abs(wtD(x.t)-c)<=3*864e5);return a.length?a.reduce((q,x)=>q+x.w,0)/a.length:null}
 function wsChart(){
 const L=wsSun().slice(-16);if(L.length<2)return '';
 const O=wsList().filter(x=>dowOf(x.t)!==0&&x.t>=L[0].t),d=x=>wtD(x.t)/864e5,x0=d(L[0]),xr=Math.max(1,Math.max(d(L[L.length-1]),...O.map(d))-x0),vs=L.map(x=>x.v),av=vs.concat(O.map(x=>x.v)),lo=Math.min(...av)-.5,hi=Math.max(...av)+.5;
@@ -953,7 +959,7 @@ const dots=O.map(x=>`<circle cx="${X(x).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r
 const xl=(L.length>2?[0,Math.floor((L.length-1)/2),L.length-1]:[0,L.length-1]).map((i,j,a)=>`<text x="${X(L[i]).toFixed(1)}" y="114" text-anchor="${j===0?'start':j===a.length-1?'end':'middle'}">${dsh(L[i])}</text>`).join('');
 return `<svg class="ch" viewBox="0 0 300 120" width="100%" role="img" aria-label="Waist, last ${L.length} Sunday measurements">${grid}${line}${dots}${xl}</svg>`}
 function wsIns(){
-const L=wsSun(),on=[],off=[],ph=phase(),td=today(),n=L.length,span=n?(wtD(L[n-1].t)-wtD(L[0].t))/864e5:0;
+const L=wsSun(),on=[],off=[],ph=phase(),td=today(),n=L.length,span=n?(window.__SA?dN(L[n-1].t)-dN(L[0].t):(wtD(L[n-1].t)-wtD(L[0].t))/864e5):0;
 // 1. trend
 if(n>=3&&span>=14){const all=wsTrend(L[0].t,td),t4=wsTrend(addD(td,-27),td),pw=all.ch/(span/7),tot=all.last.v-all.first.v;
 on.push({t:'Waist trend',x:`${wsg(tot)} in since ${dsh(all.first)} (${inF(all.first.v)} → ${inF(all.last.v)} in), a trend of about ${wsg(pw)} in a week.${t4&&t4.n>=3&&t4.span>=14?` Last 4 weeks: ${wsg(t4.ch)} in.`:''} Measured the same way each Sunday, a change of 0.5 in or more over a few weeks is real; smaller week-to-week moves are mostly noise.`,c:ph.k==='bulk'?(pw>=.19?'dn':''):(pw<=-.06?'up':pw>=.06?'dn':'')})}
@@ -964,14 +970,14 @@ if(n>=4&&span>=21&&wa!=null&&wb!=null&&Math.abs(wb-wa)>=3){
 const dw=wb-wa,dz=l0.v-f0.v,same=(dw<0&&dz<=0)||(dw>0&&dz>=0),per=Math.abs(dz/dw*10);
 let x=same?`Since ${dsh(f0)} your waist is ${dz<0?'down':dz>0?'up':'unchanged at'} ${dz?inF(Math.abs(dz))+' in':inF(l0.v)+' in'} and your weight is ${dw<0?'down':'up'} ${f1(Math.abs(dw))} lb: about ${f1(per)} in per 10 lb ${dw<0?'lost':'gained'}.`:`Since ${dsh(f0)} your waist is ${dz<0?'down':'up'} ${inF(Math.abs(dz))} in while your weight is ${dw<0?'down':'up'} ${f1(Math.abs(dw))} lb, so your middle and the scale are moving in opposite directions.`;
 const r4=L.filter(z=>z.t>=addD(td,-27)),a4=r4.length>=3?wAvg(r4[0].t):null,b4=r4.length>=3?wAvg(r4[r4.length-1].t):null;
-if(a4!=null&&b4!=null&&(wtD(r4[r4.length-1].t)-wtD(r4[0].t))/864e5>=14){const dw4=b4-a4,dz4=r4[r4.length-1].v-r4[0].v;
+if(a4!=null&&b4!=null&&(window.__SA?dN(r4[r4.length-1].t)-dN(r4[0].t):(wtD(r4[r4.length-1].t)-wtD(r4[0].t))/864e5)>=14){const dw4=b4-a4,dz4=r4[r4.length-1].v-r4[0].v;
 if(ph.k!=='bulk'&&dw4<=-2&&dz4>-.1)x+=` Over the last 4 weeks your weight dropped ${f1(-dw4)} lb but your waist barely moved. If that lasts, more of the loss may be water or muscle; your next DEXA will tell.`;
 else if(ph.k==='bulk'&&dw4>=1&&dz4>=.5&&same&&dz4/dw4*10>per*1.5)x+=` Lately it’s rising faster per pound (${f1(dz4/dw4*10)} in per 10 lb over the last 4 weeks), so more of the recent gain may be fat.`;
 else if(Math.abs(dw4)>=2&&same&&Math.sign(dz4)===Math.sign(dw4))x+=` Over the last 4 weeks: about ${f1(Math.abs(dz4/dw4*10))} in per 10 lb.`}
 on.push({t:'Waist vs weight',x})}
 else off.push(`Waist vs weight: 4 Sunday measurements over 3+ weeks with a 3 lb weight change (${n} so far)`);
 // 3. waist vs DEXA
-const sc=scans().slice().sort((p,q)=>p.t<q.t?-1:1),near=t=>{let b=null;for(const z of L){const g=Math.abs(wtD(z.t)-wtD(t))/864e5;if(g<=14&&(!b||g<b.g))b={z,g}}return b&&b.z},pr=sc.map(x=>({s:x,z:near(x.t)})).filter(x=>x.z);
+const sc=scans().slice().sort((p,q)=>p.t<q.t?-1:1),near=t=>{let b=null;for(const z of L){const g=window.__SA?Math.abs(dN(z.t)-dN(t)):Math.abs(wtD(z.t)-wtD(t))/864e5;if(g<=14&&(!b||g<b.g))b={z,g}}return b&&b.z},pr=sc.map(x=>({s:x,z:near(x.t)})).filter(x=>x.z);
 if(pr.length>=2){const A=pr[0],Bq=pr[pr.length-1],df=Bq.s.fm-A.s.fm,dz=Bq.z.v-A.z.v;
 on.push({t:'Waist vs DEXA',x:`Between your ${dsh(A.s)} and ${dsh(Bq.s)} scans, your waist went from ${inF(A.z.v)} to ${inF(Bq.z.v)} in (${wsg(dz)} in) and DEXA fat mass from ${f1(A.s.fm)} to ${f1(Bq.s.fm)} lb (${sg(df)} lb)${Math.abs(df)>=3?`: about ${f1(Math.abs(dz/df*10))} in per 10 lb of fat`:''}.${Math.abs(df)>=3&&Math.sign(dz)===Math.sign(df)?' Between scans, your waist gives a rough read on how much fat is coming off.':''}`})}
 else off.push(`Waist vs DEXA: a Sunday measurement within 2 weeks of 2 DEXA scans (${pr.length} so far)`);
@@ -982,7 +988,7 @@ const r=wsIns(),ch=wsChart();
 return `<section class="ex" id="wstrend"><h2>Waist trend</h2>${ch?`${ch}<p class="hint">Dots are your Sunday measurements${wsSun().length>=3?'; the line is the trend':''}, in inches.${wsList().some(x=>dowOf(x.t)!==0&&x.t>=wsSun().slice(-16)[0].t)?' Small grey dots are other days, shown for reference only.':''}</p>`:''}${r.on.map(i=>`<div class="ins${i.c?' '+i.c:''}"><b>${E(i.t)}</b><p>${E(i.x)}</p></div>`).join('')}${r.off.length?`<p class="hint"><b>Unlocks as you log</b></p><ul class="tl hint">${r.off.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:''}</section>`}
 function wsRecap(){
 const L=wsSun();if(!L.length)return[];
-const l=L[L.length-1],p=L[L.length-2],f=L[0],old=(wtD(today())-wtD(l.t))/864e5>13;
+const l=L[L.length-1],p=L[L.length-2],f=L[0],old=(window.__SA?dN(today())-dN(l.t):(wtD(today())-wtD(l.t))/864e5)>13;
 return[`<p><b>Waist:</b> ${inF(l.v)} in on ${E(dsh(l))}${p?`, ${wsg(l.v-p.v)} in vs ${E(dsh(p))}`:''}${L.length>2?`; ${wsg(l.v-f.v)} in since your first Sunday measurement (${E(dsh(f))})`:''}.${old?' Measure again on Sunday morning.':''}</p>`]}
 // women: rates are % of body weight a week (stored in lb with the % alongside); lean bulk and recomp
 const PH=FEM?{cut:{l:'Cut',r:[.25,.5,.75,1],d:.5,g:{bf:22}},maint:{l:'Maintain',r:[],d:0,g:{wk:8}},bulk:{l:'Lean bulk',r:[.15,.25,.35],d:.25,g:{cap:28,wk:16}},recomp:{l:'Recomp',r:[],d:0,g:{wk:12}}}:{cut:{l:'Cut',r:[.5,1,1.5,2],d:2,g:{bf:10}},maint:{l:'Maintain',r:[],d:0,g:{wk:8}},bulk:{l:'Bulk',r:[.25,.5,.75],d:.5,g:{cap:15,wk:16}}};
@@ -1045,6 +1051,8 @@ function bkPace(){const x=(S.prof||{}).exp;if(FEM){const pc=x?{n:.35,i:.25,a:.15
 const bkGuide=()=>{const x=(S.prof||{}).exp;return x&&EXP[x]?`For ${EXP[x].toLowerCase()} of lifting, ${bkPace().t} suits a lean bulk`:`${FEM?'For women, common':'Common'} guidance for a lean bulk is ${bkPace().t}`};
 const bkFast=(p,bw)=>FEM&&p.pc?p.pc>bkPace().max+1e-9:!!(bw>0)&&p.r>bw*bkPace().max/100+1e-9;
 let plBusy=false,plErr='',plCtl=null;
+// p96: the Plan's goal weight counts the lean mass your scans show you losing (goalW), so its line says so
+function gwLean(bf){const a=goalW(bf),b=goalW0(bf),G=lnQ();return G&&G.q>0&&a!=null&&b!=null&&Math.round(b)-Math.round(a)>=1?`counting the lean mass you’re losing (${Math.round(b)} lb if you kept it all)`:'if you keep your lean mass'}
 function planNums(){
 const p=phase(),sc=scans(),c=sc[sc.length-1],ws=wtStats(),bw=ws?(ws.a7!=null?ws.a7:ws.L.w):c?c.tm:null,bwkg=bw==null?null:bw/2.2046,lmkg=c?c.lm/2.2046:null,rmr=c?c.rmr||null:(bw?Math.round(rmrMSJ(bw))||null:null),pr=S.prof||{},fm=fdMaint();
 let maint=null,src='',low=null;
@@ -1060,8 +1068,8 @@ const prot=bwkg==null?null:Math.round((p.k==='cut'&&lmkg?2.7*lmkg:FEM?(p.k==='re
 const fM=ts=>new Date(ts).toLocaleDateString(undefined,{month:'short',year:'numeric'}),ps=ws&&ws.ps?ws.ps.w:bw;
 let goal='';
 const LKr=(planT()||{}).rate;
-if(p.k==='cut'&&!c){const gwT=goalW(),left=bw==null||gwT==null?null:bw-gwT,r=Math.abs(LKr!=null?LKr:rate),wks=r>0&&left!=null?left/r:null;goal=left==null?(window.__SA?'Sync a weigh-in from Apple Health to set your goal weight.':'Log a weigh-in on the Weight tab to set your goal weight.'):left<=0?`You’re at your goal weight of ${Math.round(gwT)} lb.`:`Reach ${Math.round(gwT)} lb: ${f1(left)} lb from now${wks&&wks<260?`, around ${fM(wtD(today())+wks*6048e5)} at ${f1(r)} lb a week`:''}.`}
-else if(p.k==='cut'){const gwT=goalW(p.g.bf),left=bw-gwT,r=Math.abs(LKr!=null?LKr:rate),wks=r>0?left/r:null;goal=left<=0?`You’re at your ${p.g.bf}% body fat weight (about ${Math.round(gwT)} lb).`:`Reach ${p.g.bf}% body fat: about ${Math.round(gwT)} lb if you keep your lean mass, ${f1(left)} lb from now${wks&&wks<260?`, around ${fM(wtD(today())+wks*6048e5)} at ${f1(r)} lb a week`:''}.`}
+if(p.k==='cut'&&!c){const gwT=goalW(),left=bw==null||gwT==null?null:bw-gwT,r=Math.abs(LKr!=null?LKr:rate),wks=r>0&&left!=null?left/r:null;goal=left==null?(window.__SA?'Sync a weigh-in from Apple Health to set your goal weight.':'Log a weigh-in on the Weight tab to set your goal weight.'):left<=0?`You’re at your goal weight of ${Math.round(gwT)} lb.`:`Reach ${Math.round(gwT)} lb: ${f1(left)} lb from now${wks&&wks<260?`, around ${fM(wtD(today())+wks*6048e5)} at ${window.__SA?rS(r):f1(r)} lb a week`:''}.`}
+else if(p.k==='cut'){const gwT=goalW(p.g.bf),left=bw-gwT,r=Math.abs(LKr!=null?LKr:rate),wks=r>0?left/r:null;goal=left<=0?`You’re at your ${p.g.bf}% body fat weight (about ${Math.round(gwT)} lb).`:`Reach ${p.g.bf}% body fat: about ${Math.round(gwT)} lb ${window.__SA?gwLean(p.g.bf):'if you keep your lean mass'}, ${f1(left)} lb from now${wks&&wks<260?`, around ${fM(wtD(today())+wks*6048e5)} at ${window.__SA?rS(r):f1(r)} lb a week`:''}.`}
 else if(p.k==='bulk')goal=`Lean bulk for ${p.g.wk} weeks, to about ${Math.round(ps+p.r*p.g.wk)} lb by ${fM(wtD(addD(p.since,7*p.g.wk)))}. Stop early if a DEXA scan shows more than ${p.g.cap}% body fat.`;
 else if(p.k==='recomp')goal=`Recomp for ${p.g.wk} weeks at maintenance calories, until ${fM(wtD(addD(p.since,7*p.g.wk)))}. It’s working when your lifts climb and your next DEXA shows less fat and more lean at about the same weight.`;
 else goal=`Hold around ${Math.round(ps)} lb (within 2 lb either way) for ${p.g.wk} weeks, until ${fM(wtD(addD(p.since,7*p.g.wk)))}.`;
@@ -1105,10 +1113,10 @@ const why=`Maintenance is about ${fmt(n.maint)} cal a day, ${n.src==='m'?'from y
 const lf=fdList().slice(-1)[0],off=window.__SA?!liOk(n):liOff(lf,n);
 const sur=FEM&&p.k==='bulk'?(()=>{const c0=LK0?LK0.cal:n.cal,d=Math.round(c0-n.maint);return d>0?`<p class="hint">Surplus: +${fmt(d)} cal a day, ${Math.round(d/n.maint*100)}% over maintenance. It’s kept small on purpose: women build muscle at a similar rate to men relative to their size, but fewer pounds of it, so a bigger surplus mostly adds fat.</p>`:''})():'';
 const xp=FEM&&p.k==='bulk'&&pr.exp?(()=>{const pc={n:.35,i:.25,a:.15}[pr.exp];return `<p class="hint">For ${EXP[pr.exp].toLowerCase()} of lifting, about ${pc}% of body weight a week (${f1(n.bw*pc/100)} lb) suits a lean bulk: newer lifters toward 0.35%, 3+ years toward 0.15%.${bkFast(p,n.bw)?' Your target is faster than that.':''}</p>`})():p.k==='bulk'&&pr.exp?`<p class="hint">For ${EXP[pr.exp].toLowerCase()} of lifting, ${pr.exp==='a'?'about 0.25% of body weight a week or less':'about 0.25-0.5% of body weight a week'} (${pr.exp==='a'?'up to '+f1(n.bw*.0025):f1(n.bw*.0025)+'-'+f1(n.bw*.005)} lb) suits a lean bulk.${bkFast(p,n.bw)?' Your target is faster than that.':''}</p>`:'';
-body=`<div class="wk">${T(fmt(n.cal),'Calories a day')+T(n.prot+' g','Protein a day')+T(n.carb+' g','Carbs a day')+T(n.fat+' g','Fat a day')+T((r=>window.__SA&&r!=null&&Math.abs(r)<.05?'0 lb':sg(r)+' lb')(LK0?LK0.rate:n.rate),'Per week')+T(fmt(LK0?LK0.st:10000),'Steps a day')}</div>${sur}${n.clamp&&p.k!=='cut'?`<p class="hint dn">The plan would be about ${fmt(n.clamp.need)} cal a day, under ${n.clamp.flo===n.rmr?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):'your calorie floor of '+fmt(FLOOR())}, so it doesn’t go below the floor.</p>`:''}${n.clamp&&p.k==='cut'?`<p class="hint dn">${p.r} lb a week would need about ${fmt(n.clamp.need)} cal a day, below ${n.clamp.flo===n.rmr?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):fmt(FLOOR())}. The plan stops at ${fmt(n.cal)}, which works out to about ${f1(-(window.__SA&&LK0?LK0.rate:n.rate))} lb a week. For faster loss, add steps rather than eating less.</p>`:''}${xp}<p class="hint"><b>Set these in Lose It:</b> budget ${fmt(n.cal)} cal, protein ${n.prot} g, carbs ${n.carb} g, fat ${n.fat} g.${off?(window.__SA?(c=>c?` Last you told the app, it was set to ${fmt(c.cal)} cal${c.prot?' and '+Math.round(c.prot)+' g protein':''}.`:'')(liNow())+` <button class="edit" data-a="lidone" style="padding:0">Done, Lose It is set</button>`:` It’s currently set to ${fmt(lf.b)} cal${lf.pg?' and '+Math.round(lf.pg)+' g protein':''}.`):''}</p>${LK0?(()=>{const ch=(S.ci||[]).filter(c=>c.pid===planId()&&c.v==='change'&&c.chg&&c.t>=LK0.t).pop(),g=ch&&ch.chg;return `<p class="hint">Set ${E(dsh({t:LK0.t}))}${g?` at ${fmt(LK0.base)} cal. Last changed ${window.__SA&&ch.f==='pace'?`${E(dsh({t:ch.t}))}, when you changed your pace`:window.__SA&&ch.f==='dexa'?`by your ${E(dsh({t:ch.t}))} DEXA check`:window.__SA&&ch.f==='floor'?`${E(dsh({t:ch.t}))}, to stay at your calorie floor`:`by the ${E(dsh({t:ch.t}))} check-in`}: ${g.from!==g.to?fmt(g.from)+' → '+fmt(g.to)+' cal':''}${g.from!==g.to&&g.st!==g.st0?', ':''}${g.st!==g.st0?fmt(g.st0)+' → '+fmt(g.st)+' steps':''}`:''}. Only the weekly check-in changes these, unless you change your phase${window.__SA||HOLD(p.k)?'':' or pace'}${n.src==='m'?'':', or your steps below'}. Your goal settings don’t change them.${window.__SA&&!HOLD(p.k)?' A new pace moves calories by the difference and keeps the check-in’s changes.':''}</p>`})():''}<details class="mf"><summary>How these were worked out</summary><p class="hint">${E(why)}</p></details>`}
+body=`<div class="wk">${T(fmt(n.cal),'Calories a day')+T(n.prot+' g','Protein a day')+T(n.carb+' g','Carbs a day')+T(n.fat+' g','Fat a day')+T((r=>window.__SA&&r!=null&&Math.abs(r)<.05?'0 lb':(window.__SA?rSg(r):sg(r))+' lb')(LK0?LK0.rate:n.rate),'Per week')+T(fmt(LK0?LK0.st:10000),'Steps a day')}</div>${sur}${n.clamp&&p.k!=='cut'?`<p class="hint dn">The plan would be about ${fmt(n.clamp.need)} cal a day, under ${n.clamp.flo===n.rmr?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):'your calorie floor of '+fmt(FLOOR())}, so it doesn’t go below the floor.</p>`:''}${n.clamp&&p.k==='cut'?`<p class="hint dn">${p.r} lb a week would need about ${fmt(n.clamp.need)} cal a day, below ${n.clamp.flo===n.rmr?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):fmt(FLOOR())}. The plan stops at ${fmt(n.cal)}, which works out to about ${window.__SA?rS(LK0?LK0.rate:n.rate):f1(-n.rate)} lb a week. For faster loss, add steps rather than eating less.</p>`:''}${xp}<p class="hint"><b>Set these in Lose It:</b> budget ${fmt(n.cal)} cal, protein ${n.prot} g, carbs ${n.carb} g, fat ${n.fat} g.${off?(window.__SA?(c=>c?` Last you told the app, it was set to ${fmt(c.cal)} cal${c.prot?' and '+Math.round(c.prot)+' g protein':''}.`:'')(liNow())+` <button class="edit" data-a="lidone" style="padding:0">Done, Lose It is set</button>`:` It’s currently set to ${fmt(lf.b)} cal${lf.pg?' and '+Math.round(lf.pg)+' g protein':''}.`):''}</p>${LK0?(()=>{const ch=(S.ci||[]).filter(c=>c.pid===planId()&&c.v==='change'&&c.chg&&c.t>=LK0.t).pop(),g=ch&&ch.chg;return `<p class="hint">Set ${E(dsh({t:LK0.t}))}${g?` at ${fmt(LK0.base)} cal. Last changed ${window.__SA&&ch.f==='pace'?`${E(dsh({t:ch.t}))}, when you changed your pace`:window.__SA&&ch.f==='dexa'?`by your ${E(dsh({t:ch.t}))} DEXA check`:window.__SA&&ch.f==='floor'?`${E(dsh({t:ch.t}))}, to stay at your calorie floor`:`by the ${E(dsh({t:ch.t}))} check-in`}: ${g.from!==g.to?fmt(g.from)+' → '+fmt(g.to)+' cal':''}${g.from!==g.to&&g.st!==g.st0?', ':''}${g.st!==g.st0?fmt(g.st0)+' → '+fmt(g.st)+' steps':''}`:''}. Only the weekly check-in changes these, unless you change your phase${window.__SA||HOLD(p.k)?'':' or pace'}${n.src==='m'?'':', or your steps below'}. Your goal settings don’t change them.${window.__SA&&!HOLD(p.k)?' A new pace moves calories by the difference and keeps the check-in’s changes.':''}</p>`})():''}<details class="mf"><summary>How these were worked out</summary><p class="hint">${E(why)}</p></details>`}
 const pl=S.plan,cur=pl&&pl.pid===planId(),r=pl&&plFix(pl.r),sx=cur?planStale(pl):null,sx0=cur?planStale(pl,1):null,gp=(c,g)=>`${fmt(c)} cal${g?' and '+Math.round(g)+' g protein':''}`,
 olds=y=>!!(sx0&&sx0.lc&&sx0.ok&&/Lose It/i.test(y)&&(y.includes(fmt(sx0.lb.b))||y.includes(String(sx0.lb.b)))),li=y=>olds(y)?`<li class="done"><s>${E(y)}</s> <b>Done since</b></li>`:`<li>${E(y)}</li>`;
-const ai=plBusy?'<p class="hint goal">Claude is building your plan from your DEXA, weight, workouts, food and labs. This can take a minute or two.</p><button class="edit" data-a="pbstop" style="padding:.4rem 0 0">Stop</button>':(r?`${cur?'':`<p class="hint dn">This plan was written for your ${E(phN(pl.pid.split('|')[0]))}. ${window.__SA?'Get one for this phase: tap Get a plan from Claude below.':'Build a new one for this phase.'}</p>`}<p class="hint">Written ${E(wtLong(pl.t))}, from your data that day.</p>${window.__SA&&!sx?plStale(pl):''}${sx?`<p class="hint dn"><b>Out of date.</b>${sx.num?` It was written for ${fmt(sx.n.cal)} cal${sx.n.prot!==sx.L.prot?', '+sx.n.prot+' g protein':''}${sx.n.st!=null&&sx.n.st!==sx.L.st?' and '+fmt(sx.n.st)+' steps':''}; your numbers are now ${fmt(sx.L.cal)} cal${sx.n.prot!==sx.L.prot?', '+sx.L.prot+' g protein':''}${sx.n.st!=null&&sx.n.st!==sx.L.st?' and '+fmt(sx.L.st)+' steps':''} (shown above).`:''}${sx.lc?` When it was written, Lose It was set to ${gp(sx.lb.b,sx.lb.pg)}; it’s now ${gp(sx.now.b,sx.now.pg)}${sx.ok?', which matches your plan':''}.`:''}${window.__SA?' For an updated one, tap Update with Claude below.':' Rebuild it so the advice matches.'}</p>`:''}${r.h?`<p class="hint goal">${E(r.h)}</p>`:''}${[['Nutrition',r.nu],['Training',r.tr],['Habits',r.hb]].filter(x=>x[1]&&x[1].length).map(x=>`<p class="hint"><b>${x[0]}</b></p><ul class="tl">${x[1].map(li).join('')}</ul>`).join('')}${r.ck&&r.ck.length?`<p class="hint"><b>Checkpoints</b></p><ul class="tl">${r.ck.map(y=>olds(y.x)?`<li class="done"><s><b>${E(y.w)}:</b> ${E(y.x)}</s> <b>Done since</b></li>`:`<li><b>${E(y.w)}:</b> ${E(y.x)}</li>`).join('')}</ul>`:''}${r.wa&&r.wa.length?`<p class="hint"><b>Keep an eye on</b></p><ul class="tl">${r.wa.map(li).join('')}</ul>`:''}`:'<p class="hint">Claude can turn these numbers into a full plan: how to set up your meals, how to adjust your training for this phase, daily habits, and checkpoints like when to rescan.</p>')+(window.__SA?`${clLink('pl',r?'Update with Claude':'Get a plan from Claude',n.cal==null)}<p class="hint">Copies your plan request with your data and opens Claude. Paste it there and send. When Claude replies, press and hold the reply, tap Copy, then come back and tap Paste plan from Claude.</p>${clBox('pl')}<button class="edit" data-a="plcp" style="padding:.2rem 0 .4rem"${n.cal==null?' disabled':''}>Copy only</button>`:smpReady&&!smp?'<p class="hint dn">Building a plan isn’t available in this view. Ask in a Claude chat instead.</p>':plBusy?'':`<button class="fin" data-a="pb" style="margin:.6rem 0 .2rem"${n.cal==null?' disabled':''}>${r&&cur?'Rebuild my plan':'Build my full plan'}</button>`);
+const ai=plBusy?'<p class="hint goal">Claude is building your plan from your DEXA, weight, workouts, food and labs. This can take a minute or two.</p><button class="edit" data-a="pbstop" style="padding:.4rem 0 0">Stop</button>':(r?`${cur?'':`<p class="hint dn">This plan was written for your ${E(phN(pl.pid.split('|')[0]))}. ${window.__SA?'Get one for this phase: tap Update with Claude below.':'Build a new one for this phase.'}</p>`}<p class="hint">Written ${E(wtLong(pl.t))}, from your data that day.</p>${window.__SA&&!sx?plStale(pl):''}${sx?`<p class="hint dn"><b>Out of date.</b>${sx.num?` It was written for ${fmt(sx.n.cal)} cal${sx.n.prot!==sx.L.prot?', '+sx.n.prot+' g protein':''}${sx.n.st!=null&&sx.n.st!==sx.L.st?' and '+fmt(sx.n.st)+' steps':''}; your numbers are now ${fmt(sx.L.cal)} cal${sx.n.prot!==sx.L.prot?', '+sx.L.prot+' g protein':''}${sx.n.st!=null&&sx.n.st!==sx.L.st?' and '+fmt(sx.L.st)+' steps':''} (shown above).`:''}${sx.lc?` When it was written, Lose It was set to ${gp(sx.lb.b,sx.lb.pg)}; it’s now ${gp(sx.now.b,sx.now.pg)}${sx.ok?', which matches your plan':''}.`:''}${window.__SA?' For an updated one, tap Update with Claude below.':' Rebuild it so the advice matches.'}</p>`:''}${r.h?`<p class="hint goal">${E(r.h)}</p>`:''}${[['Nutrition',r.nu],['Training',r.tr],['Habits',r.hb]].filter(x=>x[1]&&x[1].length).map(x=>`<p class="hint"><b>${x[0]}</b></p><ul class="tl">${x[1].map(li).join('')}</ul>`).join('')}${r.ck&&r.ck.length?`<p class="hint"><b>Checkpoints</b></p><ul class="tl">${r.ck.map(y=>olds(y.x)?`<li class="done"><s><b>${E(y.w)}:</b> ${E(y.x)}</s> <b>Done since</b></li>`:`<li><b>${E(y.w)}:</b> ${E(y.x)}</li>`).join('')}</ul>`:''}${r.wa&&r.wa.length?`<p class="hint"><b>Keep an eye on</b></p><ul class="tl">${r.wa.map(li).join('')}</ul>`:''}`:'<p class="hint">Claude can turn these numbers into a full plan: how to set up your meals, how to adjust your training for this phase, daily habits, and checkpoints like when to rescan.</p>')+(window.__SA?`${clLink('pl',r?'Update with Claude':'Get a plan from Claude',n.cal==null)}<p class="hint">Copies your plan request with your data and opens Claude. Paste it there and send. When Claude replies, press and hold the reply, tap Copy, then come back and tap Paste plan from Claude.</p>${clBox('pl')}<button class="edit" data-a="plcp" style="padding:.2rem 0 .4rem"${n.cal==null?' disabled':''}>Copy only</button>`:smpReady&&!smp?'<p class="hint dn">Building a plan isn’t available in this view. Ask in a Claude chat instead.</p>':plBusy?'':`<button class="fin" data-a="pb" style="margin:.6rem 0 .2rem"${n.cal==null?' disabled':''}>${r&&cur?'Rebuild my plan':'Build my full plan'}</button>`);
 return `<section class="ex" id="plan"><h2>Your ${E(phN(p.k))} plan</h2><p class="hint goal">${E(n.goal)}</p>${body}${qs}<p class="hint"><b>Full plan</b></p>${ai}${plErr?`<p class="hint dn">${E(plErr)}</p>`:''}<p class="hint">Plans use standard formulas and Claude’s suggestions, not medical advice. Check big changes with your doctor.</p></section>`}
 const PL_PROMPT='You are a sports-nutrition and strength coach writing a phase plan for a client from his own fitness-tracker data. PHASE_TEXT. He lifts 3 days a week on a fixed split (listed in the data), doesn’t deadlift because of a sensitive lower back, and uses assisted pull-ups and dips. The tracker has already set his daily targets (calories, protein, carbs, fat, weekly rate and steps) with standard formulas: use those exact numbers and don’t change them. If you think one is off, say so under "watch". Build the rest of the plan around them, using his DEXA (including regional lean mass and visceral fat), weight trend, waist measurements (if logged), strength check, food patterns, steps and sleep (if logged) and any labs.\n\nRules: the tracker’s calorie floor is a hard limit: never recommend eating under 1,500 cal a day or under his DEXA resting metabolic rate, whichever is higher. Don’t recommend medications or supplements. Don’t diagnose; for any lab value outside its range, say to bring it to his doctor. Keep his split, his exercises and 3 working sets per exercise, because the tracker’s progression rules need 3 sets; suggest changes to reps, rest, effort or order rather than a new program. Calorie, macro and step changes are made only by the tracker’s weekly check-in, so checkpoints point to that check-in instead of telling him to change targets himself. Time checkpoints by the check-in dates in weekly_checkins and number weeks from the phase start the way the tracker does (phase_week_now is the current week). Don’t tell him to hold or cap his loads: when the tracker’s progression rules say go heavier, he goes heavier. The tracker started recently (see tracking_started), so don’t treat days before then as missed workouts or missed logs. The plan stays on screen for weeks, so don’t quote things that change day to day, like how many days or workouts are logged so far or what his Lose It goals are set to: the tracker shows those live. Keep every item short and specific, with numbers.\n\nReply with only this JSON object: {"headline": one sentence summing up the plan, "nutrition": [up to 4 short strings: meal structure, protein per meal, food choices], "training": [up to 4 short strings: how to adjust his training for this phase], "habits": [up to 3 short strings: steps, sleep and other daily habits], "checkpoints": [up to 4 objects {"when": a check-in from weekly_checkins written like "Week 6 check-in (date)", or a month like "Jan 2027", "what": one sentence}], "watch": [up to 3 short strings]}\n\nDATA:\n';
 function planPrompt(){const p=phase(),since=dsh({t:p.since});return PL_PROMPT.replace('PHASE_TEXT',p.k==='cut'?`He is starting or continuing a cut (since ${since}) to reach ${scans().length?p.g.bf+'% body fat':'about '+Math.round(goalW()||0)+' lb (no DEXA scan yet)'}, targeting ${p.r} lb a week`:p.k==='bulk'?`He is starting a lean bulk (since ${since}) for ${p.g.wk} weeks at +${p.r} lb a week, stopping early if he passes ${p.g.cap}% body fat`:p.k==='recomp'?`He is on a recomp (since ${since}) for ${p.g.wk} weeks: eating at maintenance with high protein, judged by strength, waist and DEXA rather than the scale`:`He is in maintenance (since ${since}) for ${p.g.wk} weeks, holding his weight steady`)}
@@ -1167,21 +1175,32 @@ return false}
 let was=null;if(window.__SA&&L){was=lkStash(L);const R=lkFind(was);if(R){S.lock=Object.assign({},R,{was});return true}const C=lkCarry(L,k,n);if(C){S.lock=Object.assign(C,{was});return true}}
 S.lock={pid:planId(),key:k,t:today(),base:n.cal,cal:n.cal,prot:n.prot,fat:n.fat,carb:n.carb,st:Math.max(10000,Math.round((stepsOf(S.prof||{})||0)/500)*500),rate:Math.round(n.rate*100)/100,fp:n.fp};if(window.__SA){S.lock.mt=Math.round(n.maint);if(was)S.lock.was=was}return true}
 function planT(){const L=S.lock;return L&&L.pid===planId()&&pkSame(L.key,planKey())?L:null}
-function judgeOn(){const nx=nextCheck();if(!nx)return null;const a0=wtList()[0].t,p=phase(),lc=(S.ci||[]).filter(c=>c.pid===planId()&&c.v==='change').pop();for(let i=0;i<12;i++){const d=addD(nx,7*i),last=addD(d,-7);let inP=0,aft=0;for(let s=a0;s<=last;s=addD(s,7)){if(s>=p.since)inP++;if(lc&&s>lc.w)aft++}if(inP>=4&&(!lc||aft>=3))return d}return null}
-function nextCheck(){const w=wtList();if(!w.length)return null;const a0=w[0].t,d=Math.round((wtD(today())-wtD(a0))/864e5),i=Math.max(0,Math.floor(d/7));return addD(a0,7*i+7)}
+function judgeOn(){const nx=nextCheck();if(!nx)return null;const a0=window.__SA?wkA0():wtList()[0].t,p=phase(),lc=(S.ci||[]).filter(c=>c.pid===planId()&&c.v==='change').pop();for(let i=0;i<12;i++){const d=addD(nx,7*i),last=addD(d,-7);let inP=0,aft=0;for(let s=a0;s<=last;s=addD(s,7)){if(s>=p.since)inP++;if(lc&&s>lc.w)aft++}if(inP>=4&&(!lc||aft>=3))return d}return null}
+function nextCheck(){const w=wtList();if(!w.length)return null;const a0=window.__SA?wkA0():w[0].t,d=Math.round((wtD(today())-wtD(a0))/864e5),i=Math.max(0,Math.floor(d/7));return addD(a0,7*i+7)}
 const mvTxt=x=>Math.abs(x)<.05?'holding steady':(x<0?'losing ':'gaining ')+f1(Math.abs(x))+' lb a week';
-const CI_BLK=['data','food','adhere','steps'];const CI_LAB={stay:'Stay the course',watch:'Stay the course for now',change:'Plan changed',wait:'Too early to judge',data:'Need more weigh-ins',food:'Need more food logs',adhere:'Hit your target first',steps:'Hit your steps first',goal:'Phase goal reached',limit:'At the plan’s limits',waist:'Stay the course: waist is down',waistup:'Stay the course: waist is up',cyc:'Stay the course: cycle water',reds:'No deeper cut',cyclate:'Plan on hold'};
+const CI_BLK=['data','food','adhere','steps'];const CI_LAB={stay:'Stay the course',watch:'Stay the course for now',change:'Plan changed',wait:'Too early to judge',data:'Need more weigh-ins',food:'Need more food logs',adhere:'Hit your target first',steps:'Hit your steps first',goal:'Phase goal reached',limit:'At the plan’s limits',waist:'Stay the course: waist is down',waistup:'Stay the course: waist is up',cyc:'Stay the course: cycle water',reds:'No deeper cut',cyclate:window.__SA?'No calorie cut for now':'Plan on hold'};
 // the check-in's trend: slope of the weekly averages over up to the last 5 full weeks, skipping the phase's first week,
 // weeks with under 3 weigh-ins and anything before the last plan change (a: lb a week; null until there are 3 such weeks)
 function ciTrend(done,p){const inP=done.filter(x=>x.s>=p.since),lc=(S.ci||[]).filter(c=>c.pid===planId()&&c.v==='change').pop(),elig=inP.slice(1).filter(x=>x.n>=3&&(!lc||x.s>lc.w));
 if(elig.length<3)return{inP,lc,elig,use:null,a:null};
 const use=elig.slice(-5),mx=use.reduce((q,x)=>q+x.m,0)/use.length,my=use.reduce((q,x)=>q+x.a,0)/use.length;let sxx=0,sxy=0;for(const x of use){const dx=(x.m-mx)/6048e5;sxx+=dx*dx;sxy+=dx*(x.a-my)}
-return{inP,lc,elig,use,a:sxx>0?sxy/sxx:0}}
+return{inP,lc,elig,use,a:sxx>0?(window.__SA?Math.round(sxy/sxx*1e4)/1e4:sxy/sxx):0}}
+// p96: the decision a trend (a) and plan rate (e) point to, by the check-in's lines (sl: a cut's lifts are slipping)
+function ciDir(a,e,k,sl){if(k==='cut'){const r=a/e;return r<.75?'less':(r>1.5||(sl&&r>1.2))?'more':null}if(k==='bulk'){const r=a/e;return r<(FEM?.6:.7)?'more':r>(FEM?1.6:1.5)?'less':null}return a<-.3?'more':a>.3?'less':null}
+// p96: the check-in's trend and plan rate as shown: one decimal for the trend (the plan's rate as rSg) unless the numbers
+// shown would point to a different decision than f, then 2, 3 or 4 decimals, so a message never contradicts itself
+function ciShow(a,e,k,f,sl){const rd=(x,d)=>Math.round(Math.abs(x)*10**d)/10**d;let o=null;
+for(let d=1;d<=4;d++){const aN=Math.abs(a)<.05?0:Math.sign(a)*rd(a,d),eS=d<=2?rSg(e):(e<0?'-':'+')+rd(e,d).toFixed(d);
+o={a:Math.abs(a)<.05?'holding steady':(a<0?'losing ':'gaining ')+(d===1?f1(Math.abs(a)):rd(a,d).toFixed(d))+' lb a week',e:eS};if(ciDir(aN,+eS,k,sl)===f)break}
+return o}
+// p96: the calorie target in force on each logged day of the week judged (the plan as it was that day: any plan change
+// made after it is taken back, from the calories that change moved from), averaged over those days
+function ciTgt(fd,L){const C=(S.ci||[]).filter(c=>c&&c.pid===L.pid&&c.v==='change'&&c.chg&&c.t),at=t=>{const c=C.find(c=>c.t>t);return c?c.chg.from:L.cal};return fd.length?fd.reduce((q,x)=>q+at(x.t),0)/fd.length:L.cal}
 // the check-in's "lifts slipping": a quarter of the lifts (2 or more), or an eighth (1 or more) with resting heart rate up 5+
 function liftSlip(c){const R=(c||checkRows()).rows,sl=R.filter(x=>x.st==='slip').length;return slipMany(sl,R.length)||(slipSome(sl,R.length)&&!!hrUp())}
 function ciEval(W,done,L,ws,p){
 const td=today(),inP=done.filter(x=>x.s>=p.since),nm={cut:'cut',maint:'maintenance phase',bulk:FEM?'lean bulk':'bulk',recomp:'recomp'}[p.k],wkN=Math.floor(Math.round((wtD(W.e)-wtD(p.since))/864e5)/7)+1;
-const sc=scans(),dx=sc[sc.length-1],rmr=dx?dx.rmr||0:(rmrMSJ(ws.a7!=null?ws.a7:ws.L.w)||0),flo=Math.max(FLOOR(),rmr),wks=(wtD(td)-wtD(p.since))/6048e5;
+const sc=scans(),dx=sc[sc.length-1],rmr=dx?dx.rmr||0:(rmrMSJ(ws.a7!=null?ws.a7:ws.L.w)||0),flo=Math.max(FLOOR(),rmr),wks=window.__SA?cdGap(p.since,td)/7:(wtD(td)-wtD(p.since))/6048e5;
 if(p.k==='cut'&&!dx){const gw=goalW(),ref=ws.a7!=null?ws.a7:ws.L.w;if(gw&&ref<=gw)return{v:'goal',nx:['maint'],m:`You’ve reached your goal weight of ${Math.round(gw)} lb. Start maintenance before deciding what’s next.`}}
 else if(p.k==='cut'){const gw=goalW(p.g.bf),ref=ws.a7!=null?ws.a7:ws.L.w;if(ref<=gw)return{v:'goal',nx:['maint'],m:`You’ve reached your ${p.g.bf}% goal weight (about ${Math.round(gw)} lb). Rescan DEXA to confirm your body fat, then start maintenance before deciding on a bulk.`}}
 if(p.k==='bulk'){const ls=sc.filter(x=>x.t>=p.since&&x.t<=td).pop();if(wks>=p.g.wk||(ls&&bfp(ls)>=p.g.cap))return{v:'goal',nx:['maint','cut'],m:wks>=p.g.wk?`Your ${p.g.wk}-week ${phN('bulk')} is done. Rescan DEXA, then hold at maintenance for a few weeks before your next cut.`:`Your latest DEXA shows ${f1(bfp(ls))}% body fat, at or above your ${p.g.cap}% ceiling. Time to end the ${phN('bulk')}.`}}
@@ -1195,7 +1214,8 @@ const fd=fdList().filter(e=>e.t>=W.s&&e.t<=W.e);
 {const f0=(fdList()[0]||{}).t;if(window.__SA&&fd.length<5&&f0&&f0>W.s)return{v:'wait',m:'Food logging started partway through last week, so there isn’t a full week to judge yet. No change. Stay the course.'}}
 if(fd.length<5&&(r0=blk({v:'food',m:`${fd.length?`Only ${fd.length} day${fd.length===1?'':'s'} of food logged`:'No food logged'} last week. No change. Log at least 5 days so the check-in can tell a plan problem from an off week.`},`${fd.length?`Only ${fd.length} day${fd.length===1?'':'s'} of food logged`:'No food logged'} last week.`)))return r0;
 const avg=fd.length?fd.reduce((a,x)=>a+x.c,0)/fd.length:null;
-if(avg!=null&&Math.abs(avg-L.cal)>150&&(r0=blk({v:'adhere',avg,m:`Plan unchanged. You averaged ${fmt(avg)} cal against your ${fmt(L.cal)} target, so last week didn’t test the plan. Hit ${fmt(L.cal)} this week.`},`You averaged ${fmt(avg)} cal against your ${fmt(L.cal)} target.`)))return r0;
+const tW=avg!=null&&window.__SA?ciTgt(fd,L):L.cal;
+if(avg!=null&&Math.abs(avg-tW)>150&&(r0=blk({v:'adhere',avg,m:`Plan unchanged. You averaged ${fmt(avg)} cal against your ${fmt(tW)} target, so last week didn’t test the plan. Hit ${fmt(L.cal)} this week${fmt(tW)!==fmt(L.cal)?' (your target now)':''}.`},`You averaged ${fmt(avg)} cal against your ${fmt(tW)} target.`)))return r0;
 const SK=o=>{if(!sk.length)return o;o.sk=sk.join(',');o.m=fx.join(' ')+(['wait','data'].includes(o.v)?' ':` That’s ${run+1} check-ins in a row that couldn’t fully test the plan, so this one goes by what you’re actually doing. `)+o.m;return o};
 const T=ciTrend(done,p),lc=T.lc,elig=T.elig;
 if(elig.length<3)return SK(lc?{v:'wait',m:`Plan changed ${dsh({t:lc.t})}. The new numbers get 3 full weeks of weigh-ins before the next call. Stay the course.`}:inP.length<4?{v:'wait',m:`${wkN} weeks into your ${nm}. The trend needs 3 full weeks after the first one, so there’s nothing to judge yet. Stay the course.`}:{v:'data',m:'Not enough full weeks of weigh-ins yet to measure your trend (it needs 3 weeks with 3 or more). No change. Weigh in every morning.'});
@@ -1204,33 +1224,37 @@ let f=null;
 if(p.k==='cut'){const r=a/e;f=r<.75?'less':(r>1.5||(r>1.2&&liftSlip()))?'more':null}
 else if(p.k==='bulk'){const r=a/e;f=r<(FEM?.6:.7)?'more':r>(FEM?1.6:1.5)?'less':null}
 else f=a<-.3?'more':a>.3?'less':null;
-const vs=`over ${wkRange(use[0].s,use[use.length-1].e)}, `+(HOLD(p.k)?'against a plan of holding steady':`against the plan’s ${window.__SA?sg(e):f1(Math.abs(e))}`),base={a:Math.round(a*100)/100,e,avg:avg==null?null:Math.round(avg)};
+const ciS=window.__SA?ciShow(a,e,p.k,f,p.k==='cut'&&f==='more'&&a/e<=1.5):null,mvA=ciS?ciS.a:mvTxt(a);
+const vs=`over ${wkRange(use[0].s,use[use.length-1].e)}, `+(HOLD(p.k)?'against a plan of holding steady':`against the plan’s ${ciS?ciS.e:f1(Math.abs(e))}`),base={a:Math.round(a*100)/100,e,avg:avg==null?null:Math.round(avg)};
 const hw=hlRange(W.s,W.e),wt=wsTrend(use[0].s,use[use.length-1].e),wn=wt&&wt.n>=2?` Waist: ${inF(wt.first.v)} → ${inF(wt.last.v)} in over the same weeks.`:'';
-if(f==='less'&&hw.sd>=4&&hw.sa<L.st*.9&&(r0=blk(Object.assign({},base,{v:'steps',f,m:`Plan unchanged. You averaged ${fmt(hw.sa)} steps a day against your ${fmt(L.st)} target, so last week didn’t test the plan (${mvTxt(a)} ${vs}). Hit ${fmt(L.st)} steps a day this week.`}),`You averaged ${fmt(hw.sa)} steps a day against your ${fmt(L.st)} target.`)))return r0;
+if(f==='less'&&hw.sd>=4&&hw.sa<L.st*.9&&(r0=blk(Object.assign({},base,{v:'steps',f,m:`Plan unchanged. You averaged ${fmt(hw.sa)} steps a day against your ${fmt(L.st)} target, so last week didn’t test the plan (${mvA} ${vs}). Hit ${fmt(L.st)} steps a day this week.`}),`You averaged ${fmt(hw.sa)} steps a day against your ${fmt(L.st)} target.`)))return r0;
 // her cycle: no deeper cut on an irregular or missing cycle; a late period holds everything; water weeks don't count
 if(FEM&&cyOn()&&f){
-if(f==='less'&&p.k==='cut'&&cyIrreg())return SK(Object.assign(base,{v:'reds',f,nx:['maint'],m:`No deeper cut: your cycle has been irregular or has stopped (see the ${window.__SA?'Cycle tab under Health':'Cycle card on the Weight tab'}). Raise calories toward maintenance and talk to your doctor. A long, low energy intake can disrupt your period and harm your bones and health (low energy availability, or RED-S). Your weight: ${mvTxt(a)} ${vs}.`}));
-if(cyNat()&&cyFlags().some(x=>x.k==='late'))return SK(Object.assign(base,{v:'cyclate',f,m:`Plan unchanged: your period is more than a week late. Take a pregnancy test or see your doctor before changing anything in your plan.`}));
-if(f==='less'&&cyNat()){let wd=false;for(let t=W.s;t<=W.e;t=addD(t,1))if(cyWater(t,2)){wd=true;break}
-if(wd)return SK(Object.assign(base,{v:'cyc',f,m:`Stay the course: ${mvTxt(a)} ${vs}, but last week included the days just before your period or its first days, when water retention peaks, so a slow week then doesn’t count toward a change. Same calories, same steps.`}));
-if(cyConfirm(W.e,e,p.k)===false)return SK(Object.assign(base,{v:'cyc',f,m:`Stay the course: ${mvTxt(a)} ${vs}, but compared with the same point of your last cycle your weight is on pace, so this looks like cycle water rather than a real trend. Same calories, same steps.`}))}}
+if(f==='less'&&p.k==='cut'&&cyIrreg())return SK(Object.assign(base,{v:'reds',f,nx:['maint'],m:`No deeper cut: ${window.__SA?cyWhy():'your cycle has been irregular or has stopped'} (see the ${window.__SA?'Cycle tab under Health':'Cycle card on the Weight tab'}). Raise calories toward maintenance and talk to your doctor. A long, low energy intake can disrupt your period and harm your bones and health (low energy availability, or RED-S). Your weight: ${mvA} ${vs}.`}));
+if(window.__SA?f==='less'&&cyMiss():cyNat()&&cyFlags().some(x=>x.k==='late'))return SK(Object.assign(base,{v:'cyclate',f,m:window.__SA?(z=>`Stay the course: ${mvA} ${vs}, but ${cyWhy()}. Until ${z?'it comes':'one is logged'}, the check-in won’t lower your calories or add steps (it can still add calories). ${z?'Take a pregnancy test or see your doctor.':'Talk to your doctor.'} Same calories, same steps.`)(cyMiss().k==='late'):`Plan unchanged: your period is more than a week late. Take a pregnancy test or see your doctor before changing anything in your plan.`}));
+if(f==='less'&&cyNat()){let wd=false;for(let t=W.s;t<=W.e;t=addD(t,1))if(cyWater(t,2)&&!(window.__SA&&(cyAt(t)||{}).late)){wd=true;break}
+if(wd)return SK(Object.assign(base,{v:'cyc',f,m:`Stay the course: ${mvA} ${vs}, but last week included the days just before your period or its first days, when water retention peaks, so a slow week then doesn’t count toward a change. Same calories, same steps.`}));
+if(cyConfirm(W.e,e,p.k)===false)return SK(Object.assign(base,{v:'cyc',f,m:`Stay the course: ${mvA} ${vs}, but compared with the same point of your last cycle your weight is on pace, so this looks like cycle water rather than a real trend. Same calories, same steps.`}))}}
 // waist down while the scale says eat less: likely water, so hold (at most twice between plan changes)
 const wh=(()=>{const lci=pc.map(c=>c.v).lastIndexOf('change');return pc.slice(lci+1).filter(c=>c.v==='waist'||c.v==='waistup').length})();
-if(f==='more'&&p.k==='bulk'&&wt&&wt.n>=3&&wt.span>=14&&wt.ch>=.5&&wh<2)return SK(Object.assign(base,{v:'waistup',f,m:`Stay the course: ${mvTxt(a)} ${vs}, but your waist went from ${inF(wt.first.v)} to ${inF(wt.last.v)} in over the same weeks, so adding calories now would likely add more fat. Same calories, same steps. ${wh?'The waist can hold off a change only twice between plan changes, so next week your weight trend decides on its own.':'If your gain is still slow next week and your waist stops climbing, the plan adjusts.'}`}));
-if(f==='less'&&(p.k==='cut'||HOLD(p.k))&&wt&&wt.n>=3&&wt.span>=14&&wt.ch<=-.5){const h=wh;if(h<2)return SK(Object.assign(base,{v:'waist',f,m:`Stay the course: ${mvTxt(a)} ${vs}, but your waist went from ${inF(wt.first.v)} to ${inF(wt.last.v)} in over the same weeks, so ${p.k==='cut'?'fat is still coming off and the scale is likely holding water':'the gain is likely water or muscle, not fat'}. Same calories, same steps. ${h?'The waist can hold off a change only twice between plan changes, so next week your weight trend decides on its own.':'If your weight is still slow next week and your waist stops dropping, the plan adjusts.'}`}))}
+if(f==='more'&&p.k==='bulk'&&wt&&wt.n>=3&&wt.span>=14&&wt.ch>=.5&&wh<2)return SK(Object.assign(base,{v:'waistup',f,m:`Stay the course: ${mvA} ${vs}, but your waist went from ${inF(wt.first.v)} to ${inF(wt.last.v)} in over the same weeks, so adding calories now would likely add more fat. Same calories, same steps. ${wh?'The waist can hold off a change only twice between plan changes, so next week your weight trend decides on its own.':'If your gain is still slow next week and your waist stops climbing, the plan adjusts.'}`}));
+if(f==='less'&&(p.k==='cut'||HOLD(p.k))&&wt&&wt.n>=3&&wt.span>=14&&wt.ch<=-.5){const h=wh;if(h<2)return SK(Object.assign(base,{v:'waist',f,m:`Stay the course: ${mvA} ${vs}, but your waist went from ${inF(wt.first.v)} to ${inF(wt.last.v)} in over the same weeks, so ${p.k==='cut'?'fat is still coming off and the scale is likely holding water':'the gain is likely water or muscle, not fat'}. Same calories, same steps. ${h?'The waist can hold off a change only twice between plan changes, so next week your weight trend decides on its own.':'If your weight is still slow next week and your waist stops dropping, the plan adjusts.'}`}))}
 // recomp from week 6: lifts not climbing on two check-ins in a row while weight holds adds 100 cal from carbs
-if(!f&&FEM&&p.k==='recomp'&&wkN>=6){const c0=checkRows(),cr=c0.rows,upn=cr.filter(x=>x.st==='up').length;if(c0.inP>=2&&upn<cr.length/2){const pv=(S.ci||[]).filter(c=>c.pid===planId()&&['stay','watch','change','limit'].includes(c.v)).pop();if(pv&&pv.v==='watch'&&pv.f==='str'){const cal=L.cal+100,carb=(L.carb||0)+25;S.lock=Object.assign({},L,{cal,carb});return SK(Object.assign(base,{v:'change',f:'str',chg:{from:L.cal,to:cal,st0:L.st,st:L.st},m:`Change: eat 100 more calories a day, all from carbs, as fuel for training. Your weight is holding (${mvTxt(a)} ${vs}), but only ${upn} of ${cr.length} lifts are up this phase, two check-ins in a row. New targets: ${fmt(cal)} cal, ${L.prot} g protein, ${carb} g carbs, ${L.fat} g fat, ${fmt(L.st)} steps. Update Lose It to match. If your weight then climbs more than 0.3 lb a week, the check-in takes it back off.`}))}return SK(Object.assign(base,{v:'watch',f:'str',m:`Stay the course for now: your weight is holding (${mvTxt(a)} ${vs}), but only ${upn} of ${cr.length} lifts are up this phase. If that’s still true next week, the plan adds 100 calories a day from carbs to fuel your training.`}))}}
-if(!f)return SK(Object.assign(base,{v:'stay',m:`Stay the course: ${mvTxt(a)} ${vs}.${wn} Same calories, same steps.`}));
+if(!f&&FEM&&p.k==='recomp'&&wkN>=6){const c0=checkRows(),cr=c0.rows,upn=cr.filter(x=>x.st==='up').length;if(c0.inP>=2&&upn<cr.length/2){const pv=(S.ci||[]).filter(c=>c.pid===planId()&&['stay','watch','change','limit'].includes(c.v)).pop();if(pv&&pv.v==='watch'&&pv.f==='str'){const cal=L.cal+100,carb=(L.carb||0)+25;S.lock=Object.assign({},L,{cal,carb});return SK(Object.assign(base,{v:'change',f:'str',chg:{from:L.cal,to:cal,st0:L.st,st:L.st},m:`Change: eat 100 more calories a day, all from carbs, as fuel for training. Your weight is holding (${mvA} ${vs}), but only ${upn} of ${cr.length} lifts are up this phase, two check-ins in a row. New targets: ${fmt(cal)} cal, ${L.prot} g protein, ${carb} g carbs, ${L.fat} g fat, ${fmt(L.st)} steps. Update Lose It to match. If your weight then climbs more than 0.3 lb a week, the check-in takes it back off.`}))}return SK(Object.assign(base,{v:'watch',f:'str',m:`Stay the course for now: your weight is holding (${mvA} ${vs}), but only ${upn} of ${cr.length} lifts are up this phase. If that’s still true next week, the plan adds 100 calories a day from carbs to fuel your training.`}))}}
+if(!f)return SK(Object.assign(base,{v:'stay',m:`Stay the course: ${mvA} ${vs}.${wn} Same calories, same steps.`}));
+// p96: at the plan's limits (calories at the floor, steps at 16,000 or more) nothing can change, so it says so straight
+// away instead of "the plan adjusts" every other week, with the plan's own steps
+if(window.__SA&&f==='less'){const fR=Math.ceil(flo/10)*10;if(L.cal<=fR&&L.st>=16000&&!sk.includes('steps'))return SK(Object.assign(base,{v:'limit',f,m:`The plan is at its limits: ${mvA} ${vs}, with calories at the floor of ${fmt(fR)} and ${fmt(L.st)} steps a day, so there’s nothing left to change. Keep following it; progress will just be slower. A DEXA rescan and a talk with your doctor would help decide what’s next.`}))}
 const prev=(S.ci||[]).filter(c=>c.pid===planId()&&['stay','watch','change','limit'].includes(c.v)).pop();
-if(!(prev&&prev.v==='watch'&&prev.f===f))return SK(Object.assign(base,{v:'watch',f,m:`Stay the course for now: ${mvTxt(a)} ${vs}.${wn} One week like this is often water. If next week points the same way, the plan adjusts.`}));
+if(!(prev&&prev.v==='watch'&&prev.f===f))return SK(Object.assign(base,{v:'watch',f,m:`Stay the course for now: ${mvA} ${vs}.${wn} One week like this is often water. If next week points the same way, the plan adjusts.`}));
 let cal=L.cal,st=L.st,txt='';
 const stp=FEM&&(p.k==='bulk'||p.k==='recomp')?100:150;
-if(f==='less'){const want=L.cal-stp,fR=Math.ceil(flo/10)*10;if(want>=fR){cal=want;txt=`eat ${stp} fewer calories a day`}else if(L.cal>fR){cal=fR;txt=`eat ${fmt(L.cal-cal)} fewer calories a day (that’s the floor)`}else if(sk.includes('steps'))return SK(Object.assign(base,{v:'steps',f,m:`Calories are already at the floor of ${fmt(Math.ceil(flo/10)*10)}, so closing your steps gap is the only change left (${mvTxt(a)} ${vs}). Hit ${fmt(L.st)} steps a day this week.`}));else if(L.st<16000){st=Math.min(16000,L.st+2000);txt=`add ${fmt(st-L.st)} steps a day, since calories are already at the floor of ${fmt(Math.ceil(flo/10)*10)}`}}
+if(f==='less'){const want=L.cal-stp,fR=Math.ceil(flo/10)*10;if(want>=fR){cal=want;txt=`eat ${stp} fewer calories a day`}else if(L.cal>fR){cal=fR;txt=`eat ${fmt(L.cal-cal)} fewer calories a day (that’s the floor)`}else if(sk.includes('steps'))return SK(Object.assign(base,{v:'steps',f,m:`Calories are already at the floor of ${fmt(Math.ceil(flo/10)*10)}, so closing your steps gap is the only change left (${mvA} ${vs}). Hit ${fmt(L.st)} steps a day this week.`}));else if(L.st<16000){st=Math.min(16000,L.st+2000);txt=`add ${fmt(st-L.st)} steps a day, since calories are already at the floor of ${fmt(Math.ceil(flo/10)*10)}`}}
 else{cal=L.cal+stp;txt=`eat ${stp} more calories a day`}
 if(cal===L.cal&&st===L.st)return SK(Object.assign(base,{v:'limit',f,m:`The plan is at its limits: calories at the floor of ${fmt(Math.ceil(flo/10)*10)} and 16,000 steps a day. Keep following it; progress will just be slower. A DEXA rescan and a talk with your doctor would help decide what’s next.`}));
 const fat=Math.round(cal*L.fp/9),carb=Math.max(0,Math.round((cal-L.prot*4-fat*9)/4));
 S.lock=Object.assign({},L,{cal,fat,carb,st});
-return SK(Object.assign(base,{v:'change',f,chg:{from:L.cal,to:cal,st0:L.st,st},m:`Change: ${txt}. Two check-ins in a row point the same way (${mvTxt(a)} ${vs}).${wn} New targets: ${fmt(cal)} cal, ${L.prot} g protein, ${carb} g carbs, ${fat} g fat, ${fmt(st)} steps.${cal!==L.cal?' Update Lose It to match.':''}`}))}
+return SK(Object.assign(base,{v:'change',f,chg:{from:L.cal,to:cal,st0:L.st,st},m:`Change: ${txt}. Two check-ins in a row point the same way (${mvA} ${vs}).${wn} New targets: ${fmt(cal)} cal, ${L.prot} g protein, ${carb} g carbs, ${fat} g fat, ${fmt(st)} steps.${cal!==L.cal?' Update Lose It to match.':''}`}))}
 // p94: the plan never sits under the floor (the fixed floor or the latest DEXA resting metabolic rate): a new scan with a
 // higher RMR, or a plan saved under it, moves calories up to it at the check-in, logged as a plan change that says why.
 // Steps and the check-in's other changes stay; a base under the new floor moves up with it (and a cut's expected rate
@@ -1240,13 +1264,18 @@ const td=today(),ph=phase(),cal=fR,dc=cal-L.cal,fat=Math.round(cal*L.fp/9),carb=
 if(L.base<fR){o.base=fR;if(ph.k==='cut')o.rate=Math.min(-.1,Math.round((fR-M)/5)/100)}
 S.lock=Object.assign({},L,o);
 S.ci=(S.ci||[]).concat({v:'change',f:'floor',t:td,w:td,pid:planId(),chg:{from:L.cal,to:cal,st0:L.st,st:L.st},m:`Change: eat ${dc} more calories a day. ${r?`Your ${dsh(c)} DEXA puts your resting metabolic rate at ${fmt(r)} cal a day`:`Your calorie floor is ${fmt(FLOOR())} cal a day`}, and the plan never goes under ${r?'it':'that'}, so it moves up from ${fmt(L.cal)} to ${fmt(cal)}. Your steps and the check-in’s other changes stay. New targets: ${fmt(cal)} cal, ${L.prot} g protein, ${carb} g carbs, ${fat} g fat, ${fmt(L.st)} steps. Update Lose It to match. The new numbers get 3 full weeks before the next call.`}).slice(window.__SA?0:-60);return true}
+// p96: DEXA, pace and floor changes are logged as check-in changes dated the day they happen, not a weigh-in week, so
+// they never count as that week's check-in; a week's check-in judged the same morning that only waits or is blocked
+// goes in before them, so the change (with its new targets) stays the card's headline
+const ciOff=c=>!!c&&c.v==='change'&&['dexa','pace','floor'].includes(c.f);
+function ciPut(ci,r){let i=ci.length;if(r.v==='wait'||CI_BLK.includes(r.v))while(i>0&&ci[i-1].t===r.t&&ciOff(ci[i-1]))i--;return ci.slice(0,i).concat(r,ci.slice(i))}
 function autoCheck(){
 if(!initDone)return;
 STP('check-in: DEXA');try{dxAct()}catch(e){}
 STP('check-in: plan');let dirty=ensureLock();if(window.__SA&&flRaise())dirty=true;STP('check-in: weeks');
 const L=planT(),ws=wtStats(),p=phase(),pid=planId(),td=today();
 if(L&&ws){const done=ws.wk.filter(x=>x.e<td),W=done[done.length-1],ci=S.ci||[];
-if(W&&W.e>=p.since&&!ci.some(c=>c.pid===pid&&c.w===W.e)){STP('check-in: judging');const r=ciEval(W,done,planT()||L,ws,p);{const hw=hlRange(W.s,W.e);if(hw.nd>=4&&hw.sla<(window.__SA?SLP:390))r.m+=` Sleep averaged ${hm(hw.sla)} a night last week; under 7 hours makes hunger and recovery harder.`}r.t=td;r.w=W.e;r.pid=pid;S.ci=ci.concat(r).slice(window.__SA?0:-60);dirty=true}}
+if(W&&W.e>=p.since&&!ci.some(c=>c.pid===pid&&c.w===W.e&&!(window.__SA&&ciOff(c)))){STP('check-in: judging');const r=ciEval(W,done,planT()||L,ws,p);{const hw=hlRange(W.s,W.e);if(hw.nd>=4&&hw.sla<(window.__SA?SLP:390))r.m+=` Sleep averaged ${hm(hw.sla)} a night last week; under 7 hours makes hunger and recovery harder.`}r.t=td;r.w=W.e;r.pid=pid;S.ci=window.__SA?ciPut(ci,r):ci.concat(r).slice(-60);dirty=true}}
 STP('check-in: done');if(dirty)save()}
 function ordersLine(){
 const L=planT();if(!L)return '';
@@ -1277,16 +1306,16 @@ const gw=ws.gw;if(gw>0&&s0>gw)for(const q of[25,50,75,100]){const need=s0-(s0-gw
 // recomp or bulk: weeks in
 if((ph.k==='recomp'||ph.k==='bulk')&&ph.g&&ph.g.wk){const wk=ph.g.wk,nm=phN(ph.k);for(const q of[...new Set([4,Math.round(wk/2),wk])]){const t=addD(ph.since,q*7);if(t<=td)add('wk'+q+'@'+ph.since,t,q===wk?'Finished your '+wk+'-week '+nm:q+' weeks into your '+nm);else{next.push(q+' weeks into your '+nm+' ('+E(dsh({t}))+')');break}}}
 // lift records
-{const L=S.log.slice().sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0),bs=Object.assign({},S.rarc||{});let n=0;const marks=[1,10,25,50,100,200],hit={};
-for(const e of L){const before=n;for(const k in e.s){const x=sbest(k,e.s[k],e.t);if(!x)continue;if(bs[k]){if(better(x,bs[k])){n++;bs[k]=x}}else bs[k]=x}for(const m of marks)if(before<m&&n>=m&&!hit[m])hit[m]=e.t}
+{const L=S.log.slice().sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0),bs=rcAs(S.rarc);let n=0;const marks=[1,10,25,50,100,200],hit={};
+for(const e of L){const before=n;for(const k in e.s){const x=sbest(k,e.s[k],e.t,asT());if(!x)continue;if(bs[k]){if(better(x,bs[k])){n++;bs[k]=x}}else bs[k]=x}for(const m of marks)if(before<m&&n>=m&&!hit[m])hit[m]=e.t}
 for(const m of marks){if(hit[m])add('pr'+m,hit[m],m===1?'Your first new lift record':m+' new lift records');else{next.push(m===1?'Your first new lift record':m+' new lift records ('+(m-n)+' to go)');break}}}
 // streaks
 const wr=msRun(W.map(x=>x.t),td,[7,30,60,100]),fr=msRun(fdList().map(x=>x.t),td,[7,30,60]);
 for(const m of[7,30,60,100]){if(wr.hit[m])add('ws'+m+'@'+wr.hit[m],wr.hit[m],m+' days of weigh-ins in a row');else{next.push(m+'-day weigh-in streak ('+(m-wr.cur)+' days to go)');break}}
 for(const m of[7,30,60]){if(fr.hit[m])add('fs'+m+'@'+fr.hit[m],fr.hit[m],m+' days of food logged in a row');else{next.push(m+'-day food streak ('+(m-fr.cur)+' days to go)');break}}
-const tg=stTarget(),sr=msRun(hlList().filter(x=>x.st!=null&&x.st>=tg&&(x.t<td||stToday())).map(x=>x.t),td,[]);
+const tg=stTarget(),tgM=new Map(),tgA=t=>{if(!window.__SA||t>=td)return tg;if(!tgM.has(t))tgM.set(t,stTgAt(t));return tgM.get(t)},sr=msRun(hlList().filter(x=>x.st!=null&&x.st>=tgA(x.t)&&(x.t<td||stToday())).map(x=>x.t),td,[]);
 // gym weeks with every planned workout done
-const per={};for(const e of S.log){const k=logWk(e);per[k]=(per[k]||0)+1}const N=ORDER.length,cw=wkKey(td),full=Object.keys(per).filter(k=>per[k]>=N).sort();
+const per={};for(const e of S.log){const k=logWk(e);per[k]=(per[k]||0)+1}if(window.__SA){const dd={};for(const e of S.log){if(!ORDER.includes(+e.day))continue;const k=logWk(e);(dd[k]=dd[k]||new Set()).add(+e.day)}for(const k in per)per[k]=dd[k]?dd[k].size:0}const N=ORDER.length,cw=wkKey(td),full=Object.keys(per).filter(k=>per[k]>=N).sort();
 let gb=0,run=0,prev=null;const gh={};for(const k of full){run=prev&&addD(prev,7)===k?run+1:1;prev=k;if(run>gb)gb=run;for(const m of[4,8,12])if(run===m&&!gh[m])gh[m]=addD(k,6)}
 let gc=0;{let k=per[cw]>=N?cw:addD(cw,-7);while(per[k]>=N){gc++;k=addD(k,-7)}}
 for(const m of[4,8,12]){if(gh[m])add('gw'+m+'@'+gh[m],gh[m]<=td?gh[m]:td,m+' weeks in a row with every workout done');else{next.push(m+' perfect gym weeks in a row ('+(m-gc)+' to go)');break}}
@@ -1312,26 +1341,26 @@ function todayBar0(){
 const td=today(),yd=addD(td,-1),hr=new Date().getHours(),wd=new Date(td+'T12:00:00').getDay(),H=new Map(hlList().map(x=>[x.t,x])),F=new Set(fdList().map(x=>x.t)),Wt=new Set(wtList().map(x=>x.t)),has=(t,k)=>{const x=H.get(t);return !!(x&&x[k]!=null)};
 const it=[{d:'w',l:'Weight',ok:Wt.has(td)}];if(FEM&&cyNat()){const c=cyAt(td);if(c&&c.ph==='per')it.push({d:window.__SA?'cy':'w',l:'Flow',ok:!!(cyDay(td)||{}).f,id:'cycle'})}if(wd===0)it.push({d:'w',l:'Waist',ok:wsList().some(x=>x.t===td),id:'waist'});it.push({d:'sl',l:'Sleep',ok:has(td,'sl')});
 if(ORDER.includes(wd))it.push({d:String(wd),l:'Workout',ok:S.log.some(e=>e.t===td||(!!window.__SA&&e.day===wd&&logWk(e)===wkKey(td)))});
-it.push({d:'st',l:'Steps',ok:has(td,'st'),pm:1},{d:'f',l:'Food',ok:F.has(td),pm:1});
+it.push({d:'st',l:'Steps',ok:has(td,'st'),pm:1},{d:'f',l:'Food',ok:F.has(td),pm:window.__SA?2:1});
 const hs=hlList().filter(x=>x.st!=null),fs=fdList(),late=[],ms=hkMiss();
 if(!window.__SA&&hs.length&&hs[0].t<=yd&&!has(yd,'st'))late.push({d:'st',l:'Yesterday’s steps'});
 if(!window.__SA&&fs.length&&fs[0].t<=yd&&!F.has(yd))late.push({d:'f',l:'Yesterday’s food'});
 // standalone: once the paste that brings them is in, today's weigh-in and sleep (morning) and steps and food (evening)
 // stay only while Upload says they're missing (hkMiss: what usually comes in); before it they're still to come
-if(window.__SA){const mo=!!hkT('m'),ev=!!hkT('e')&&hr>=evH(),K={w:'wt',sl:'sl',st:'st',f:'c'};for(let i=it.length-1;i>=0;i--){const x=it[i],k=K[x.d];if(!x.ok&&!x.id&&k&&(x.pm?ev:mo)&&!ms.some(m=>m.k===k&&!!m.ev===!!x.pm))it.splice(i,1)}}
+if(window.__SA){const mo=!!hkT('m'),ev=!!hkT('e')&&hr>=evH(),K={w:'wt',sl:'sl',st:'st',f:'c'};for(let i=it.length-1;i>=0;i--){const x=it[i],k=K[x.d];if(!x.ok&&!x.id&&k&&(x.pm?(x.pm===2?hkFdIn():ev):mo)&&!ms.some(m=>m.k===k&&!!m.ev===!!x.pm))it.splice(i,1)}}
 // yesterday's steps and food (standalone), last night's heart rate and food macros: exactly what Upload lists
 for(const m of ms)if(m.k==='hr'||m.k==='mac'||(!m.ev&&(m.k==='st'||m.k==='c')))late.push({d:'hk',l:m.l.charAt(0).toUpperCase()+m.l.slice(1)});
 if(window.__SA)for(const x of it.concat(late))if(!x.ok&&!x.id&&['w','sl','st','f'].includes(x.d))x.d='hk';
 if(it.every(x=>x.ok)&&!late.length)return `<p class="today all">Today: everything’s logged ✓</p>`;
-const ch=x=>{const lt=!x.ok&&x.pm&&hr<(window.__SA?evH():18);return `<button class="tchip${x.ok?' done':lt?' later':''}" data-a="tgo" data-d="${x.d}"${x.id?` data-id="${x.id}"`:''} aria-label="${E(x.l)}${x.ok?', logged':lt?', tonight':', not logged yet'}">${x.ok?'✓ ':''}${E(x.l)}${lt?' <small>tonight</small>':''}</button>`};
+const ch=x=>{const lt=!x.ok&&x.pm&&hr<(window.__SA?(x.pm===2?FDH:evH()):18);return `<button class="tchip${x.ok?' done':lt?' later':''}" data-a="tgo" data-d="${x.d}"${x.id?` data-id="${x.id}"`:''} aria-label="${E(x.l)}${x.ok?', logged':lt?', tonight':', not logged yet'}">${x.ok?'✓ ':''}${E(x.l)}${lt?' <small>tonight</small>':''}</button>`};
 return `<div class="today"><span>Today</span>${it.map(ch).join('')}${late.map(x=>`<button class="tchip late" data-a="tgo" data-d="${x.d}"${x.id?` data-id="${x.id}"`:''} aria-label="${E(x.l)}, not logged">${E(x.l)}</button>`).join('')}</div>`}
 function phaseLine(){const p=phase();return `<p class="hint" style="margin:.2rem 0 .7rem">Phase: <b>${E(phLbl(p))}</b>, since ${E(dsh({t:p.since}))}, ${E(phGoal(p))}. <button class="edit" data-a="phgo" style="padding:0">Change</button></p>`}
 function phaseWarn(){
-const s=wtStats(),p=phase();if(!s||s.pace==null||!(s.pw>=1.5))return '';
+const s=wtStats(),p=phase(),T=window.__SA&&s?s.ctr:null;if(!s||(window.__SA?!(T&&T.a!=null):s.pace==null||!(s.pw>=1.5)))return '';
 // standalone: answered Yes in the last 2 weeks for this phase
 {const k=S.prof&&S.prof.pwk;if(window.__SA&&k&&k.id===planId()&&k.t>addD(today(),-14))return ''}
-if((wtD(today())-wtD(p.since))/864e5<14)return '';
-const pc=s.pace,ov=` (${sg(pc)} lb a week over the last ${f1(s.pw)} weeks)`;let h='',x='';
+if(!window.__SA&&(wtD(today())-wtD(p.since))/864e5<14)return '';
+const pc=T?T.a:s.pace,ov=T?` (${sg(pc)} lb a week over ${wkRange(T.use[0].s,T.use[T.use.length-1].e)}, the weekly check-in’s trend)`:` (${sg(pc)} lb a week over the last ${f1(s.pw)} weeks)`;let h='',x='';
 if(p.k==='cut'&&pc>=.3){h='Still cutting?';x=`Your weight has been going up${ov}, but your phase is Cut. If you’ve switched to ${FEM?'a lean bulk, a recomp':'a bulk'} or maintenance, change your phase. ${window.__SA?'If you are, the weekly check-in lowers your calories if this keeps up.':'If not, check your calories on the Food tab.'}`}
 else if(p.k==='bulk'&&pc<=-.3){h='Still bulking?';x=`Your weight has been going down${ov}, but your phase is ${PH.bulk.l}. If you’ve switched to a cut, change your phase. If not, check you’re hitting your calories on the Food tab; the weekly check-in raises them if your weight keeps dropping.`}
 else if(p.k==='recomp'&&Math.abs(pc)>=.5){h='Still recomping?';x=`Your weight has been going ${pc>0?'up':'down'}${ov}, but your phase is Recomp, which eats at maintenance. If you meant to ${pc>0?'lean bulk':'cut'}, change your phase. If not, check you’re hitting your calories on the Food tab; the weekly check-in adjusts them if this keeps up.`}
@@ -1347,21 +1376,23 @@ const gfDt=ms=>new Date(ms).toLocaleDateString(undefined,{month:'short',year:'nu
 // least squares through weigh-ins: slope in lb a week, and where the line sits at the last one
 function gfLS(p,dy){const n=p.length,e=dy(p[n-1]),xs=p.map(x=>(dy(x)-e)/6048e5),mx=xs.reduce((a,b)=>a+b,0)/n,my=p.reduce((a,x)=>a+x.w,0)/n;let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-mx)*(p[i].w-my);sxx+=(x-mx)*(x-mx)});const sl=sxx>0?sxy/sxx:0;return{n,e,sl,my,end:my-sl*mx}}
 const gfM=()=>{const v=S.prof&&S.prof.gm;return GFL().some(([k])=>k===v)?v:'2w'};
-function gfFit(s,m){const{w,dy,ph}=s,td=wtD(today()),st=m==='st'?null:td-(m==='4w'?27:13)*864e5,p=w.filter(x=>(st==null?x.t>=ph.since:dy(x)>=st)&&dy(x)<=td);
-if(p.length<5||dy(p[p.length-1])-dy(p[0])<6*864e5)return{ok:false,n:p.length};
+function gfFit(s,m){const{w,dy,ph}=s,td=wtD(today()),st=m==='st'?null:td-(m==='4w'?27:13)*864e5,t0=today(),s0=m==='st'?null:addD(t0,-(m==='4w'?27:13)),p=window.__SA?w.filter(x=>(s0==null?x.t>=ph.since:x.t>=s0)&&x.t<=t0):w.filter(x=>(st==null?x.t>=ph.since:dy(x)>=st)&&dy(x)<=td);
+if(p.length<5||(window.__SA?dN(p[p.length-1].t)-dN(p[0].t)<6:dy(p[p.length-1])-dy(p[0])<6*864e5))return{ok:false,n:p.length};
 return Object.assign({ok:true,from:p[0].t},gfLS(p,dy))}
 function gfCalc(s,m){const{w,dy,L,ph}=s,nm=phN(ph.k),dl=dy(L);
 if(m==='2w'||m==='st'){const f=gfFit(s,m),lab={'2w':'Last 2 weeks',st:'Since your '+nm+' started'}[m];
 if(!f.ok)return{lab,need:`Needs 5 weigh-ins spread over at least a week ${m==='st'?'since your '+nm+' started':'in the '+lab.toLowerCase()} (${f.n} so far).`};
 return{lab,r:-f.sl,now:f.end,e:f.e,f0:wtD(f.from),how:`From a straight line through your ${f.n} weigh-ins ${m==='st'?'since your '+nm+' started':'since '+E(dsh({t:f.from}))}, so it moves with every weigh-in${m==='2w'?' and swings more than At your pace':''}.`}}
-if(m==='tr'){const lab='Trend weight',k7=dl-7*864e5;let T=w[0].w,t7=dy(w[0])<=k7?{d:dy(w[0]),T}:null;for(let i=1;i<w.length;i++){T+=.1*(w[i].w-T);if(dy(w[i])<=k7)t7={d:dy(w[i]),T:T}}
+if(m==='tr'){const lab='Trend weight',k7=dl-7*864e5,k7t=addD(L.t,-7),le7=x=>window.__SA?x.t<=k7t:dy(x)<=k7;let T=w[0].w,t7=le7(w[0])?{d:dy(w[0]),T}:null;for(let i=1;i<w.length;i++){T+=.1*(w[i].w-T);if(le7(w[i]))t7={d:dy(w[i]),T:T}}
 if(w.length<5||!t7)return{lab,need:`Needs a week of weigh-ins (${w.length} so far).`};
 return{lab,r:(t7.T-T)/((dl-t7.d)/6048e5),now:T,e:dl,f0:t7.d,how:`Your trend weight is ${f1(T)} lb. Each weigh-in moves it a tenth of the way toward the scale, so one day barely moves it and real changes show up slowly. The pace is how much it changed over the last week.`}}
-if(m==='tw'){const lab='This week vs last week',a0=dy(s.st),ic=Math.floor(Math.round((wtD(today())-a0)/864e5)/7),c=s.wk.find(x=>x.i===ic),p=s.wk.find(x=>x.i===ic-1),wd=t=>new Date(t+'T12:00:00').toLocaleDateString(undefined,{weekday:'long'}),d1=wd(s.st.t),d7=wd(addD(s.st.t,6));
+if(m==='tw'){const lab='This week vs last week',a0=window.__SA?wtD(wkA0()):dy(s.st),ic=Math.floor(Math.round((wtD(today())-a0)/864e5)/7),c=s.wk.find(x=>x.i===ic),p=s.wk.find(x=>x.i===ic-1),wd=t=>new Date(t+'T12:00:00').toLocaleDateString(undefined,{weekday:'long'}),w1=window.__SA?wkA0():s.st.t,d1=wd(w1),d7=wd(addD(w1,6));
 if(!p||p.n<3)return{lab,need:`Needs 3 weigh-ins last week (${d1} to ${d7}).`};
 if(!c)return{lab,need:`Needs a weigh-in this week. Your weeks start on ${d1}.`};
 return{lab,r:(p.a-c.a)/((c.m-p.m)/6048e5),now:c.a,e:c.m,f0:wtD(p.s),how:`This week so far (since ${d1}) averages ${f1(c.a)} lb over ${c.n} weigh-in${c.n>1?'s':''}, vs ${f1(p.a)} lb last week (${d1} to ${d7}). It settles as the week fills in.`}}
 if(m==='fm'){const lab='Food & real maintenance',mt=fdMaint(),mn=mt?mt.n:0;
+// p96: the plan doesn't use a food-based maintenance under the floor, so this chip doesn't project from it either
+if(window.__SA&&mt&&mn>=MT_N){const n=planNums();if(n.low)return{lab,wait:'Not used',need:`Your logged food and weight trend put your maintenance at only about ${gfCal(n.low.m)} calories a day, under ${n.rmr>FLOOR()?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):'your calorie floor of '+fmt(FLOOR())}, which usually means some food isn’t getting logged. So, like your plan and the Food tab, this doesn’t use it: your plan works from about ${gfCal(n.maint)}, from your ${n.lmkg?'DEXA resting metabolic rate':'resting rate'} and your steps. Log everything you eat and this chip comes back.`}}
 if(!mt||mn<MT_N)return{lab,wait:'After more logged days',need:`Needs ${MT_N} fully logged days in your current weight-pace weeks (${mn} so far), the same as the Food tab’s estimate. A day under 800 calories counts as not fully logged.`};
 const td=today(),e0=mt.e>td?td:mt.e,F=fdList().filter(x=>x.t>=mt.s&&x.t<=e0&&mtDay(x)),f0=mt.s,p=w.filter(x=>x.t>=f0&&x.t<=e0);
 if(p.length<5||dy(p[p.length-1])-dy(p[0])<10*864e5)return{lab,need:'Needs weigh-ins spread across your logged food days.'};
@@ -1374,7 +1405,7 @@ const n=W0>gw?Math.log(W0/gw)/-Math.log(1-pc):0;
 return{lab,r,now:W0,e:f.e,f0:wtD(f.from),nw:1,v:n>260?'More than 5 years':gfDt(f.e+n*6048e5),how:`Starts from your last 4 weeks’ pace, ${f1(r)} lb a week (${(pc*100).toFixed(2)}% of your weight), and keeps losing that same percent each week, so the pounds come off a little slower as you get lighter: about ${f1(pc*gw)} lb a week near your goal.`}}
 if(m==='dx'){const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2],lab='Fat loss between scans',bf=ph.g&&ph.g.bf||10;
 if(!a||!b)return{lab,need:'Needs a second DEXA scan.'};
-const wk=(wtD(b.t)-wtD(a.t))/6048e5;if(wk<4)return{lab,wait:'After your next scan',need:`Your last two scans are only ${Math.round(wk*7)} days apart. They need to be at least 4 weeks apart to show a real change in fat.`};
+const wk=cdGap(a.t,b.t)/7;if(wk<4)return{lab,wait:'After your next scan',need:`Your last two scans are only ${Math.round(wk*7)} days apart. They need to be at least 4 weeks apart to show a real change in fat.`};
 const df=a.fm-b.fm,dl=b.lm-a.lm,rf=df/wk,G=lnQ(),q=G?G.q:0,kk=bf/100,Ft=b.fm-(1-q)*(b.fm-kk*(b.fm+b.lm))/(1-q-kk),left=b.fm-Ft,tag=(()=>{const P=dxPair(ph);return P&&P.b===b&&dxJudge(ph.k,P.a,P.b)?'':`Between your ${E(dsh(a))} and ${E(dsh(b))} scans you ${df>=0?'lost':'gained'} ${f1(Math.abs(df))} lb of fat and ${dl<0?'lost':'gained'} ${f1(Math.abs(dl))} lb of lean mass.`})();
 if(rf<.05)return{lab,r:rf,v:'Not losing fat yet',how:(tag?tag+' ':'')+'It only changes when you add a new scan.'};
 const n=Math.max(0,left/rf);
@@ -1391,7 +1422,7 @@ const L=GFL(),sp=i=>L.length>7?(i<6?2:3):(i<3?2:3);
 return `<div class="chips gfm">${L.map(([k,l],i)=>`<button class="chip" style="grid-column:span ${sp(i)}" aria-pressed="${m===k}" data-a="gfm" data-v="${k}">${l}</button>`).join('')}</div><div class="gdt"><div><span>${E(c.lab)}${los?' ('+f1(c.r)+(c.u||' lb a week')+(c.nw?' now':'')+')':''}</span><b>${E(v)}</b></div></div><p class="hint">${hint}</p>`}
 // lean bulk / bulk: when you'd reach your body-fat stop, from the last two DEXA scans
 function bkDx(ph){const cap=ph.g&&ph.g.cap;if(!cap)return '';const nm=phN(ph.k),sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2],end=addD(ph.since,(ph.g.wk||0)*7);
-const wk=a&&b?(wtD(b.t)-wtD(a.t))/6048e5:0;
+const wk=a&&b?cdGap(a.t,b.t)/7:0;
 if(!dxPair(ph))return `<p class="hint">Two DEXA scans, one near the start of your ${nm} and one at least 4 weeks later, will show when you’d reach your ${cap}% stop at your pace.</p>`;
 const bf=x=>x.fm/(x.fm+x.lm)*100,df=b.fm-a.fm,dl=b.lm-a.lm,tot=df+dl,c=cap/100,gf=df/wk,gl=dl/wk,num=c*(b.fm+b.lm)-b.fm,den=gf-c*(gf+gl);
 const pw=(d,w)=>`${d>=0?'gained':'lost'} ${f1(Math.abs(d))} lb${w?' '+w:''}`;
@@ -1406,7 +1437,7 @@ if(!cc||cc.inP.length<4)return vdWait(ph,'Your lifts, waist and weight',cc);
 const c=checkRows(),up=c.rows.filter(r=>r.st==='up').length,li=c.inP>=2?(up>=c.rows.length/2?'up':'flat'):null;
 const w=wsTrend(ph.since,td),wa=w&&w.span>=14?(w.ch<=-.25?'down':w.ch>=.25?'up':'steady'):null;
 const wt=cc.a!=null?(Math.abs(cc.a)<=.3?'steady':cc.a<0?'down':'up'):null;
-const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2],dx=a&&b&&b.t>ph.since&&a.t>=addD(ph.since,-42)&&(wtD(b.t)-wtD(a.t))/6048e5>=4?{f:b.fm-a.fm,l:b.lm-a.lm}:null;
+const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2],dx=a&&b&&b.t>ph.since&&a.t>=addD(ph.since,-42)&&cdGap(a.t,b.t)>=28?{f:b.fm-a.fm,l:b.lm-a.lm}:null;
 const row=(l,v,g)=>`<div><span>${l}</span><b class="${g===1?'rcg':g===-1?'rcw':''}">${v}${g===1?' ✓':''}</b></div>`;
 const rows=row('Lifts',li==='up'?'Climbing':li?'Not climbing yet':'Needs 2 sessions of 2 lifts',li==='up'?1:li?-1:0)
 +row('Waist',wa==='down'?'Down':wa==='up'?'Up':wa?'Steady':'Needs 2 Sunday readings',wa==='down'?1:wa==='up'?-1:0)
@@ -1421,12 +1452,18 @@ return `<div class="gdt rcs">${rows}</div><p class="hint"><b>${v[0]}:</b> ${v[1]
 // verdicts for every phase (same thresholds as the check-in)
 // the expected rate as shown: the phase's own pace when it's within rounding of it (2.01 -> 2), else rounded (1.37 -> 1.4, 0.62 -> 0.62)
 const rS=r=>{const a=Math.abs(r||0),pr=phase().r;return Math.abs(a-pr)<.05?pr:a<1?Math.round(a*100)/100:Math.round(a*10)/10};
+// p96: the plan's rate with its sign, in rS's format, wherever it's shown (Plan tile and notes, Target pace, the check-in)
+const rSg=r=>{const v=rS(r);return (v&&r<0?'-':v&&r>0?'+':'')+v};
 // why the weekly check-in can't judge the trend yet, and when it starts (the Goal card and Weight tab say the same)
+// standalone: full weigh-in weeks of this phase by the calendar (with or without weigh-ins)
+function ciCalW(){const a=wkA0(),ph=phase(),td=today();let n=0;if(a)for(let s=a;addD(s,6)<td;s=addD(s,7))if(s>=ph.since)n++;return n}
 function ciWhy(c,k){c=c||{inP:[]};const jd=judgeOn(),on=jd?dsh({t:jd}):null;
+// standalone: weigh-ins stopped coming in (a week or more) is the reason, not the phase
+if(window.__SA){const w=wtS(),L=w[w.length-1];if(L&&dN(today())-dN(L.t)>=7)return{h:'Waiting for weigh-ins',m:`no weigh-ins have come in since ${dsh(L)}, and the weekly check-in needs 3 full weeks with 3 or more weigh-ins each to measure your trend. Sync with Apple Health each morning and it picks up again.`}}
 if(c.lc&&c.inP.slice(1).filter(x=>x.s>c.lc.w).length<3)return{h:on?'Judged again from '+on:'Too early to judge',m:`your plan changed ${dsh({t:c.lc.t})}, and the weekly check-in gives the new numbers 3 full weeks of weigh-ins before it judges your trend again.`};
-if(c.inP.length<4)return{h:on?'Judged from '+on:'Too early to judge',m:`the weekly check-in skips the first week of a ${k==='maint'?'maintenance phase':phN(k)} (mostly water and food volume) and needs 3 full weeks of weigh-ins after it to measure your trend.`};
+if(c.inP.length<4&&!(window.__SA&&ciCalW()>=4))return{h:on?'Judged from '+on:'Too early to judge',m:`the weekly check-in skips the first week of a ${k==='maint'?'maintenance phase':phN(k)} (mostly water and food volume) and needs 3 full weeks of weigh-ins after it to measure your trend.`};
 return{h:'Not enough to judge yet',m:'the weekly check-in needs 3 full weeks with 3 or more weigh-ins each to measure your trend. Weigh in every morning and it fills in.'}}
-const vdWk=ph=>(wtD(today())-wtD(ph.since))/6048e5,vdWait=(ph,what,c)=>{const w=ciWhy(c,ph.k);return `<p class="hint">${what}: ${E(w.h.charAt(0).toLowerCase()+w.h.slice(1))}. ${E(w.m.charAt(0).toUpperCase()+w.m.slice(1))}</p>`},vdWhy=(c,k)=>{const w=ciWhy(c,k);return[E(w.h),E(w.m)]};
+const vdWk=ph=>cdGap(ph.since,today())/7,vdWait=(ph,what,c)=>{const w=ciWhy(c,ph.k);return `<p class="hint">${what}: ${E(w.h.charAt(0).toLowerCase()+w.h.slice(1))}. ${E(w.m.charAt(0).toUpperCase()+w.m.slice(1))}</p>`},vdWhy=(c,k)=>{const w=ciWhy(c,k);return[E(w.h),E(w.m)]};
 const vdRow=(l,v,g)=>`<div><span>${l}</span><b class="${g===1?'rcg':g===-1?'rcw':''}">${v}${g===1?' ✓':''}</b></div>`,vdOut=(rows,v)=>`${rows?`<div class="gdt rcs">${rows}</div>`:''}<p class="hint"><b>${v[0]}:</b> ${v[1]}</p>`;
 const vdLifts=()=>{const c=checkRows(),up=c.rows.filter(r=>r.st==='up').length,sl=c.rows.filter(r=>r.st==='slip').length;return{c,up,sl,ok:c.inP>=2}};
 const vdWaist=ph=>{const w=wsTrend(ph.since,today());return w&&w.span>=14?w.ch/(w.span/28):null};
@@ -1462,7 +1499,7 @@ else if(li==='slip')v=['Mostly holding','your weight is steady, but some lifts a
 else v=['Working',`your weight is holding steady${li==='hold'?' and so are your lifts':''}.`];
 return vdOut(rows,v)}
 // ===== Standalone: the DEXA check (cut and bulk) =====
-function dxPair(ph){const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2];if(!a||!b||!(b.t>ph.since)||a.t<addD(ph.since,-42)||(wtD(b.t)-wtD(a.t))/6048e5<4)return null;return{a,b}}
+function dxPair(ph){const sc=scans(),b=sc[sc.length-1],a=sc[sc.length-2];if(!a||!b||!(b.t>ph.since)||a.t<addD(ph.since,-42)||cdGap(a.t,b.t)<28)return null;return{a,b}}
 // the verdict for a pair: cut = share of the loss that was lean, bulk = share of the gain that was lean
 // shares are of the weight change (lean, fat, and bone makes up the rest); judged on the rounded percent that's shown
 function dxJudge(k,a,b){if(k==='cut'){const lost=a.tm-b.tm,ll=a.lm-b.lm;if(!(lost>=5))return null;const sh=Math.max(0,ll)/lost,pc=Math.round(sh*100);return{k,amt:lost,sh,pc,fs:(a.fm-b.fm)/lost,ll,v:pc>=30?'bad':pc>=20?'watch':'ok'}}
@@ -1495,7 +1532,7 @@ if(ph.k==='cut'){if(!ps||!(gw>0)||!(ps.w>gw))return '';const ref=s.ref,av=s.a7!=
 if(left<=0)return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Goal reached:</b> ${f1(ref)} lb${av?' (your 7-day average)':''}, at or under ${Math.round(gw)} lb (${ph.g.bf}% body fat at your lean mass).</p>${bar(100)}<p class="hint">A DEXA scan confirms where your body fat landed. Then pick what’s next under Plan.</p></section>`;
 const cp=s.cp,yp=cp!=null&&cp<0?(proj||'More than 5 years'):cp!=null?'Not losing yet':'Too early to tell';
 const rows=`<div class="gdt"><div><span>Planned (${rS(s.er)} lb a week)</span><b>${E(projT||'-')}</b></div><div><span>At your pace${cp!=null&&cp<0?' ('+f1(-cp)+' lb a week)':''}</span><b>${E(yp)}</b></div></div>`;
-return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>${Math.round(pc)}%</b> of the way to ${Math.round(gw)} lb (${ph.g.bf}% body fat)</p>${bar(pc)}<p class="hint">${av?'Your 7-day average is '+(dn>=0?'down ':'up '):dn>=0?'Down ':'Up '}${f1(Math.abs(dn))} lb from ${f1(ps.w)} lb on ${E(dsh(ps))}, ${f1(left)} lb to go.</p>${dxNote(ph)}${ctV(s,ph)}${rows}<p class="hint">Planned and At your pace come from your weekly average weight, so they move as each week’s weigh-ins come in.</p>${gfRow(s)}</section>`}
+return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>${Math.round(pc)}%</b> of the way to ${Math.round(gw)} lb (${ph.g.bf}% body fat)</p>${bar(pc)}<p class="hint">${av?'Your 7-day average is '+(dn>=0?'down ':'up '):dn>=0?'Down ':'Up '}${f1(Math.abs(dn))} lb from ${f1(ps.w)} lb on ${E(dsh(ps))}, ${f1(left)} lb to go.${wtAsOf()?' '+E(wtAsOf()):''}</p>${dxNote(ph)}${ctV(s,ph)}${rows}<p class="hint">Planned and At your pace come from your weekly average weight, so they move as each week’s weigh-ins come in.</p>${gfRow(s)}</section>`}
 if((ph.k==='recomp'||ph.k==='bulk')&&ph.g&&ph.g.wk){const wk=ph.g.wk,el=Math.max(0,Math.round((wtD(today())-wtD(ph.since))/864e5)),n=Math.min(wk,Math.floor(el/7)+1),pc=Math.min(100,el/(wk*7)*100),end=addD(ph.since,wk*7),nm=phN(ph.k);
 return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Week ${n} of ${wk}</b> of your ${nm}</p>${bar(pc)}<p class="hint">${el>=wk*7?`Your ${wk} weeks are up. `:`Ends around ${E(yd(end))}. `}${ph.k==='recomp'?'A recomp is judged by your lifts, your waist and your next DEXA, not the scale.':`Judged by a slow, steady gain, climbing lifts${ph.g.cap?' and staying under '+ph.g.cap+'% body fat':''}.`}</p>${ph.k==='bulk'?bkCard(ph)+bkDx(ph):''}${ph.k==='recomp'?rcCard(ph):''}</section>`}
 if(ph.k==='maint'&&ph.g&&ph.g.wk){const wk=ph.g.wk,el=Math.max(0,Math.round((wtD(today())-wtD(ph.since))/864e5)),n=Math.min(wk,Math.floor(el/7)+1),pc=Math.min(100,el/(wk*7)*100),end=addD(ph.since,wk*7);
@@ -1506,9 +1543,9 @@ function wtStats(){return memo('ws',[S.wt,(S.wt||[]).length,S.phases,(S.phases||
 function wtStats0(){
 const w=wtList();
 if(!w.length)return null;
-const dy=s=>wtD(s.t),L=w[w.length-1],st=w[0],a0=dy(st),avg=a=>a.reduce((p,x)=>p+x.w,0)/a.length;
-const last7=w.filter(x=>dy(x)>=dy(L)-6*864e5),a7=last7.length>=3?avg(last7):null;
-const p7=w.filter(x=>dy(x)>=dy(L)-13*864e5&&dy(x)<=dy(L)-7*864e5),pa=p7.length>=3?avg(p7):null;
+const dy=s=>wtD(s.t),L=w[w.length-1],st=w[0],a0=window.__SA?wtD(wkA0()):dy(st),avg=a=>a.reduce((p,x)=>p+x.w,0)/a.length;
+const r7=window.__SA?today():null,last7=window.__SA?w.filter(x=>x.t>=addD(r7,-6)&&x.t<=r7):w.filter(x=>dy(x)>=dy(L)-6*864e5),a7=last7.length>=3?avg(last7):null;
+const p7=window.__SA?w.filter(x=>x.t>=addD(r7,-13)&&x.t<=addD(r7,-7)):w.filter(x=>dy(x)>=dy(L)-13*864e5&&dy(x)<=dy(L)-7*864e5),pa=p7.length>=3?avg(p7):null;
 const iso=ts=>{const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const byW={};for(const x of w){const i=Math.floor(Math.round((dy(x)-a0)/864e5)/7);(byW[i]=byW[i]||[]).push(x)}
 const wk=Object.keys(byW).map(Number).sort((p,q)=>p-q).map(i=>{const g=byW[i],s0=new Date(a0),e0=new Date(a0);s0.setDate(s0.getDate()+7*i);e0.setDate(e0.getDate()+7*i+6);return{i,s:iso(s0),e:iso(e0),n:g.length,a:avg(g),m:g.reduce((p,x)=>p+dy(x),0)/g.length}});
@@ -1530,7 +1567,7 @@ else if(cut){const r=cp/er;stat=r<.75?(-cp<.1?{k:'flat',tile:'Flat or up'}:{k:'b
 else if(ph.k==='bulk'){const r=cp/er;stat=r<(FEM?.6:.7)?(cp<.1?{k:'flat',tile:'Flat or down'}:{k:'behind',tile:'Behind'}):r>(FEM?1.6:1.5)?{k:'ahead',tile:'Too fast'}:{k:'on',tile:'On track'}}
 else stat=Math.abs(cp)<=.3?{k:'on',tile:'Holding'}:cp<0?{k:'down',tile:'Losing'}:{k:'up',tile:'Gaining'};
 const ps=w.filter(x=>x.t<=ph.since).pop()||w.find(x=>x.t>=ph.since)||null;
-const tdy=wtD(today()),n7=w.filter(x=>dy(x)>=tdy-6*864e5&&dy(x)<=tdy).length,low=w.reduce((b,x)=>x.w<b.w?x:b,w[0]);
+const tdy=wtD(today()),n7=window.__SA?w.filter(x=>x.t>=addD(r7,-6)&&x.t<=r7).length:w.filter(x=>dy(x)>=tdy-6*864e5&&dy(x)<=tdy).length,low=w.reduce((b,x)=>x.w<b.w?x:b,w[0]);
 const high=w.reduce((b,x)=>x.w>b.w?x:b,w[0]);
 return{w,L,st,dy,avg,a7,pa,wk,wa,pace,pct,pf,pl,pw,proj,projT,tpc,stat,gw,low,high,n7,ph,tg,ps,lost:st.w-L.w,ref,er,ctr,cp,cpc}}
 function niceTicks(lo,hi){
@@ -1567,7 +1604,7 @@ if(!s)return `<section class="ex"><h2>Trend</h2><p class="hint">No weights yet. 
 const{L,st,a7,pa,cp:pace,cpc:pct,proj,projT,tpc,stat,gw,low,high,n7,lost,ph,tg,ps,er,ctr,ref}=s,cut=ph.k==='cut';
 const T=(v,l,c)=>`<div><b${c?' class="'+c+'"':''}>${v}</b><small>${E(l)}</small></div>`;
 const r3=cut?T(f1(Math.max(0,ref-gw)),'To goal (lb)')+T(String(Math.round(gw)),'Goal weight (lb)')+T(f1(low.w),'Lowest (lb), '+dsh(low)):(window.__SA&&ps&&ps.t===st.t?T(ph.k==='bulk'?f1(low.w):f1(high.w),(ph.k==='bulk'?'Lowest (lb), '+dsh(low):'Highest (lb), '+dsh(high))):T(ps?sg(L.w-ps.w):'-','Since '+dsh({t:ph.since})+' (lb)'))+T(ps?f1(ps.w):'-','Phase start (lb)')+(ph.k==='bulk'?T(f1(high.w),'Highest (lb), '+dsh(high)):T(f1(low.w),'Lowest (lb), '+dsh(low)));
-const tiles=`<div class="wk">${T(f1(L.w),'Latest (lb), '+dsh(L))+T(f1(Math.abs(lost)),(lost>=0?'Lost':'Gained')+' since '+dsh(st)+' (lb)')+T(f1(Math.abs(lost)/st.w*100)+'%',(lost>=0?'Lost':'Gained')+' (%)')+T(a7!=null?f1(a7):'-','7-day avg (lb)')+T(pa!=null?f1(pa):'-','Prior 7-day avg (lb)')+T(a7!=null&&pa!=null?sg(a7-pa):'-','Change in avg (lb)')+r3+T(pace!=null?sg(pace):'-','Pace (lb/wk)')+T(pct!=null?sg(pct)+'%':'-','Pace (%/wk)')+T(n7+'/7','Weigh-ins, last 7 days')+T(sg(er),'Target pace (lb/wk)')+T((er<0?'-':er>0?'+':'')+f1(Math.abs(er)/ref*100)+'%','Target pace (%/wk)')+T(stat?stat.tile:'-','Status vs target',stat&&stat.k!=='wait'?(stat.k==='on'||stat.k==='goal'?'up':'dn'):'')}</div>`;
+const tiles=`<div class="wk">${T(f1(L.w),'Latest (lb), '+dsh(L))+T(f1(Math.abs(lost)),(lost>=0?'Lost':'Gained')+' since '+dsh(st)+' (lb)')+T(f1(Math.abs(lost)/st.w*100)+'%',(lost>=0?'Lost':'Gained')+' (%)')+T(a7!=null?f1(a7):'-','7-day avg (lb)')+T(pa!=null?f1(pa):'-','Prior 7-day avg (lb)')+T(a7!=null&&pa!=null?sg(a7-pa):'-','Change in avg (lb)')+r3+T(pace!=null?sg(pace):'-','Pace (lb/wk)')+T(pct!=null?sg(pct)+'%':'-','Pace (%/wk)')+T(n7+'/7','Weigh-ins, last 7 days')+T(window.__SA?rSg(er):sg(er),'Target pace (lb/wk)')+T((er<0?'-':er>0?'+':'')+f1(Math.abs(er)/ref*100)+'%','Target pace (%/wk)')+T(stat?stat.tile:'-','Status vs target',stat&&stat.k!=='wait'?(stat.k==='on'||stat.k==='goal'?'up':'dn'):'')}</div>`;
 const R0=rS(er),slp=cut&&stat&&stat.k==='ahead'&&liftSlip(),pp=pct!=null?f1(Math.abs(pct)):'',lose=pace!=null?-pace:0,ls='losing '+f1(lose)+' lb ('+pp+'%) a week',gs='gaining '+f1(pace||0)+' lb ('+pp+'%) a week';
 const B={cut:{
 on:`<p class="hint up">On track: ${ls} against your ${R0} lb target.</p>`,
@@ -1596,12 +1633,12 @@ const banner=(stat?(B[ph.k][stat.k]||''):'')+wnote+wb+(sdir&&ss?`<p class="hint 
 const guide=cut?`Your target of ${ph.r} lb a week is ${f1(tpc)}% of your weight. Common guidance for lifters is up to about 1% of body weight a week, with 0.5-0.75% gentler on muscle.${+tpc.toFixed(1)>1?' Your target is now over 1%, the aggressive end.':''}${Math.abs(Math.abs(er)-ph.r)>=.05?` Your calorie floor stops the plan short of that, so it works out to about ${R0} lb a week, and that’s what your status is judged against.`:''}`:ph.k==='bulk'?`Your target of ${ph.r} lb a week is ${f1(tpc)}% of your weight. ${bkGuide()}; gaining faster mostly adds fat.${bkFast(ph,ref)?' Your target is faster than that.':''}`:ph.k==='recomp'?'A recomp eats at maintenance, so the scale should hold within about 0.3 lb a week either way. Progress shows in your strength, waist and DEXA.':'Maintenance means holding within about 0.3 lb a week either way.';
 const dt=proj&&projT?` At this pace you reach about ${Math.round(gw)} lb around ${proj}; at ${R0} lb a week, around ${projT}.`:projT?` At ${R0} lb a week you would reach about ${Math.round(gw)} lb around ${projT}.`:'';
 const hint=pace!=null?`<p class="hint">Pace: the trend through your weekly averages over ${E(wrg)}, the one the weekly check-in uses, so ${sg(pace)} lb (${sg(pct)}%) a week. ${guide}${dt}</p>`:`<p class="hint">Pace: shows once the weekly check-in starts judging your trend, measured the same way. ${guide}${dt}</p>`;
-return `<section class="ex"><h2>Trend</h2>${tiles}${banner}${hint}${wtChart(s)}</section>${wtWeeks(s)}`}
+return `<section class="ex"><h2>Trend</h2>${wtAsOf()?`<p class="hint">${E(wtAsOf())} New weigh-ins come in when you sync with Apple Health. <button class="edit" data-a="tab" data-d="hk" style="padding:0">Sync now</button></p>`:''}${tiles}${banner}${hint}${wtChart(s)}</section>${wtWeeks(s)}`}
 function wtWeeks(s){
 const n=8,td=today(),rows=s.wk.map(x=>{
 const c=x.ch!=null?sg(x.ch)+' lb ('+sg(x.pc)+'%)':(x.i===0?'First week':'No weigh-ins the week before');
 return `<div class="wkr"><div><b>Week ${x.i+1}</b><small>${E(wkRange(x.s,x.e))} · ${x.n} weigh-in${x.n===1?'':'s'}${x.e>=td?' so far':''}</small></div><div><b>${f1(x.a)} lb</b><small>${c}</small></div></div>`}).reverse();
-return `<section class="ex"><h2>Weekly averages</h2><p class="hint">Weeks start on ${E(dsh(s.st))}${window.__SA?'':', like your spreadsheet'}. Change is vs the week before.</p>${(wkAll?rows:rows.slice(0,n)).join('')}${rows.length>n?`<button class="edit" data-a="wkall" style="padding:.6rem 0 0">${wkAll?'Show fewer':'Show all '+rows.length}</button>`:''}</section>`}
+return `<section class="ex"><h2>Weekly averages</h2><p class="hint">Weeks start on ${E(dsh(window.__SA?{t:wkA0()}:s.st))}${window.__SA?'':', like your spreadsheet'}. Change is vs the week before.</p>${(wkAll?rows:rows.slice(0,n)).join('')}${rows.length>n?`<button class="edit" data-a="wkall" style="padding:.6rem 0 0">${wkAll?'Show fewer':'Show all '+rows.length}</button>`:''}</section>`}
 function wtDaily(){
 const w=wtList();
 if(!w.length)return '';
@@ -1673,7 +1710,7 @@ fdPend=null;fdSel=t;save();archF(S.food.find(x=>x.t===t));render();window.scroll
 function fdDel(t){
 if(!fdList().some(x=>x.t===t))return;
 if(armed!=='f'+t){armed='f'+t;render();return}
-armed=null;S.food=fdList().filter(x=>x.t!==t);if(fcol)fcol.doc(t).delete().catch(()=>{});if(fdSel===t)fdSel=null;save();render();say('Day removed')}
+armed=null;if(window.__SA){const f=fdList().find(x=>x.t===t);if(f&&f.c!=null)hkxAdd(t,{c:f.c})}S.food=fdList().filter(x=>x.t!==t);if(fcol)fcol.doc(t).delete().catch(()=>{});if(fdSel===t)fdSel=null;save();render();say('Day removed')}
 function fdUpload(){
 if(fdBusy)return `<section class="ex"><h2>Add a day</h2><p class="hint goal">Reading your screenshots. This can take up to a minute.</p><button class="edit" data-a="fdstop" style="padding:.4rem 0 0">Stop</button></section>`;
 const off=smpReady&&(!smp||!smpImg);
@@ -1694,15 +1731,15 @@ const row=(k,val)=>`<div class="kv"><span>${k}</span><b>${val}</b></div>`,g=(a,b
 return `<section class="ex"><h2>Check before saving</h2><div class="fdc">${p.img&&/^data:image\//.test(p.img)?`<div><img src="${p.img}" alt="Your screenshot">${p.nf>1?`<small class="hint">+${p.nf-1} more</small>`:''}</div>`:'<div></div>'}<div><input class="sel" type="date" id="fdd" value="${p.t}" min="2020-01-01" max="${today()}" aria-label="Day these screenshots are for">${row('Budget',fmt(v.b)+' cal')}${row('Food',fmt(v.c)+' cal')}${row('Protein',g(v.p,v.pg))}${row('Carbs',g(v.cb,v.cg))}${row('Fat',g(v.f,v.fg))}</div></div>${p.m.length?`<p class="hint"><b>Meals</b>${nIt?' · '+nIt+' food'+(nIt===1?'':'s')+' read':''}</p>${mealRows(p.m)}`:''}${p.df?'':'<p class="hint dn">No date found in the screenshots, so this is set to today. Change it above if needed.</p>'}${p.bad?`<p class="hint dn">These numbers don’t add up: ${E(p.bad)}. Check them against your screenshot before saving.</p>`:''}${fdMacro(v)}${p.m.length&&!p.mf?`<p class="hint dn">Your meals add up to ${fmt(p.mc)} of ${fmt(v.c)} cal, so a meal may be missing from the screenshots. The day’s totals are fine to save; meal patterns only use complete days.</p>`:''}${p.cut?`<p class="hint dn">Only the first ${p.cut} screenshots were read.</p>`:''}${ex?`<p class="hint">This replaces what you saved for ${E(wtLong(ex.t))}.</p>`:''}<p class="hint">Compare these with your screenshots. If anything is wrong, discard and upload again.</p><button class="fin" data-a="fdok" style="margin:.6rem 0 .2rem">Save ${E(wtLong(p.t))}</button><button class="edit" data-a="fdno" style="padding:.4rem 0">Discard</button></section>`}
 function fdCard(all){
 const e=all.find(x=>x.t===fdSel)||all[all.length-1],i=all.indexOf(e),prev=all[i-1],next=all[i+1];
-const bud=e.b,rem=bud-e.c,ov=rem<0,fr=bud>0?Math.min(1,e.c/bud):0,C=2*Math.PI*42,rm=armed==='f'+e.t;
-const ring=`<div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" style="fill:none;stroke:var(--line);stroke-width:9"></circle>${fr>0?`<circle cx="50" cy="50" r="42" style="fill:none;stroke:${ov?'#d98a2b':'var(--acc)'};stroke-width:9;stroke-linecap:round;stroke-dasharray:${(fr*C).toFixed(1)} ${C.toFixed(1)}"></circle>`:''}</svg><div><b${ov?' class="ov"':''}>${fmt(Math.abs(rem))}</b><small>${ov?'Over':'Left'}</small></div></div>`;
+const bud=e.b,nob=!(bud>0),rem=nob?0:bud-e.c,ov=rem<0,fr=bud>0?Math.min(1,e.c/bud):0,C=2*Math.PI*42,rm=armed==='f'+e.t;
+const ring=`<div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" style="fill:none;stroke:var(--line);stroke-width:9"></circle>${fr>0?`<circle cx="50" cy="50" r="42" style="fill:none;stroke:${ov?'#d98a2b':'var(--acc)'};stroke-width:9;stroke-linecap:round;stroke-dasharray:${(fr*C).toFixed(1)} ${C.toFixed(1)}"></circle>`:''}</svg><div><b${ov?' class="ov"':''}>${nob?'-':fmt(Math.abs(rem))}</b><small>${ov?'Over':'Left'}</small></div></div>`;
 const mac=(n,a,g,cap)=>`<div><small>${n}</small><div class="pb"><i style="width:${g&&a!=null?Math.min(100,a/g*100).toFixed(0):0}%${cap&&g&&a!=null&&a>g*1.05?';background:var(--warn)':''}"></i></div><b>${a!=null?Math.round(a):'-'}</b><small>${g!=null?' / '+Math.round(g)+' g':' g'}</small></div>`;
 const its=(e.m||[]).filter(x=>x.it),nIt=its.reduce((a,x)=>a+x.it.length,0);
 const extra=(e.m&&e.m.length?`<p class="hint"><b>Meals</b>${e.mf?'':' (incomplete)'}</p>${mealRows(e.m)}`:'')+(e.na!=null||e.su!=null?`<p class="hint">${[e.na!=null?'Sodium '+fmt(e.na)+' mg':'',e.su!=null?'sugar '+Math.round(e.su)+' g':'',e.sf!=null?'saturated fat '+Math.round(e.sf)+' g':''].filter(Boolean).join(' · ')}</p>`:'')+(nIt?`<details class="mf"><summary>What you ate (${nIt} food${nIt===1?'':'s'})</summary>${its.map(x=>`<p class="hint"><b>${E(x.n)}</b>${x.ic===0?' (partly visible)':''}</p>${x.it.map(f=>`<div class="kv"><span>${E(f.n)}${f.q?` <small class="hint">${E(f.q)}</small>`:''}</span><b>${f.c!=null?fmt(f.c):'-'}</b></div>`).join('')}`).join('')}</details>`:'');
-return `<section class="ex"><div class="fdnav"><button class="edit" data-a="fdprev" aria-label="Previous logged day"${prev?'':' disabled'}>‹</button><h2>${E(wtLong(e.t))}${e.t===today()?' (today)':''}</h2><button class="edit" data-a="fdnext" aria-label="Next logged day"${next?'':' disabled'}>›</button></div><div class="fdtop"><div><b>${fmt(e.c)}</b><small>Food</small></div>${ring}<div><b>${fmt(e.b)}</b><small>Budget</small></div></div><div class="mac">${mac('Protein',e.p,e.pg)}${mac('Carbs',e.cb,window.__SA?(e.gp&&e.cg!=null?e.cg:macPl(e,'carb')):e.cg,1)}${mac('Fat',e.f,window.__SA?(e.gp&&e.fg!=null?e.fg:macPl(e,'fat')):e.fg,1)}</div>${fdMacro({c:e.c,p:e.p,cb:e.cb,f:e.f,fb:e.fb},1)}${extra}<button class="edit${rm?' warn':''}" data-a="fddel" data-t="${e.t}" style="padding:.7rem 0 0">${rm?'Tap again to remove this day':'Remove this day'}</button></section>`}
+return `<section class="ex"><div class="fdnav"><button class="edit" data-a="fdprev" aria-label="Previous logged day"${prev?'':' disabled'}>‹</button><h2>${E(wtLong(e.t))}${e.t===today()?' (today)':''}</h2><button class="edit" data-a="fdnext" aria-label="Next logged day"${next?'':' disabled'}>›</button></div><div class="fdtop"><div><b>${fmt(e.c)}</b><small>Food</small></div>${ring}<div><b>${e.b>0?fmt(e.b):'-'}</b><small>Budget</small></div></div><div class="mac">${mac('Protein',e.p,e.pg)}${mac('Carbs',e.cb,window.__SA?(e.gp&&e.cg!=null?e.cg:macPl(e,'carb')):e.cg,1)}${mac('Fat',e.f,window.__SA?(e.gp&&e.fg!=null?e.fg:macPl(e,'fat')):e.fg,1)}</div>${fdMacro({c:e.c,p:e.p,cb:e.cb,f:e.f,fb:e.fb},1)}${extra}<button class="edit${rm?' warn':''}" data-a="fddel" data-t="${e.t}" style="padding:.7rem 0 0">${rm?'Tap again to remove this day':'Remove this day'}</button></section>`}
 function fdWeeks(){
 const fl=fdList();if(!fl.length)return[];
-const ws=wtStats(),a0=wtD(ws?ws.st.t:fl[0].t),td=today(),g={};
+const ws=wtStats(),a0=wtD(ws?(window.__SA?wkA0():ws.st.t):fl[0].t),td=today(),g={};
 for(const e of fl){const i=Math.floor(Math.round((wtD(e.t)-a0)/864e5)/7);(g[i]=g[i]||[]).push(e)}
 return Object.keys(g).map(Number).sort((p,q)=>p-q).map(i=>{const a=g[i],s0=new Date(a0),e0=new Date(a0);s0.setDate(s0.getDate()+7*i);e0.setDate(e0.getDate()+7*i+6);const s=isoD(s0),e=isoD(e0),pr=a.filter(x=>x.p!=null),cur=e>=td;return{i,s,e,n:a.length,c:a.reduce((p,x)=>p+x.c,0)/a.length,p:pr.length?pr.reduce((q,x)=>q+x.p,0)/pr.length:null,b:a[a.length-1].b,cur,el:cur?Math.min(7,Math.round((wtD(td)-wtD(s))/864e5)+1):7,wk:ws?ws.wk.find(x=>x.i===i):null}})}
 // days needed for the food-based maintenance (standalone: 14 fully logged days, 800+ cal)
@@ -1758,9 +1795,10 @@ add('Meals',`${ms.map(a=>`${a.n} ${fmt(a.c/a.d)} cal${a.pn?', '+R(a.p/a.pn)+' g 
 const tp=fdTop();
 if(tp.days>=3&&tp.list.length&&!window.__SA){add('Top foods',`Biggest calorie sources over your last ${tp.days} detailed days: ${tp.list.slice(0,5).map(a=>`${a.n} (${a.d} day${a.d===1?'':'s'}${a.k?', about '+fmt(a.c/a.k)+' cal each':''})`).join(', ')}.`,'')}else if(!window.__SA)off.push(`Top foods: 3 days with your meal list (${tp.days} so far)`);
 // target check + strength
-const mt=fdMaint();
-if(mt&&mt.n>=MT_N){const m=mt.avg+(-mt.pace)*500,rmr=dx?dx.rmr||0:(rmrMSJ(bw)||0),flo=Math.max(FLOOR(),rmr),cr=checkRows(),n3=cr.rows.length>=3;
-const pc=(planT()||{}).cal||planNums().cal,exp=pc!=null?(pc-m)/500:null,gap=exp!=null&&Math.abs(mt.pace-exp)>Math.max(.3,Math.abs(exp)*.3),lw=(()=>{const k=ws&&ws.wk.filter(x=>x.e<td).pop(),d=k?fl.filter(e=>e.t>=k.s&&e.t<=k.e):[];return d.length>=5?d.reduce((a,x)=>a+x.c,0)/d.length:null})(),adh=pc!=null&&lw!=null&&Math.abs(lw-pc)>150?` Last week you averaged ${fmt(lw)} cal a day against your ${fmt(pc)} plan, so the weekly check-in leaves the plan unchanged until you hit your target. Eat to ${fmt(pc)} first.`:'',
+const mt=fdMaint(),mlo=window.__SA&&mt&&mt.n>=MT_N?planNums():null;
+if(mlo&&mlo.low){const n=mlo;add('Target check',`Your logged food and weight trend put your maintenance at only about ${fmt(n.low.m)} cal a day, under ${n.rmr>FLOOR()?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):'your calorie floor of '+fmt(FLOOR())}, which usually means some food isn’t getting logged. So your plan doesn’t use it: it works from about ${fmt(n.maint)}, from your ${n.lmkg?'DEXA resting metabolic rate':'resting rate'} and your steps. Log everything you eat and drink, and the weekly check-in can judge your plan.`,'dn')}
+else if(mt&&mt.n>=MT_N){const m=mt.avg+(-mt.pace)*500,rmr=dx?dx.rmr||0:(rmrMSJ(bw)||0),flo=Math.max(FLOOR(),rmr),cr=checkRows(),n3=cr.rows.length>=3;
+const pc=(planT()||{}).cal||planNums().cal,exp=pc!=null?(pc-m)/500:null,gap=exp!=null&&Math.abs(mt.pace-exp)>Math.max(.3,Math.abs(exp)*.3),lw=(()=>{const k=ws&&ws.wk.filter(x=>x.e<td).pop(),d=k?fl.filter(e=>e.t>=k.s&&e.t<=k.e):[];return d.length>=5?d.reduce((a,x)=>a+x.c,0)/d.length:null})(),lwT=(()=>{const k=ws&&ws.wk.filter(x=>x.e<td).pop(),d=k?fl.filter(e=>e.t>=k.s&&e.t<=k.e):[],L=planT();return window.__SA&&L&&d.length>=5?ciTgt(d,L):pc})(),adh=pc!=null&&lw!=null&&Math.abs(lw-lwT)>150?` Last week you averaged ${fmt(lw)} cal a day against your ${fmt(lwT)} plan, so the weekly check-in leaves the plan unchanged until you hit your target. Eat to ${fmt(pc)} first.`:'',
 tail=adh||(gap?' If that gap holds, the weekly check-in adjusts your plan, so there’s nothing to change yourself.':' That lines up.');
 if(ph.k==='cut'){const W0=ph.r,need=m-W0*500;
 add('Target check',`Your estimated maintenance is about ${fmt(m)} cal a day.${pc!=null?` Your plan of ${fmt(pc)} is about ${fmt(m-pc)} under it, which should mean about ${f1(Math.abs(exp))} lb a week; your weight is moving ${sg(mt.pace)} lb a week.`+tail:''}${need<flo?` Losing ${W0} lb a week would take about ${fmt(need)} cal, ${need<rmr?(dx?`below your DEXA resting metabolic rate (${fmt(rmr)})`:`below your estimated resting rate (${fmt(rmr)})`):'under '+fmt(FLOOR())}, so your plan stops at the floor and the check-in adds steps instead if you lose too slowly.`:''}`,gap?'':'up');
@@ -1811,10 +1849,13 @@ function fdRevSec(){
 const v=rvFixV(S.rev),n=fdList().length,off=smpReady&&!smp;
 const body=rvBusy?'<p class="hint goal">Claude is reviewing your food, weight, workouts, DEXA and labs. This can take a minute or two.</p><button class="edit" data-a="rvstop" style="padding:.4rem 0 0">Stop</button>':(v&&v.r?`<p class="hint">From ${E(wtLong(v.t))}, based on ${v.n} logged day${v.n===1?'':'s'}${!window.__SA&&Math.round((wtD(today())-wtD(v.t))/864e5)>7?'. More than a week old, so worth refreshing':''}.</p>${window.__SA?rvStale(v):''}${v.r.h?`<p class="hint goal">${E(v.r.h)}</p>`:''}${v.r.w.length?`<p class="hint"><b>Working</b></p><ul class="tl">${v.r.w.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:''}<p class="hint"><b>Recommendations</b></p><ol class="tl rv">${v.r.rc.map(x=>`<li><b>${E(x.t)}</b>${x.y?`<span>${E(x.y)}</span>`:''}${x.a?`<span class="rva">${E(x.a)}</span>`:''}</li>`).join('')}</ol>${v.r.wa.length?`<p class="hint"><b>Keep an eye on</b></p><ul class="tl">${v.r.wa.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:''}${v.r.m.length?`<p class="hint"><b>Would sharpen the next review</b></p><ul class="tl hint">${v.r.m.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:''}`:'<p class="hint">Claude looks over your food, weigh-ins, workouts, strength check, DEXA and any blood work, then tells you what’s working and what to change, with numbers.</p>')+(window.__SA?`${clLink('rv',v&&v.r?'Update with Claude':'Get a review from Claude',n<3)}<p class="hint">${n<3?`Log at least 3 days first (${n} so far). `:''}Copies your review request with your last 4 weeks of data and opens Claude. Paste it there and send. When Claude replies, press and hold the reply, tap Copy, then come back and tap Paste review from Claude.</p>${clBox('rv')}<button class="edit" data-a="rvcp" style="padding:.2rem 0 .4rem"${n<3?' disabled':''}>Copy only</button>`:off?'<p class="hint dn">Reviews aren’t available in this view. Ask in a Claude chat instead.</p>':`<button class="fin" data-a="rv" style="margin:.6rem 0 .2rem"${n<3?' disabled':''}>${v?'Get a new review':'Get a review'}</button>${n<3?`<p class="hint">Log at least 3 days first (${n} so far).</p>`:''}`);
 return `<section class="ex" id="fdrev"><h2>Nutrition review</h2>${body}${rvErr?`<p class="hint dn">${E(rvErr)}</p>`:''}<p class="hint">Suggestions from Claude based on your tracker data, not medical advice. Check big changes with your doctor, especially anything about your blood work.</p></section>`}
+// p96: the plan doesn't use a food-based maintenance under the floor (p94); this card says the same and shows the plan's
+function mtLowCard(m,n,pc,T){return `<section class="ex"><h2>Calories vs your weight</h2><div class="wk">${T(fmt(n.maint),'Est. maintenance (cal/day)')+T(fmt(m.avg),'Avg eaten (cal/day)')+T(pc!=null?fmt(pc):'-','Your plan (cal/day)')}</div><p class="hint dn">Your ${m.n} logged days (${E(wkRange(m.s,m.e>today()?today():m.e))}) and your weight pace of ${sg(m.pace)} lb a week put your maintenance at only about ${fmt(n.low.m)} cal a day, under ${n.rmr>FLOOR()?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):'your calorie floor of '+fmt(FLOOR())}. That usually means some food isn’t getting logged, so it isn’t used: like your plan, this uses the estimate from your ${n.lmkg?'DEXA resting metabolic rate':'resting rate'} and ${fmt(n.low.st)} steps a day, about ${fmt(n.maint)}. The Weight tab’s Food chip says the same. Log everything you eat and drink, and once your logged food points to a maintenance at or over that line, it’s used again.</p></section>`}
 function fdVsWeight(){
 const m=fdMaint(),T=(v,l)=>`<div><b>${v}</b><small>${E(l)}</small></div>`;
 if(!m||m.n<MT_N)return `<section class="ex"><h2>Calories vs your weight</h2><p class="hint">Once you have about ${MT_N} logged days alongside your weigh-ins, this estimates your maintenance calories: what you could eat without gaining or losing.${m?' Days logged in your current pace window ('+E(wkRange(m.s,m.e>today()?today():m.e))+'): '+m.n+' of '+MT_N+'.':''}${window.__SA?' A day under 800 calories counts as not fully logged.':''}</p></section>`;
 const mt=m.avg+(-m.pace)*500,pc=(planT()||{}).cal||planNums().cal;
+if(window.__SA){const n=planNums();if(n.low)return mtLowCard(m,n,pc,T)}
 return `<section class="ex"><h2>Calories vs your weight</h2><div class="wk">${T(fmt(mt),'Est. maintenance (cal/day)')+T(fmt(m.avg),'Avg eaten (cal/day)')+T(pc!=null?fmt(pc):'-','Your plan (cal/day)')}</div><p class="hint">From ${m.n} logged days (${E(wkRange(m.s,m.e>today()?today():m.e))}) and your weight pace of ${sg(m.pace)} lb a week. A pound of body weight is roughly 3,500 cal, so this is an estimate. Early weeks include water weight, and days you didn’t log${window.__SA?' (or logged under 800 calories)':''} are left out.${window.__SA?' It gets steadier as days come in, up to 4 weeks, then rolls forward week by week. The Weight tab’s Food chip and your plan use this same estimate.':''} Your plan stays where it is until the weekly check-in changes it; this estimate is context, and it sets your next plan when you switch phases.</p></section>`}
 function fdWeekSec(){
 const W=fdWeeks().reverse();if(!W.length)return '';
@@ -1822,16 +1863,16 @@ return `<section class="ex"><h2>Weekly averages</h2><p class="hint">Same weeks a
 function fdDays(){
 const fl=fdList().slice().reverse(),n=7;
 if(!fl.length)return '';
-const rows=(fdAll?fl:fl.slice(0,n)).map(e=>`<p><b>${E(dsh(e))}</b><span>${fmt(e.c)} / ${fmt(e.b)} cal${e.p!=null?' · '+Math.round(e.p)+' g protein':''}</span><button class="edit" data-a="fdv" data-t="${e.t}" aria-label="View ${E(wtLong(e.t))}">View</button></p>`);
+const rows=(fdAll?fl:fl.slice(0,n)).map(e=>`<p><b>${E(dsh(e))}</b><span>${fmt(e.c)}${e.b>0?' / '+fmt(e.b):''} cal${e.p!=null?' · '+Math.round(e.p)+' g protein':''}</span><button class="edit" data-a="fdv" data-t="${e.t}" aria-label="View ${E(wtLong(e.t))}">View</button></p>`);
 return `<section class="ex"><h2>Logged days</h2><div class="hist fdl" style="margin:.4rem 0 0">${rows.join('')}</div>${fl.length>n?`<button class="edit" data-a="fdall" style="padding:.6rem 0 0">${fdAll?'Show fewer':'Show all '+fl.length}</button>`:''}</section>`}
 function hlRecap(){const W=hlWeeks();if(!W.length)return[];const x=W[W.length-1];if(!x.sd&&!x.nd)return[];return[`<p><b>Steps and sleep, ${E(wkRange(x.s,x.e))}${x.cur?' so far':''}:</b> ${x.sa!=null?fmt(x.sa)+' steps a day ('+x.hit+' of '+x.sd+' day'+(x.sd===1?'':'s')+' at '+fmt(x.tg)+')':'no steps logged'}${x.sla!=null?', '+hm(x.sla)+' of sleep a night':''}${x.ha!=null?', resting heart rate '+Math.round(x.ha)+' bpm':''}.</p>`]}
 function fdRecap(){
 const W=fdWeeks();if(!W.length)return[];
 const x=W[W.length-1];
-return[`<p><b>Food, ${E(wkRange(x.s,x.e))}${x.cur?' so far':''}:</b> averaged ${fmt(x.c)} cal${x.p!=null?' and '+Math.round(x.p)+' g protein':''} a day over ${x.n} logged day${x.n===1?'':'s'} (budget ${fmt(x.b)}).</p>`]}
+return[`<p><b>Food, ${E(wkRange(x.s,x.e))}${x.cur?' so far':''}:</b> averaged ${fmt(x.c)} cal${x.p!=null?' and '+Math.round(x.p)+' g protein':''} a day over ${x.n} logged day${x.n===1?'':'s'}${x.b>0?` (budget ${fmt(x.b)})`:''}.</p>`]}
 function foodHtml(){
 const all=fdList();
-return `<h1>Food</h1><p class="sub">${window.__SA?'Log and scan in Lose It. Your day comes in from Apple Health.':'Log and scan in Lose It. Upload your screenshots of the day here.'}</p>`+phaseWarn()+phaseLine()+ordersLine()+(window.__SA?syncNote():fdPend?fdConfirm():fdUpload())+(all.length?fdCard(all)+fdInsSec()+fdRevSec()+fdVsWeight()+fdWeekSec()+fdDays():'')}
+return `<h1>Food</h1><p class="sub">${window.__SA?'Log and scan in Lose It. Your day comes in from Apple Health: today’s food after 10 pm (when Lose It adds your snacks), or with tomorrow morning’s sync.':'Log and scan in Lose It. Upload your screenshots of the day here.'}</p>`+phaseWarn()+phaseLine()+ordersLine()+(window.__SA?syncNote():fdPend?fdConfirm():fdUpload())+(all.length?fdCard(all)+fdInsSec()+fdRevSec()+fdVsWeight()+fdWeekSec()+fdDays():'')}
 function cleanDrafts(){for(const k in S.draft){const dd=S.draft[k];if(!dd||!dd.s||!Object.values(dd.s).some(r=>r.some(a=>a[0]!==''||a[1]!=='')))delete S.draft[k]}}
 function lastVar(x){
 if(x.id==='b1'){for(const e of S.log){if(e.b1)return x.o.find(o=>o!==e.b1)||null}return 'Flat bench'}
@@ -1865,7 +1906,26 @@ function easeTxt(n,rows,L){const no=i=>{let k=-1;for(let j=0;j<rows.length;j++){
 // the workout before the last one with this exercise (the one being edited doesn't count, like last())
 function prevSets(n){const ed=new Set(Object.values(S.draft||{}).filter(d=>d&&d.ed&&d.id).map(d=>d.id));let c=0;for(const e of S.log){if(ed.has(e.id))continue;const r=e.s[n];if(r&&r.length){if(c===1)return r;c++}}return null}
 const rowEmpty=a=>!a||(String(a[0]==null?'':a[0]).trim()===''&&String(a[1]==null?'':a[1]).trim()==='');
-function fillGoal(n){const x=P[day]&&P[day].x.find(q=>nm(q)===n);if(!x)return;const g=goalRows(x,n);if(!g)return;const r=rows(n);let c=0;g.forEach((v,i)=>{if(rowEmpty(r[i])){r[i]=v.slice();c++}});lastEx=n;openEx=null;say(c?'Filled '+c+' set'+(c>1?'s':'')+' with today’s goal. Change any that come out different.':'Those sets already have numbers')}
+// standalone: an unfinished workout keeps the date its first set was typed (t) and the day it was last typed in (u), so
+// reopened on a later day it still logs on that date and asks: Finish or Discard
+const dTyped=d=>!!(d&&d.s&&Object.values(d.s).some(r=>Array.isArray(r)&&r.some(a=>!rowEmpty(a))));
+function dStamp(d){if(!window.__SA||!d||d.id||!dTyped(d))return;const td=today();if(!d.t)d.t=td;d.u=td}
+const wkOld=d=>!!(window.__SA&&d&&!d.id&&typeof d.u==='string'&&d.u<today()&&typeof d.t==='string'&&dTyped(d));
+function wkOldDay(){for(const k of ORDER)if(wkOld(S.draft[k]))return k;return null}
+function wkOldCard(d){if(!wkOld(d))return '';let k=0;for(const n in d.s)if(Array.isArray(d.s[n]))k+=d.s[n].filter(a=>!rowEmpty(a)).length;const w=wtLong(d.t),dis=armed==='wkdisc'+day;
+return `<section class="pr dn" id="wkold"><h2>Unfinished workout from ${E(w)}</h2><p>You typed ${k} set${k===1?'':'s'} but didn’t tap Finish. Finish saves it for ${E(w)}; Discard clears it. To keep going, type below: it stays dated ${E(w)} unless you tap Use today.</p><p class="fag"><button class="edit" data-a="wkfin">Finish it for ${E(w)}</button><button class="edit" data-a="wkdisc">${dis?'Tap again to discard':'Discard'}</button></p></section>`}
+// standalone: program days done in week k (a day done twice counts once), leaving out workout skip
+function wkDays(k,skip){const o=new Set();for(const e of S.log)if(e&&(skip==null||e.id!==skip)&&ORDER.includes(+e.day)&&logWk(e)===k)o.add(+e.day);return o.size}
+// standalone: assisted bests are judged at one body weight, today's (the Strength check's rule), everywhere
+const asT=()=>window.__SA?today():undefined;
+const rcAs=o=>{const m=Object.assign({},o||{});if(window.__SA)for(const n in m){const b=m[n];if(b&&b.k==='a'&&AS.has(n)){const x=setBest(n,[String(b.w),String(b.r)],b.t,today());if(x)m[n]=Object.assign({},b,{e:x.e})}}return m};
+// the workout just finished (this session), and whether it was an edit
+let svId=null,svEd=false;
+// standalone: what was saved for this day (finished today, or just now), above next time's workout
+function svBox(TD){if(!window.__SA)return '';const td=today(),e=S.log.find(x=>x.id===svId&&x.day===day)||S.log.find(x=>x.day===day&&x.t===td);if(!e||!e.s)return '';
+const nx=Object.keys(e.s).length,ns=Object.values(e.s).reduce((a,r)=>a+(Array.isArray(r)?r.filter(q=>q[2]!=='w').length:0),0),pr=e.pr||0,ed=svEd&&e.id===svId;
+return `<p class="hint up svd">✓ ${ed?'Changes saved to your '+E(wtLong(e.t))+' workout':'Saved'+(e.t===td?' today':' for '+E(wtLong(e.t)))}: ${nx} exercise${nx===1?'':'s'}, ${ns} set${ns===1?'':'s'}${pr?', '+pr+' new best'+(pr>1?'s':''):''}.${TD==='next time'?' Below is next time’s workout.':''} <button class="edit" data-a="edit" data-i="${S.log.indexOf(e)}" style="padding:0">Edit</button></p>`}
+function fillGoal(n){const x=P[day]&&P[day].x.find(q=>nm(q)===n);if(!x)return;const g=goalRows(x,n);if(!g)return;const r=rows(n);let c=0;g.forEach((v,i)=>{if(rowEmpty(r[i])){r[i]=v.slice();c++}});if(c)dStamp(D());lastEx=n;openEx=null;say(c?'Filled '+c+' set'+(c>1?'s':'')+' with today’s goal. Change any that come out different.':'Those sets already have numbers')}
 const exDone=n=>{const r=(D().s||{})[n];return !!(r&&r.length&&r.every(a=>String(a[1]==null?'':a[1]).trim()!==''))};
 // standalone: an exercise you moved on from with a set logged folds too; not between the two halves of a superset
 const exSome=n=>{const r=(D().s||{})[n];return !!(r&&r.some(a=>String(a[1]==null?'':a[1]).trim()!==''))};
@@ -1894,7 +1954,7 @@ else if(A.w===B.w&&A.r===B.r)tr='Same best set as last time';
 else if(A.w===B.w){const d=A.r-B.r;tr=(d>0?'▲ Up ':'▼ Down ')+Math.abs(d)+(Math.abs(d)>1?' reps':' rep')+' on your best set, at '+at(A)}
 else{const up=better(A,B),d=Math.round(A.e-B.e);tr=(up?'▲ Best set up: ':'▼ Best set down: ')+bsx(A)+' vs '+bsx(B)+' last time'+(d&&(d>0)===up?' (est. max '+(d>0?'+':'')+d+' lb)':'')}
 let best=null;
-for(const x of h.slice().reverse()){const b=sbest(n,x.r,x.t);if(b&&better(b,best&&best.b))best={t:x.t,b}}
+for(const x of h.slice().reverse()){const b=sbest(n,x.r,x.t,asT());if(b&&better(b,best&&best.b))best={t:x.t,b}}
 const rowsH=h.slice(0,6).map(x=>`<p><b>${E(dfmt(x.t))}</b><span>${x.r.map(s=>E((s[2]==='w'?'W ':'')+(s[0]?(AS.has(n)?s[0]+' assist':s[0]):'BW')+'×'+s[1])).join(', ')}</span></p>`).join('');
 return `<details class="prog" data-n="${E(n)}"${OPEN.has(n)?' open':''}><summary>${tr}</summary>${best?`<p class="hint">Best set: ${E(bsx(best.b))} on ${E(dfmt(best.t))}</p>`:''}<div class="ph">${rowsH}</div></details>`}
 const RS={sbc:'60-90 sec',f_lpd:'2 min',f_sc:'60-90 sec',f_rlpd:'90 sec',f_hc2:'90 sec',f_brm:'2 min',f_sdl:'2-3 min',f_ssl:'2 min',f_hc:'60-90 sec',f_ic:'60-90 sec',f_ort:'60-90 sec',f_clr:'60-90 sec',f_sacp:'60-90 sec',f_shc:'60-90 sec',f_le:'60-90 sec',f_gbe:'60-90 sec',f_cgk:'60-90 sec',f_cr:'60-90 sec',f_icp:'2 min',f_dip:'2 min',f_cbp:'2 min',f_ssp:'2-3 min',f_lrm:'60-90 sec',f_trp:'60-90 sec',f_acm:'60-90 sec',f_apu:'2-3 min',f_bc:'60-90 sec',f_srm:'2 min',f_cglp:'2 min',f_lbe:'60-90 sec',f_rdm:'60-90 sec',f_scr:'60-90 sec',f_acm2:'60-90 sec',f_ht:'2-3 min',f_lp:'2-3 min',f_le2:'60-90 sec',f_lhc:'60-90 sec',f_cr2:'60-90 sec',f_had:'60-90 sec',f_hab:'60-90 sec',b1:'2-3 min',b2:'2-3 min',dip:'2-3 min',rope:'60-90 sec',fly:'60-90 sec',lat:'60-90 sec',fin:'60-90 sec',ab1:'60-90 sec',pu:'2-3 min',bb:'60-90 sec',row:'2 min',lpd:'2 min',shc:'60-90 sec',lb:'60-90 sec',rpd:'60-90 sec',ht:'2-3 min',le:'60-90 sec',hc:'60-90 sec',lp:'2-3 min',out:'60-90 sec',inn:'60-90 sec',calf:'60-90 sec',abs:'60-90 sec'};
@@ -1949,7 +2009,13 @@ return `<h1>Gym progress</h1><p class="sub">Your lifts over time. Updates when y
 function progressHtml(){return `<h1>Progress</h1><p class="sub">Your weekly check-in, recap, body composition and blood work. Your phase and daily numbers are under Plan; lifting progress is under Gym.</p>${goalCard()}${msSec()}${ciCard()}${recapSec()}${bodySec()}${labSec()}${FEM?cyProg():''}${window.__SA?'':bkSec()}`}
 function planHtml(){return `<h1>Plan</h1><p class="sub">Your phase, your daily numbers and your full plan. The weekly check-in on the Progress tab adjusts the numbers; ${window.__SA?'changing your phase or steps here resets them, while a new pace or goal keeps the check-in’s changes.':'changing your phase, goal or steps here resets them.'}</p>${phaseWarn()}${phaseCard()}${planCard()}${window.__SA?'':aboutSec()}`}
 // workout weeks start on the weekday of the first weigh-in, the same weeks as the weigh-ins and check-ins (Monday before any)
-function wkDow(){return memo('wkd',[S.wt,(S.wt||[]).length],()=>{const w=wtS();return w.length?new Date(w[0].t+'T12:00:00').getDay():1})}
+// standalone: saved once (prof.wk0) from the first weigh-in's weekday, so removing or backfilling weigh-ins never moves it
+function wkDow(){if(window.__SA){const v=S.prof&&S.prof.wk0;if(Number.isInteger(v)&&v>=0&&v<=6)return v}return memo('wkd',[S.wt,(S.wt||[]).length],()=>{const w=wtS();return w.length?new Date(w[0].t+'T12:00:00').getDay():1})}
+function wkLock(){if(!window.__SA)return false;const v=S.prof&&S.prof.wk0;if(Number.isInteger(v)&&v>=0&&v<=6)return false;const w=wtS();if(!w.length)return false;S.prof=Object.assign({},S.prof||{},{wk0:new Date(w[0].t+'T12:00:00').getDay()});return true}
+// where the weeks are counted from: the week-start day on or before the first weigh-in (inside Claude: the first weigh-in)
+function wkA0(){const w=wtS();return w.length?(window.__SA?wkKey(w[0].t):w[0].t):null}
+// standalone: the weight numbers are as of the latest weigh-in when it's 3+ days old
+function wtAsOf(){if(!window.__SA)return '';const w=wtS(),L=w[w.length-1];if(!L)return '';const ag=dN(today())-dN(L.t);return ag>=3?`As of ${dsh(L)}, your latest weigh-in (${ag} days ago).`:''}
 // the week a workout counts toward: the week of the day it was for (that weekday nearest the date it was done, within 3 days)
 // the date it was for; standalone: a workout whose day was moved (Change workout days) keeps the date it had (fd)
 function logFor(e){if(window.__SA&&e.fd&&/^\d{4}-\d{2}-\d{2}$/.test(e.fd))return e.fd;const d=new Date(e.t+'T12:00:00'),dd=+e.day;if(!(dd>=0&&dd<=6&&dd%1===0))return e.t;let df=(dd-d.getDay()+7)%7;if(df>3)df-=7;d.setDate(d.getDate()+df);return isoD(d)}
@@ -2012,7 +2078,7 @@ const td=today(),m=new Map(hlList().map(x=>[x.t,x]));let n=0;
 for(const d of p.days){if(!/^\d{4}-\d{2}-\d{2}$/.test(d.t)||d.t>td)continue;const o=Object.assign({},m.get(d.t)||{t:d.t});for(const k of ['st','sl','hr'])if(d[k]!=null)o[k]=d[k];m.set(d.t,o);n++}
 if(!n){say('Pick days up to today');return}
 S.hl=[...m.values()].sort((a,b)=>a.t<b.t?-1:1);hlPend=null;save();render();window.scrollTo(0,0);say('Saved '+n+' day'+(n===1?'':'s'))}
-function hlDel(t,k){const x=hlList().find(y=>y.t===t);if(!x)return;const key='h'+t+(k||'');if(armed!==key){armed=key;render();return}armed=null;const o=Object.assign({},x);if(k==='st')delete o.st;else if(k==='sl'){delete o.sl;delete o.hr}else{delete o.st;delete o.sl;delete o.hr}S.hl=hlList().map(y=>y.t===t?o:y).filter(y=>y.st!=null||y.sl!=null||y.hr!=null);save();render();say(k==='st'?'Steps removed for '+dsh({t}):k==='sl'?'Sleep removed for '+dsh({t}):'Day removed')}
+function hlDel(t,k){const x=hlList().find(y=>y.t===t);if(!x)return;const key='h'+t+(k||'');if(armed!==key){armed=key;render();return}armed=null;const o=Object.assign({},x);if(k==='st')delete o.st;else if(k==='sl'){delete o.sl;delete o.hr}else{delete o.st;delete o.sl;delete o.hr}if(window.__SA)hkxAdd(t,{st:o.st==null?x.st:null,sl:o.sl==null?x.sl:null,hr:o.hr==null?x.hr:null});S.hl=hlList().map(y=>y.t===t?o:y).filter(y=>y.st!=null||y.sl!=null||y.hr!=null);save();render();say(k==='st'?'Steps removed for '+dsh({t}):k==='sl'?'Sleep removed for '+dsh({t}):'Day removed')}
 const hlAvg=(a,k)=>{const v=a.map(x=>x[k]).filter(x=>x!=null);return v.length?v.reduce((p,q)=>p+q,0)/v.length:null};
 // a range of days: steps only from finished days, sleep from nights ending in the range
 const stToday=()=>!!window.__SA&&(hlList().find(x=>x.t===today())||{}).st!=null;
@@ -2067,7 +2133,7 @@ if(FEM&&cyNat()){if(cyStats().use.length>=2){const g=k=>L.filter(x=>{const c=cyA
 return{on,off}}
 function hlWeeks(){
 const L=hlList();if(!L.length)return[];
-const ws=wtStats(),a0=wtD(ws?ws.st.t:L[0].t),td=today(),g={};
+const ws=wtStats(),a0=wtD(ws?(window.__SA?wkA0():ws.st.t):L[0].t),td=today(),g={};
 for(const x of L){const i=Math.floor(Math.round((wtD(x.t)-a0)/864e5)/7);(g[i]=g[i]||[]).push(x)}
 return Object.keys(g).map(Number).sort((p,q)=>p-q).map(i=>{const s0=new Date(a0),e0=new Date(a0);s0.setDate(s0.getDate()+7*i);e0.setDate(e0.getDate()+7*i+6);const s=isoD(s0),e=isoD(e0);return Object.assign({i,s,e,cur:e>=td},hlRange(s,e,window.__SA&&e<td?stTgAt(e):0))})}
 function hlUpload(k){
@@ -2100,12 +2166,12 @@ top+=isec+wsec+dsec}
 const sub=window.__SA?(st?'Daily steps from Apple Health. Today’s come in with your evening paste, or the next morning.':'Last night’s sleep and lowest heart rate from Apple Health. They come in with your morning paste.'):st?`Daily steps from ${src('st')}. Log today’s steps before bed.`:`Last night’s sleep and resting heart rate from ${src('sl')===src('hr')?src('sl'):src('sl')+' and '+src('hr')}. Log them when you wake up.`;
 return `<h1>${st?'Steps':'Sleep'}</h1><p class="sub">${E(sub)}</p>${st?phaseLine()+ordersLine():''}${window.__SA?syncNote():hlPend?hlConfirm():hlUpload(k)}${top}`}
 // ===== Records =====
-function setBest(n,a,t){if(!a||a[2]==='w')return null;const r=parseFloat(a[1])||0;if(!(r>0))return null;const w=parseFloat(a[0])||0,f=1+Math.min(r,RCAP)/30;if(AS.has(n)){const lw=Math.max(0,bwAt(t)-w);return{e:lw*f,w,r,t,k:'a'}}if(!(w>0))return{e:0,w:0,r,t,k:'b'};return{e:w*f,w,r,t,k:'w'}}
+function setBest(n,a,t,bt){if(!a||a[2]==='w')return null;const r=parseFloat(a[1])||0;if(!(r>0))return null;const w=parseFloat(a[0])||0,f=1+Math.min(r,RCAP)/30;if(AS.has(n)){const lw=Math.max(0,bwAt(bt||t)-w);return{e:lw*f,w,r,t,k:'a'}}if(!(w>0))return{e:0,w:0,r,t,k:'b'};return{e:w*f,w,r,t,k:'w'}}
 const better=(x,c)=>{if(!c)return true;if(window.__SA&&(x.k==='b')!==(c.k==='b'))return x.k==='b'?c.k==='a':x.k!=='a';if(x.k==='b'||c.k==='b')return x.r>c.r;if(window.__SA&&x.k==='a'&&c.k==='a'&&x.w===c.w)return x.r>c.r;if(x.e>c.e+.5)return true;if(x.e<c.e*.99)return false;return x.k==='a'?(x.w<c.w||(x.w===c.w&&x.r>c.r)):(x.w>c.w||(x.w===c.w&&x.r>c.r))};
-const sbest=(n,r,t)=>{let b=null;for(const a of r||[]){const x=setBest(n,a,t);if(x&&better(x,b))b=x}return b};
+const sbest=(n,r,t,bt)=>{let b=null;for(const a of r||[]){const x=setBest(n,a,t,bt);if(x&&better(x,b))b=x}return b};
 const bsx=b=>b.k==='b'?'BW×'+b.r:b.k==='a'?b.w+' assist×'+b.r:b.w+'×'+b.r;
-function recFold(entries){const m=Object.assign({},S.rarc||{});for(const e of entries)for(const n in (e&&e.s)||{})for(const a of e.s[n]){const b=setBest(n,a,e.t);if(b&&better(b,m[n]))m[n]=b}S.rarc=m}
-function recs(){const m=Object.assign({},S.rarc||{});for(const e of S.log.slice().reverse())for(const n in e.s)for(const a of e.s[n]){const b=setBest(n,a,e.t);if(b&&better(b,m[n]))m[n]=b;else if(b&&m[n]&&b.k==='w'&&m[n].k==='w'&&b.w===m[n].w&&b.r===m[n].r&&b.t>(m[n].tb||m[n].t)){const x=bwAt(b.t),y=bwAt(m[n].tb||m[n].t);if(x&&y&&x<y)m[n]=Object.assign({},m[n],{tb:b.t})}}return m}
+function recFold(entries){const m=Object.assign({},S.rarc||{});for(const e of entries)for(const n in (e&&e.s)||{})for(const a of e.s[n]){const b=setBest(n,a,e.t,asT());if(b&&better(b,m[n]))m[n]=b}S.rarc=m}
+function recs(){const m=rcAs(S.rarc);for(const e of S.log.slice().reverse())for(const n in e.s)for(const a of e.s[n]){const b=setBest(n,a,e.t,asT());if(b&&better(b,m[n]))m[n]=b;else if(b&&m[n]&&b.k==='w'&&m[n].k==='w'&&b.w===m[n].w&&b.r===m[n].r&&b.t>(m[n].tb||m[n].t)){const x=bwAt(b.t),y=bwAt(m[n].tb||m[n].t);if(x&&y&&x<y)m[n]=Object.assign({},m[n],{tb:b.t})}}return m}
 let recAll=false;
 function recSec(){
 const m=recs(),names=Object.keys(m);
@@ -2114,8 +2180,8 @@ const ord=[];for(const d of ORDER)for(const x of P[d].x){for(const n of (Array.i
 for(const n of names.sort())if(!ord.includes(n))ord.push(n);
 const c30=addD(today(),-30),beat=n=>{const b=m[n],a=(S.rarc||{})[n];return !!(a&&a.t<b.t)||S.log.some(e=>e.t<b.t&&e.s[n]&&sbest(n,e.s[n],e.t))},bt={};for(const n of ord)bt[n]=beat(n);
 const nw=ord.filter(n=>m[n].t>=c30&&bt[n]).length,fr=ord.filter(n=>m[n].t>=c30&&!bt[n]).length,yr=today().slice(0,4),dy=t=>dsh({t})+(t.slice(0,4)!==yr?', '+t.slice(0,4):'');
-const rows=ord.map(n=>{const b=m[n],bw=bwAt(b.tb||b.t),set=b.k==='b'?'BW×'+b.r:b.k==='a'?b.w+' assist×'+b.r:b.w+'×'+b.r;return `<div class="rrow"><span>${E(n)}<small>${E(set)} · ${E(dy(b.t))}${b.t>=c30?(bt[n]?' · <em>new</em>':' · first log'):''}${b.tb?' · matched '+E(dy(b.tb)):''}</small></span><b>${b.k==='b'?b.r+' reps':Math.round(b.e)+' lb'}</b><i>${b.k==='b'||!bw?'':(b.e/bw).toFixed(2)+'× BW'}</i></div>`});
-return `<section class="ex"><h2>Records</h2><p class="hint">${nw?`${nw} new record${nw===1?'':'s'} in the last 30 days.`:fr===ord.length?'No new records yet.':'No new records in the last 30 days.'}${fr?` ${fr===1?'1 lift':fr+' lifts'} logged for the first time set ${fr===1?'its':'their'} starting record${fr===1?'':'s'}. Beat one and it’s marked new.`:''}${phase().k==='cut'?' On a cut, holding records is a win.':''}</p>${(recAll?rows:rows.slice(0,10)).join('')}${rows.length>10?`<button class="edit" data-a="recall" style="padding:.6rem 0 0">${recAll?'Show fewer':'Show all '+rows.length}</button>`:''}<p class="hint">Your best set for each lift by estimated one-rep max (sets over 20 reps count as 20).${window.__SA?asNote(ord,0):' Pull-ups and dips use your body weight minus the assistance.'} × BW is that max divided by your body weight that day. The same weight and reps again at a lower body weight moves it to that day (“matched”), so it climbs as you lean out even when the bar stays the same. Bodyweight moves show your most reps.</p></section>`}
+const rows=ord.map(n=>{const b=m[n],bw=bwAt(b.tb||b.t),set=b.k==='b'?'BW×'+b.r:b.k==='a'?b.w+' assist×'+b.r:b.w+'×'+b.r;return `<div class="rrow"><span>${E(n)}<small>${E(set)} · ${E(dy(b.t))}${b.t>=c30?(bt[n]?' · <em>new</em>':' · first log'):''}${b.tb?' · matched '+E(dy(b.tb)):''}</small></span><b>${b.k==='b'?b.r+' reps':Math.round(b.e)+' lb'}</b><i>${b.k==='b'||!bw?'':((window.__SA&&b.k==='a'?((setBest(n,[String(b.w),String(b.r)],b.t)||{}).e||0):b.e)/bw).toFixed(2)+'× BW'}</i></div>`});
+return `<section class="ex"><h2>Records</h2><p class="hint">${nw?`${nw} new record${nw===1?'':'s'} in the last 30 days.`:fr===ord.length?'No new records yet.':'No new records in the last 30 days.'}${fr?` ${fr===1?'1 lift':fr+' lifts'} logged for the first time set ${fr===1?'its':'their'} starting record${fr===1?'':'s'}. Beat one and it’s marked new.`:''}${phase().k==='cut'?' On a cut, holding records is a win.':''}</p>${(recAll?rows:rows.slice(0,10)).join('')}${rows.length>10?`<button class="edit" data-a="recall" style="padding:.6rem 0 0">${recAll?'Show fewer':'Show all '+rows.length}</button>`:''}<p class="hint">Your best set for each lift by estimated one-rep max (sets over 20 reps count as 20).${window.__SA?(()=>{const a=asList(ord);if(!a.length)return '';const pl=a.length>1||/s$/i.test(a[0]);return ' '+andL(a.map(lc1))+(pl?' are':' is')+' judged at your current body weight minus the assistance, like the Strength check and New best, so losing weight doesn’t hide a best ('+(pl?'their':'its')+' × BW uses your body weight on the day of the record).'})():' Pull-ups and dips use your body weight minus the assistance.'} × BW is that max divided by your body weight that day. The same weight and reps again at a lower body weight moves it to that day (“matched”), so it climbs as you lean out even when the bar stays the same. Bodyweight moves show your most reps.</p></section>`}
 // ===== Backup =====
 let dlNs=null,bkBusy=false;
 const dlP=(window.claude&&claude.use?Promise.resolve(claude.use('downloads')).catch(()=>null):Promise.resolve(null)).then(d=>{dlNs=d;return d});
@@ -2146,6 +2212,9 @@ const rs=k==='backup'&&window.__saSane?window.__saSane(o,{today:today()}):null;
 if(k==='backup'&&!(rs&&rs.ok)){say('That isn’t a tracker file it can restore: the backup’s saved data is missing or damaged. Nothing was changed.');return}
 const ok=k==='backup'?true:k==='scan'?!!(o.scan&&dOK(o.scan.t)&&o.scan.fm>0&&o.scan.lm>0&&o.scan.tm>=o.scan.fm+o.scan.lm):k==='labs'?!!(o.labs&&dOK(o.labs.t)&&o.labs.v&&typeof o.labs.v==='object'&&Object.keys(o.labs.v).length):k==='weights'?Array.isArray(o.weights)&&o.weights.length>0&&o.weights.every(x=>x&&dOK(x.t)&&x.w>=50&&x.w<=600):false;
 if(!ok){say('That isn’t a tracker file. Use a backup from this app, or a file made for it in a Claude chat.');return}
+// p96: a scan or blood test file whose sex is the other one isn't imported (the same check p94 gave the PDF readers and
+// pasted readings: sexOf / sexMsg)
+if((k==='scan'||k==='labs')&&typeof sexOf==='function'){const x=k==='scan'?o.scan:o.labs,sx=sexOf(x.sex!=null?x.sex:o.sex);if(sx&&sx!==(FEM?'f':'m')){say(sexMsg(sx,k==='scan'?'DEXA report':'blood test report'));return}}
 imPend={k,o,rs};render();const el=document.getElementById('imcard');if(el&&el.scrollIntoView)el.scrollIntoView()}
 function imCard(){
 if(!imPend)return '';
@@ -2194,9 +2263,13 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'ef58639170',d:'Oct 26, 2026 at 8:21 PM'};
+const APP_V={h:'7d2c5bca1d',d:'Oct 26, 2026 at 10:29 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
+// standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
+const FDH=22,fdLate=()=>new Date().getHours()>=FDH,hkFdIn=()=>{const e=hkT('e');return !!e&&e>='22:00'};
+function hkSkipTxt(st,f,only){if(st&&f)return(only?'Only today’s food and steps were found. ':'')+`Today’s steps come in after ${evT()} and today’s food after 10 pm (when Lose It adds your snacks), or both with tomorrow morning’s paste.`;
+if(f)return(only?'Only today’s food was found. ':'')+'Today’s food comes in after 10 pm, when Lose It adds your snacks, or with tomorrow morning’s paste.';return(only?'Only today’s steps were found. ':'')+`Today’s steps come in after ${evT()}, or with tomorrow morning’s paste.`}
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
 async function updCheck(silent){if(!window.__SA||updBusy||/^__/.test(APP_V.h))return;if(!silent){updMsg='Checking…';render()}
 let v=null;try{v=await updLatest()}catch(e){if(!silent){updMsg='Couldn’t check. Make sure you’re online, then try again.';render()}return}
@@ -2209,7 +2282,7 @@ try{const g=navigator.serviceWorker&&await navigator.serviceWorker.getRegistrati
 try{sessionStorage.setItem('gym-sa-up','1');sessionStorage.setItem('gym-sa-pg',JSON.stringify({d:day,y:Math.round(scrollY)}))}catch(e){}location.reload()}
 catch(e){updBusy=false;updMsg='Couldn’t download the update. Make sure you’re online, then try again.';render()}}
 function setVer(){const pr=S.prof||{};
-return `<section class="ex" id="setev"><h2>Evening sync</h2><div class="chips">${[18,19,20,21].map(h=>`<button class="chip" aria-pressed="${evH()===h}" data-a="evset" data-v="${h}">${h-12} pm</button>`).join('')}</div><p class="hint">Today’s food and steps are only saved when you paste after this time, so a half-finished day doesn’t count against you. Pick when you’re usually done eating for the day. Any earlier paste still brings in everything else, and the next morning’s paste fills in the full day.</p></section>`
+return `<section class="ex" id="setev"><h2>Evening sync</h2><div class="chips">${[18,19,20,21].map(h=>`<button class="chip" aria-pressed="${evH()===h}" data-a="evset" data-v="${h}">${h-12} pm</button>`).join('')}</div><p class="hint">Today’s steps are only saved when you paste after this time, so a half-finished day doesn’t count against you. Pick when you’re usually done walking for the day. Today’s food comes in from a paste after 10 pm, because Lose It files your snacks at 10 pm. Any earlier paste still brings in everything else, and the next morning’s paste fills in the full day.</p></section>`
 +`<section class="ex" id="setv"><h2>App version</h2><p class="hint">Published ${E(APP_V.d)} · ${E(APP_V.h.slice(0,7))}</p>${updAvail?`<p><b>A new version is ready.</b></p><button class="fin" data-a="upgo" style="margin:.4rem 0 .2rem"${updBusy?' disabled':''}>Update now</button>`:`<button class="fin fin2" data-a="upchk" style="margin:.4rem 0 .2rem"${updBusy?' disabled':''}>Check for update</button>`}${updMsg?`<p class="hint">${E(updMsg)}</p>`:''}</section>`}
 if(window.__SA&&typeof fetch==='function')setTimeout(()=>{updCheck(true)},4000);
 try{if(window.__SA&&sessionStorage.getItem('gym-sa-up')){sessionStorage.removeItem('gym-sa-up');setTimeout(()=>say('Updated to the latest version'),600)}}catch(e){}
@@ -2306,8 +2379,8 @@ const c=cyStats(),o=[],td=today(),nat=cyNat(),d=cyDays();
 if(nat){
 const bad=c.L.slice(-3).filter(x=>x<21||x>35);if(bad.length)o.push({k:'len',x:`${bad.length===1?'A cycle':'Cycles'} of ${bad.join(' and ')} days. Cycles shorter than 21 or longer than 35 days are worth raising with your doctor.`});
 if(c.use.length>=3&&c.vr>8)o.push({k:'var',x:`Your cycle length has varied by ${c.vr} days. More than about 8 days is worth raising with your doctor.`});
-if(c.last&&ddays(c.last.s,td)>=90)o.push({k:'none',x:`No period logged for ${ddays(c.last.s,td)} days. Talk to your doctor.`});
-else if(c.next&&ddays(c.next,td)>7)o.push({k:'late',x:`Your period is ${ddays(c.next,td)} days late. Take a pregnancy test or see your doctor before changing anything in your plan.`})}
+if(c.last&&ddays(c.last.s,td)>=90)o.push({k:'none',x:`No period logged for ${ddays(c.last.s,td)} days. Talk to your doctor.${window.__SA?' Until one is logged, the weekly check-in won’t lower your calories or add steps (it can still add calories).':''}`});
+else if(c.next&&ddays(c.next,td)>7)o.push({k:'late',x:`Your period is ${ddays(c.next,td)} days late. Take a pregnancy test or see your doctor${window.__SA?'. Until it comes, the weekly check-in won’t lower your calories or add steps (it can still add calories).':' before changing anything in your plan.'}`})}
 for(const p of c.P.slice(-3)){if(!p.e)continue;const n=ddays(p.s,p.e)+1,hv=d.filter(x=>x.f==='h'&&x.t>=p.s&&x.t<=p.e).length;
 if(hv>=3)o.push({k:'heavy',x:`Heavy flow on ${hv} days of your ${dsh({t:p.s})} period. Talk to your doctor.`});
 if(n>8)o.push({k:'long',x:`Your ${dsh({t:p.s})} period lasted ${n} days. Periods over 8 days are worth raising with your doctor.`})}
@@ -2319,6 +2392,9 @@ const hp=c.P.slice(-3).filter(p=>d.some(x=>x.f==='h'&&x.t>=p.s&&x.t<=cyEnd(p))).
 if(hp>=2)o.push({k:'iron',x:'Heavy flow in most of your recent periods. Ask your doctor about checking ferritin and the iron panel.'});
 return o}
 const cyIrreg=()=>cyNat()&&cyFlags().some(f=>['len','var','none','late'].includes(f.k));
+// p96: her missing period (natural cycle): over a week late, or none logged for 90+ days; and how the check-in says it
+function cyMiss(){return cyNat()?cyFlags().find(x=>x.k==='late'||x.k==='none')||null:null}
+function cyWhy(){const m=cyMiss(),c=cyStats(),td=today();return !m?'your cycle has been irregular or has stopped':m.k==='late'?`your period is ${ddays(c.next,td)} days late`:`no period has been logged for ${ddays(c.last.s,td)} days`}
 // with 2+ logged cycles: does the same point of the last cycle confirm the trend? (true / false / null if it can't tell)
 function cyConfirm(te,e,k){
 const st=cyStats();if(st.use.length<2)return null;const a=cyAt(te);if(!a||a.hor||a.i<1)return null;
@@ -2552,8 +2628,8 @@ for(let t=t0;t<+n.e;t+=6e4){let a=0,w=0;for(const[x,y]of n.iv)if(+x<=t&&t<+y)a++
 n.min=m;const t=hkDay(n.e);if(!best[t]||n.min>best[t].min)best[t]=n}
 const hrs=rows.filter(r=>r.k==='hr').map(r=>({t:+r.s,v:hkNum(r.v)})).filter(x=>x.v!=null&&x.v>=30&&x.v<=130);
 for(const t in best){const n=best[t];day(t).sl=n.min;const h=hrs.filter(x=>x.t>=+n.s&&x.t<=+n.e);if(h.length)day(t).hr=Math.min(...h.map(x=>x.v))}
-// sanity ranges; today's food and steps only once the day is mostly done (after 8 pm)
-const out=[];let skipT=false;
+// sanity ranges; today's steps only once the day is mostly done (after the evening sync time); standalone: today's food after 10 pm
+const out=[];let skipT=false,skS=false,skF=false;
 // the oldest day of a 3-day look-back is only partly covered, so only today and the two days before it count
 const t0=addD(td,-2);
 // a kind that looks back further (a one-time backfill) counts every day after its own oldest, partly covered one
@@ -2563,19 +2639,22 @@ for(const t of Object.keys(D).sort().reverse()){if(t>td||t<tMin)continue;const x
 if(okD('wt',t)&&x.wt!=null&&x.wt>=66&&x.wt<=600)o.wt=Math.round(x.wt*10)/10;if(o.wt!=null&&S.wtx&&S.wtx[t]!=null&&Math.abs(S.wtx[t]-o.wt)<.05)delete o.wt;
 if(okD('sl',t)&&x.sl!=null&&x.sl>=30&&x.sl<=960)o.sl=Math.round(x.sl);
 if(o.sl!=null&&x.hr!=null)o.hr=Math.round(x.hr);
-const day0=t===td&&!late;
-if(okD('st',t)&&x.st!=null&&x.st>0&&x.st<=100000){if(day0)skipT=true;else o.st=Math.round(x.st)}
-if(okD('c',t)&&x.c!=null&&x.c>0&&x.c<15000){if(day0)skipT=true;else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(okD(k,t)&&x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb&&okD('fb',t)&&(x.fb!=null||!window.__SA)){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}if(window.__SA)o.mx=['p','cb','f'].filter(k=>o[k]==null&&okD(k,t))}}
+const day0=t===td&&!late,dayF=window.__SA?t===td&&!fdLate():day0;
+if(okD('st',t)&&x.st!=null&&x.st>0&&x.st<=100000){if(day0){skipT=true;skS=true}else o.st=Math.round(x.st)}
+if(okD('c',t)&&x.c!=null&&x.c>0&&x.c<15000){if(dayF){skipT=true;skF=true}else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(okD(k,t)&&x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb&&okD('fb',t)&&(x.fb!=null||!window.__SA)){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}if(window.__SA)o.mx=['p','cb','f'].filter(k=>o[k]==null&&okD(k,t))}}
+if(window.__SA){const z=hkxO()[t];if(z&&typeof z==='object'){if(o.sl!=null&&z.sl!=null&&Math.abs(z.sl-o.sl)<1){delete o.sl;delete o.hr}if(o.st!=null&&z.st!=null&&z.st===o.st)delete o.st;if(o.c!=null&&z.c!=null&&z.c===o.c)for(const k of['c','p','cb','f','fb','mx'])delete o[k]}}
 if(Object.keys(o).length>1)out.push(o)}
-if(!out.length)return{err:skipT?'Only today’s food and steps were found. They come in after '+evT()+', or with tomorrow morning’s paste.':'Nothing from the last 3 days to add yet.'};
-return{days:out,seen,skipT,badDate,hro:(()=>{if(!hrs.length)return null;const lt=hkDay(new Date(Math.max(...hrs.map(x=>x.t))));return lt<td&&D[td]&&D[td].sl!=null&&D[td].hr==null?lt:null})()}}
+if(!out.length)return{err:skipT?(window.__SA?hkSkipTxt(skS,skF,1):'Only today’s food and steps were found. They come in after '+evT()+', or with tomorrow morning’s paste.'):'Nothing from the last 3 days to add yet.'};
+return{days:out,seen,skipT,skS,skF,badDate,hro:(()=>{if(!hrs.length)return null;const lt=hkDay(new Date(Math.max(...hrs.map(x=>x.t))));return lt<td&&D[td]&&D[td].sl!=null&&D[td].hr==null?lt:null})()}}
 // ===== Standalone: the Sync page (Apple Health, twice a day) =====
 const hkT=k=>S.hkt&&S.hkt.d===today()?S.hkt[k]||null:null;
 const hkMorn=()=>!!(hkT('m')||(wtList().some(x=>x.t===today())&&(hlList().find(x=>x.t===today())||{}).sl!=null));
 const hkEve=()=>!!(hkT('e')||(fdList().some(x=>x.t===today()&&x.hk)&&(hlList().find(x=>x.t===today())||{}).st!=null));
 const hkTm=t=>{const[h,m]=String(t).split(':').map(Number),d=new Date();d.setHours(h,m,0,0);return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};
-function syncHtml(){const late=new Date().getHours()>=evH(),ms=hkMiss(),mm=ms.filter(x=>!x.ev).length,me=ms.filter(x=>x.ev).length,row=(lab,sub,ok,tm,wait,mi)=>`<div class="syr"><div><b>${lab}</b><small>${sub}</small></div><span class="${ok&&!mi?'ok':ok?'dn':''}">${ok&&mi?(tm?E(hkTm(tm))+', ':'')+mi+' missing':ok?'✓ '+(tm?E(hkTm(tm)):'Done'):wait?'After '+evT():'Not yet'}</span></div>`;
-return `<h1>Upload</h1><p class="sub">Everything that comes into the app comes in here. Apple Health: sync each morning, and again after ${evT()} if you want today’s food and steps the same day. DEXA and blood work: upload the report PDF when you get a new one.</p>${hkPend?hkConfirm():''}<section class="ex" id="hksync"><h2>Apple Health today</h2>${row('Morning','Weigh-in, last night’s sleep and heart rate, yesterday’s food and steps',hkMorn(),hkT('m'),false,mm)}${row('Evening','Today’s food and steps',hkEve(),hkT('e'),!late,me)}${ms.length&&(hkMorn()||hkEve())?`<p class="hint dn" style="margin:.5rem 0 0">Didn’t come in: ${E(hkMissTxt(ms,'and'))}.${E(hkMissHow(ms))}</p>`:''}</section>${hkCard()}${upReports()}`}
+function syncHtml(){const late=new Date().getHours()>=evH(),ms=hkMiss(),mm=ms.filter(x=>!x.ev).length,me=ms.filter(x=>x.ev).length,row=(lab,sub,ok,tm,wait,mi)=>`<div class="syr"><div><b>${lab}</b><small>${sub}</small></div><span class="${ok&&!mi?'ok':ok?'dn':''}">${ok&&mi?(tm?E(hkTm(tm))+', ':'')+mi+' missing':ok?'✓ '+(tm?E(hkTm(tm)):'Done'):wait?(typeof wait==='string'?wait:'After '+evT()):'Not yet'}</span></div>`;
+// an evening paste before 10 pm brought today's steps; today's food (when it usually comes in) is still to come
+const td0=today(),eT=hkT('e'),eP=!!eT&&eT<'22:00'&&!me&&!fdList().some(x=>x.t===td0&&x.c)&&fdList().some(x=>x.t>=addD(td0,-14)&&x.t<td0&&x.c!=null);
+return `<h1>Upload</h1><p class="sub">Everything that comes into the app comes in here. Apple Health: sync each morning, and again in the evening if you want today’s numbers the same day: steps after ${evT()}, food after 10 pm (when Lose It adds your snacks). DEXA and blood work: upload the report PDF when you get a new one.</p>${hkPend?hkConfirm():''}<section class="ex" id="hksync"><h2>Apple Health today</h2>${row('Morning','Weigh-in, last night’s sleep and heart rate, yesterday’s food and steps',hkMorn(),hkT('m'),false,mm)}${row('Evening','Today’s steps after '+evT()+', food after 10 pm',eP?false:hkEve(),eT,eP?(fdLate()?'Not yet':'Food after 10 pm'):!late,me)}${ms.length&&(hkMorn()||hkEve())?`<p class="hint dn" style="margin:.5rem 0 0">Didn’t come in: ${E(hkMissTxt(ms,'and'))}.${E(hkMissHow(ms))}</p>`:''}</section>${hkCard()}${upReports()}`}
 // the DEXA and lab uploaders, under Apple Health, each with the latest one on file
 function upReports(){const sc=scans(),c=sc[sc.length-1],L=(S.labs||[]).slice().sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0),l=L[L.length-1];
 const see='<button class="edit" data-a="tab" data-d="p" style="padding:0">See it in Progress</button>',yr=t=>E(wtLong(t))+', '+t.slice(0,4);
@@ -2587,26 +2666,40 @@ const syncNote=()=>hkMorn()?'':`<p class="hint" style="margin:-.2rem 0 .8rem">No
 function hkTake(t){const r=hkParse(t);hkBox=false;if(r.err){hkErr=r.err;hkPend=null;render();return}hkPend=r;hkErr='';
 // nothing unusual: save straight away. A weight jump, macros that don't add up, or a whole type missing gets the check screen
 const W0=new Map(wtList().map(x=>[x.t,x.w])),H0=new Map(hlList().map(x=>[x.t,x])),wch=r.days.some(d=>d.wt!=null&&W0.has(d.t)&&Math.abs(W0.get(d.t)-d.wt)>=.05)||r.days.some(d=>{const o=H0.get(d.t);return d.sl!=null&&o&&o.sl!=null&&d.sl<o.sl*.6});
-if(!wch&&!/class="hkw"/.test(hkConfirm())&&['wt','sl','st','c'].every(k=>r.seen[k])){hkSave();return}
+if(!wch&&!/class="hkw"/.test(hkConfirm())&&(window.__SA?hkNeed():['wt','sl','st','c']).every(k=>r.seen[k])){hkSave();return}
 render();const el=document.getElementById('hkc');if(el&&el.scrollIntoView)el.scrollIntoView()}
 async function hkPaste(){hkErr='';try{if(!navigator.clipboard||!navigator.clipboard.readText)throw 0;hkTake(await navigator.clipboard.readText())}catch(e){hkBox=true;render();const x=app.querySelector('#hkta');if(x)x.focus()}}
 const hkSl=m=>Math.floor(m/60)+'h '+String(Math.round(m%60)).padStart(2,'0')+'m';
 // standalone: what usually comes in from Apple Health but hasn't for the day it's due (came in at least once in the
 // 14 days before). Weigh-in, sleep, steps and food have their own Today chips; this adds heart rate and food macros.
+// standalone: steps, sleep (with its heart rate) or food removed from a day (hkx: the removed values, by day)
+const hkxO=()=>S.hkx&&typeof S.hkx==='object'&&!Array.isArray(S.hkx)?S.hkx:{},hkxHas=(t,k)=>{const z=hkxO()[t];return !!(z&&typeof z==='object'&&z[k]!=null)};
+function hkxAdd(t,o){const z=Object.assign({},hkxO()),r=Object.assign({},z[t]||{});for(const k in o)if(o[k]!=null)r[k]=o[k];z[t]=r;const ks=Object.keys(z).sort();while(ks.length>60)delete z[ks.shift()];S.hkx=z}
+// the kinds a paste should bring before it saves on its own: those that came in at least once in the 14 days before
+// they're due (hkMiss's rule); after a break, those that ever came in; on a first paste all four, so a step the
+// shortcut is missing still gets the check screen once
+function hkNeed(){const td=today(),yd=addD(td,-1),wl=wtList(),hl=hlList(),fl=fdList(),u=(L,k,t)=>L.some(x=>x.t>=addD(t,-14)&&x.t<t&&x[k]!=null),e=(L,k)=>L.some(x=>x[k]!=null),f=n=>Object.keys(n).filter(k=>n[k]);
+let ks=f({wt:u(wl,'w',td),sl:u(hl,'sl',td),st:u(hl,'st',yd),c:u(fl,'c',yd)});if(!ks.length)ks=f({wt:e(wl,'w'),sl:e(hl,'sl'),st:e(hl,'st'),c:e(fl,'c')});return ks.length?ks:['wt','sl','st','c']}
+// macros that don't add up by more than 40% of the day's calories: a misread or cut-off number, not fiber, sugar alcohols or a drink
+const mcGap=v=>{if(v.p==null||v.cb==null||v.f==null||v.c==null)return null;const C=Math.round(v.cb),FB=v.fb!=null&&isFinite(v.fb)?Math.max(0,Math.min(Math.round(v.fb),C)):0;return Math.round(v.p)*4+C*4+Math.round(v.f)*9-FB*2-Math.round(v.c)},hkMacBig=v=>{const g=mcGap(v);return g!=null&&Math.abs(g)>Math.max(400,.4*v.c)};
+// a day's budget from Health: Lose It's (once confirmed), else the plan's calories
+const hkPlanB=()=>{try{const L=Object.assign({},planNums(),planT()||{});return L.cal>0?{cal:Math.round(L.cal),prot:L.prot||null}:null}catch(e){return null}};
+// keep the "Didn't come in" explanation clear of the toast
+function hkClr(){const el=app.querySelector('#hksync p.hint.dn'),m=document.getElementById('msg');if(!el||!m)return;const b=el.getBoundingClientRect().bottom,t=m.getBoundingClientRect().top;if(b>t-8)window.scrollBy(0,b-t+16)}
 function hkMiss(){if(!window.__SA)return[];const td=today(),yd=addD(td,-1),hl=hlList(),fl=fdList(),wl=wtList(),H=new Map(hl.map(x=>[x.t,x])),F=new Map(fl.map(x=>[x.t,x])),out=[];
 const usual=(L,k,t)=>L.some(x=>x.t>=addD(t,-14)&&x.t<t&&x[k]!=null),mo=!!hkT('m'),ev=!!hkT('e')&&new Date().getHours()>=evH(),h=H.get(td)||{};
 const mac=(t,e)=>{const f=F.get(t);if(!f||f.c==null)return;const nm=[['p','protein'],['cb','carbs'],['f','fat'],['fb','fiber']].filter(([k])=>f[k]==null&&usual(fl,k,t)).map(x=>x[1]);if(nm.length)out.push({k:'mac',ev:e,l:(t===td?'today’s ':'yesterday’s ')+nm.join(', ').replace(/, ([^,]*)$/,' and $1')})};
 // after the morning paste: what it brings
-if(mo&&!wl.some(x=>x.t===td)&&usual(wl,'w',td))out.push({k:'wt',l:'today’s weigh-in'});
-if(mo&&h.sl==null&&usual(hl,'sl',td))out.push({k:'sl',l:'last night’s sleep'});
+if(mo&&!wl.some(x=>x.t===td)&&!(S.wtx&&S.wtx[td]!=null)&&usual(wl,'w',td))out.push({k:'wt',l:'today’s weigh-in'});
+if(mo&&h.sl==null&&!hkxHas(td,'sl')&&usual(hl,'sl',td))out.push({k:'sl',l:'last night’s sleep'});
 if(h.sl!=null&&h.hr==null&&usual(hl,'hr',td))out.push({k:'hr',l:'last night’s heart rate'});
-if(mo&&(H.get(yd)||{}).st==null&&usual(hl,'st',yd))out.push({k:'st',l:'yesterday’s steps'});
-if(mo&&!(F.get(yd)||{}).c&&usual(fl,'c',yd))out.push({k:'c',l:'yesterday’s food'});
-mac(yd,false);
+if(mo&&(H.get(yd)||{}).st==null&&!hkxHas(yd,'st')&&usual(hl,'st',yd))out.push({k:'st',l:'yesterday’s steps'});
+if(mo&&!(F.get(yd)||{}).c&&!hkxHas(yd,'c')&&usual(fl,'c',yd))out.push({k:'c',l:'yesterday’s food'});
+if(mo)mac(yd,false);
 // after the evening paste: today's food and steps
-if(ev&&h.st==null&&usual(hl,'st',td))out.push({k:'st',ev:true,l:'today’s steps'});
-if(ev&&!(F.get(td)||{}).c&&usual(fl,'c',td))out.push({k:'c',ev:true,l:'today’s food'});
-if(new Date().getHours()>=evH())mac(td,true);
+if(ev&&h.st==null&&!hkxHas(td,'st')&&usual(hl,'st',td))out.push({k:'st',ev:true,l:'today’s steps'});
+if(hkFdIn()&&!(F.get(td)||{}).c&&!hkxHas(td,'c')&&usual(fl,'c',td))out.push({k:'c',ev:true,l:'today’s food'});
+if(fdLate())mac(td,true);
 return out}
 const hkMissTxt=(ms,cj)=>ms.map(x=>x.l).join(', ').replace(/, ([^,]*)$/,' '+(cj||'or')+' $1');
 const hkMissHow=ms=>{const k=new Set(ms.map(x=>x.k)),o=[];
@@ -2619,17 +2712,17 @@ return o.length?' '+o.join(' ')+' Then run Gym Health and paste again.':''};
 
 function hkCard(w){
 if(w&&!hkBox&&!hkErr){const td=today(),h=hlList().find(x=>x.t===td);if(wtList().some(x=>x.t===td)&&h&&h.sl!=null){const ms=hkMiss();return `<p class="hint${ms.length?' dn':''}" style="margin:-.3rem 0 .7rem">This morning’s weigh-in and sleep are in from Apple Health${ms.length?`, but not ${E(hkMissTxt(ms))}.${E(hkMissHow(ms))}`:'.'} <button class="edit" data-a="hkpaste" style="padding:0">Paste again</button></p>`}}
-return `<section class="ex" id="hk"><h2>Add from Apple Health</h2><p class="hint">Tap <b>Run Gym Health</b>, come back here when it finishes, then tap <b>Paste from Health</b>. It saves on its own unless something needs a look. In the morning it brings in your weigh-in, last night’s sleep and lowest heart rate, and yesterday’s food and steps. After ${evT()}, today’s food and steps come in too.</p><a class="fin fin2" href="shortcuts://run-shortcut?name=Gym%20Health" style="margin:.4rem 0 .5rem">Run Gym Health</a><button class="fin" data-a="hkpaste" style="margin:0 0 .2rem">Paste from Health</button>${hkBox?`<textarea class="sel hkta" id="hkta" rows="2" placeholder="Long-press here and tap Paste" aria-label="Paste the shortcut’s text here"></textarea><p class="hint">Your phone didn’t let the app read the clipboard directly. Long-press the box and tap Paste.</p>`:''}${hkErr?`<p class="hint dn">${E(hkErr)}</p>`:''}</section>`}
+return `<section class="ex" id="hk"><h2>Add from Apple Health</h2><p class="hint">Tap <b>Run Gym Health</b>, come back here when it finishes, then tap <b>Paste from Health</b>. It saves on its own unless something needs a look. In the morning it brings in your weigh-in, last night’s sleep and lowest heart rate, and yesterday’s food and steps. After ${evT()}, today’s steps come in too, and after 10 pm today’s food (Lose It adds your snacks at 10 pm).</p><a class="fin fin2" href="shortcuts://run-shortcut?name=Gym%20Health" style="margin:.4rem 0 .5rem">Run Gym Health</a><button class="fin" data-a="hkpaste" style="margin:0 0 .2rem">Paste from Health</button>${hkBox?`<textarea class="sel hkta" id="hkta" rows="2" placeholder="Long-press here and tap Paste" aria-label="Paste the shortcut’s text here"></textarea><p class="hint">Your phone didn’t let the app read the clipboard directly. Long-press the box and tap Paste.</p>`:''}${hkErr?`<p class="hint dn">${E(hkErr)}</p>`:''}</section>`}
 function hkConfirm(){
 const p=hkPend,W=new Map(wtList().map(x=>[x.t,x.w])),H=new Map(hlList().map(x=>[x.t,x])),F=new Map(fdList().map(x=>[x.t,x])),wl=wtList();
-const rows=p.days.map(d=>{const it=[],ch=[],wn=[];
+const rows=p.days.map(d=>{const it=[],ch=[],wn=[],nb=[];
 if(d.wt!=null){it.push('Weight '+f1(d.wt)+' lb');const o=W.get(d.t);if(o!=null&&Math.abs(o-d.wt)>=.05)ch.push('weight '+f1(o)+' lb');const pv=wl.filter(x=>x.t<d.t).pop();if(pv&&Math.abs(pv.w-d.wt)>6)wn.push(`${sg(d.wt-pv.w)} lb from ${dsh(pv)}. Check the reading in your scale’s app.`)}
 if(d.sl!=null){it.push('Sleep '+hkSl(d.sl)+(d.hr!=null?', lowest heart rate '+d.hr:''));const o=H.get(d.t);if(o&&o.sl!=null&&Math.abs(o.sl-d.sl)>=1)ch.push('sleep '+hkSl(o.sl))}
 if(d.st!=null){it.push(fmt(d.st)+' steps');const o=H.get(d.t);if(o&&o.st!=null&&o.st!==d.st)ch.push(fmt(o.st)+' steps')}
-if(d.c!=null){it.push(fmt(d.c)+' cal'+(d.p!=null?', '+d.p+' g protein':'')+(d.cb!=null?', '+d.cb+' g carbs':'')+(d.f!=null?', '+d.f+' g fat':'')+(d.fb!=null?', '+d.fb+' g fiber':''));const o=F.get(d.t);if(o&&o.c!==d.c)ch.push(fmt(o.c)+' cal');const mc=fdMacro(d,0);if(/dn/.test(mc))wn.push(mc.replace(/<[^>]+>/g,''))}
-return `<div class="hkd"><b>${E(wtLong(d.t))}</b><span>${E(it.join(' · '))}</span>${ch.length?`<small>Replaces ${E(ch.join(', '))}.</small>`:''}${wn.map(x=>`<small class="hkw">${E(x)}</small>`).join('')}</div>`}).join('');
-const miss=['wt','sl','st','c'].filter(k=>!p.seen[k]).map(k=>({wt:'weight',sl:'sleep',st:'steps',c:'food'})[k]);
-return `<section class="ex" id="hkc"><h2>Check before saving</h2>${rows}${miss.length?`<p class="hint">No ${E(miss.join(', '))} found in the last 3 days.${miss.includes('sleep')?' If you wore your ring or watch to bed, check the Sleep step in the shortcut (no source filter, last 1 day).':''}${miss.includes('food')?' If you logged in Lose It, check the food steps in the shortcut (source Lose It).':''}</p>`:''}${p.skipT?'<p class="hint">Today’s food and steps come in after '+evT()+', or with tomorrow morning’s paste.</p>':''}<button class="fin" data-a="hkok" style="margin:.6rem 0 .2rem">Save</button><button class="edit" data-a="hkno" style="padding:.4rem 0">Discard</button></section>`}
+if(d.c!=null){it.push(fmt(d.c)+' cal'+(d.p!=null?', '+d.p+' g protein':'')+(d.cb!=null?', '+d.cb+' g carbs':'')+(d.f!=null?', '+d.f+' g fat':'')+(d.fb!=null?', '+d.fb+' g fiber':''));const o=F.get(d.t);if(o&&o.c!==d.c)ch.push(fmt(o.c)+' cal');const mc=fdMacro(d,0);if(/dn/.test(mc))(window.__SA&&!hkMacBig(d)?nb:wn).push(mc.replace(/<[^>]+>/g,''))}
+return `<div class="hkd"><b>${E(wtLong(d.t))}</b><span>${E(it.join(' · '))}</span>${ch.length?`<small>Replaces ${E(ch.join(', '))}.</small>`:''}${wn.map(x=>`<small class="hkw">${E(x)}</small>`).join('')}${nb.map(x=>`<small>${E(x)}</small>`).join('')}</div>`}).join('');
+const miss=(window.__SA?hkNeed():['wt','sl','st','c']).filter(k=>!p.seen[k]).map(k=>({wt:'weight',sl:'sleep',st:'steps',c:'food'})[k]);
+return `<section class="ex" id="hkc"><h2>Check before saving</h2>${rows}${miss.length?`<p class="hint">No ${E(miss.join(', '))} found in the last 3 days.${miss.includes('sleep')?' If you wore your ring or watch to bed, check the Sleep step in the shortcut (no source filter, last 1 day).':''}${miss.includes('food')?' If you logged in Lose It, check the food steps in the shortcut (source Lose It).':''}</p>`:''}${p.skipT?'<p class="hint">'+(window.__SA?hkSkipTxt(p.skS,p.skF):'Today’s food and steps come in after '+evT()+', or with tomorrow morning’s paste.')+'</p>':''}<button class="fin" data-a="hkok" style="margin:.6rem 0 .2rem">Save</button><button class="edit" data-a="hkno" style="padding:.4rem 0">Discard</button></section>`}
 // what Lose It is set to: the last goals confirmed here, else the last ones read from a screenshot
 const liNow=()=>{const c=S.prof&&S.prof.li;if(c)return c;const f=fdList().filter(x=>x.b&&!x.hk).pop();return f?{cal:f.b,prot:f.pg||null,t:f.t}:null};
 const liOk=L=>{const c=liNow();return !!(c&&L&&L.cal!=null&&Math.abs(c.cal-L.cal)<=25&&!(c.prot&&L.prot!=null&&Math.abs(c.prot-L.prot)>5))};
@@ -2640,12 +2733,12 @@ const W=new Map(wtList().map(x=>[x.t,x])),H=new Map(hlList().map(x=>[x.t,x])),F=
 for(const d of p.days){
 if(d.wt!=null)W.set(d.t,{t:d.t,w:d.wt});
 if(d.st!=null||d.sl!=null||d.hr!=null){const o=Object.assign({},H.get(d.t)||{t:d.t});for(const k of['st','sl','hr'])if(d[k]!=null)o[k]=d[k];H.set(d.t,o)}
-if(d.c!=null){const o=Object.assign({},F.get(d.t)||{t:d.t});o.c=d.c;for(const k of['p','cb','f'])if(d[k]!=null)o[k]=d[k];else if(window.__SA&&Array.isArray(d.mx)&&d.mx.includes(k))delete o[k];if(d.fb!=null)o.fb=d.fb;else delete o.fb;if(!o.b&&li){o.b=li.cal;if(li.prot)o.pg=li.prot}if(window.__SA){const g=macPl(o,'carb'),h=macPl(o,'fat');if(g)o.cg=g;if(h)o.fg=h;if(g||h)o.gp=1}o.hk=1;delete o.a;F.set(d.t,o);fs.push(d.t)}
+if(d.c!=null){const o=Object.assign({},F.get(d.t)||{t:d.t});o.c=d.c;for(const k of['p','cb','f'])if(d[k]!=null)o[k]=d[k];else if(window.__SA&&Array.isArray(d.mx)&&d.mx.includes(k))delete o[k];if(d.fb!=null)o.fb=d.fb;else delete o.fb;{const B=li||(window.__SA?hkPlanB():null);if(!o.b&&B&&B.cal){o.b=B.cal;if(B.prot)o.pg=B.prot}}if(window.__SA){const g=macPl(o,'carb'),h=macPl(o,'fat');if(g)o.cg=g;if(h)o.fg=h;if(g||h)o.gp=1}o.hk=1;delete o.a;F.set(d.t,o);fs.push(d.t)}
 nd++}
 const srt=a=>a.sort((x,y)=>x.t<y.t?-1:x.t>y.t?1:0);
 S.wt=srt([...W.values()]);S.hl=srt([...H.values()]);S.food=fdPrune(srt([...F.values()]));
 hkPend=null;save();for(const t of fs){const e=S.food.find(x=>x.t===t);if(e)archF(e)}{const nw=new Date(),tm=String(nw.getHours()).padStart(2,'0')+':'+String(nw.getMinutes()).padStart(2,'0'),o=S.hkt&&S.hkt.d===today()?Object.assign({},S.hkt):{d:today()};if(nw.getHours()>=evH()){o.e=tm;if(!o.m)o.m=tm}else o.m=tm;if(p.hro)o.hro=p.hro;else delete o.hro;S.hkt=o;save()}
-render();window.scrollTo(0,0);{const ms=hkMiss();say('Saved '+nd+' day'+(nd===1?'':'s')+' from Health'+(ms.length?'. Didn’t come in: '+hkMissTxt(ms,'and'):''))}}
+render();window.scrollTo(0,0);{const ms=hkMiss();say('Saved '+nd+' day'+(nd===1?'':'s')+' from Health'+(ms.length?'. Didn’t come in: '+hkMissTxt(ms,'and'):window.__SA&&p.skF?'. Today’s food comes in after 10 pm.':''));if(window.__SA&&ms.length)hkClr()}}
 
 // ===== Standalone: edit the program (add, swap, remove, reorder; sets, reps, rest) =====
 const PTY={big:{l:'Big lift',r:'6-10',rs:'2-3 min'},comp:{l:'Compound or machine',r:'8-12',rs:'2 min'},iso:{l:'Isolation',r:'10-15',rs:'60-90 sec'},small:{l:'Small muscle (raises, calves, hips)',r:'12-20',rs:'60-90 sec'},core:{l:'Core',r:'10-15',rs:'60-90 sec'}};
@@ -2801,7 +2894,9 @@ function ancFix(){const a=tapAnc;tapAnc=null;if(!a||a.d!==day)return;let el=null
 function todoList(){const o=[];if(!window.__SA||needSetup())return o;const td=today(),wd=new Date(td+'T12:00:00').getDay(),wk=wkKey(td),hl=hlList(),fl=fdList(),wl=wtList(),add=(k,top,t,sel)=>o.push({k,top,t,sel});
 if(ORDER.includes(wd)&&!S.log.some(e=>e.t===td||(e.day===wd&&logWk(e)===wk)))add(String(wd),'gym','',null);
 const usual=(L,k)=>L.some(x=>x.t>=addD(td,-14)&&x.t<td&&x[k]!=null);
-if(usual(wl,'w')||usual(hl,'sl')||usual(hl,'st')||usual(fl,'c')){const ms=hkMiss().filter(x=>!x.ev);if(!hkMorn())add('hk','h','this morning’s Apple Health paste','#hk');else if(ms.length)add('hk','h','it didn’t bring '+hkMissTxt(ms,'and'),'#hksync')}
+// nothing has come in for 14+ days (syncing lapsed): still a To do
+if(!(usual(wl,'w')||usual(hl,'sl')||usual(hl,'st')||usual(fl,'c'))){const lt=[wl,hl,fl].map(L=>L.length?L[L.length-1].t:'').sort().pop();if(lt&&lt<addD(td,-14)&&!hkMorn())add('hk','h','sync with Apple Health: nothing has come in since '+dsh({t:lt}),'#hk')}
+else{const ms=hkMiss().filter(x=>!x.ev);if(!hkMorn())add('hk','h','this morning’s Apple Health paste','#hk');else if(ms.length)add('hk','h','it didn’t bring '+hkMissTxt(ms,'and'),'#hksync')}
 if(wd===0&&!wsList().some(x=>x.t===td))add('w','h','Sunday’s waist','#waist');
 if(phaseWarn())add('w','h','',null);
 if(FEM&&cyNat()){const c=cyAt(td);if(c&&c.ph==='per'&&!(cyDay(td)||{}).f)add('cy','h','today’s flow','#cylog')}
@@ -2822,6 +2917,7 @@ function render0(){
 acApply();
 // standalone: never draw (or run the check-in) under the other program's rules
 if(window.__SA&&feBad()){app.innerHTML=feHtml();if(dbReady||ldN)setTimeout(feMatch,0);return}
+if(window.__SA&&(dbReady||!docRef)&&wkLock())save();
 if(needSetup()){app.innerHTML=initDone?setupHtml():'';return}
 if(window.__SA)for(const k in S.draft){const x=S.draft[k];if(x&&typeof x.ed==='string'&&x.ed!==today()){delete S.draft[k];save()}}
 GEN++;autoCheck();STP('drawing '+day);
@@ -2840,7 +2936,7 @@ if(day==='set'){app.innerHTML=`${tabs}${todayBar()}${setHtml()}`;return}
 if(day==='pl'){app.innerHTML=`${tabs}${todayBar()}${planHtml()}`;return}
 if(window.__SA&&pgEd!=null&&pgEd===day&&P[day]){app.innerHTML=`${tabs}${pgEditHtml()}`;return}
 if(pgEd!=null&&pgEd!==day){pgEd=null;pgPick=null;pgOpen=null}
-const TD=window.__SA&&S.log.some(e=>e.day===day&&e.t===today())&&!((S.draft[day]||{}).id)?'next time':'today';
+const TD=window.__SA&&S.log.some(e=>e.day===day&&(e.t===today()||(e.id===svId&&!svEd)))&&!((S.draft[day]||{}).id)?'next time':'today';
 let num=0;
 const cards=p.x.map((x,k)=>{
 if(x.ss!==2)num++;
@@ -2860,11 +2956,11 @@ const lo=x.r?+String(x.r).split('-')[0]:0;
 const dr=lw&&lw[0]&&lo?rec(x,n,parseFloat(lw[0][0])||0,parseFloat(lw[0][1])||0,lo,tp,-1):'';
 const dn=!up&&!x.nn&&lo&&lw&&lw[0]&&(parseFloat(lw[0][1])||0)<lo&&weak2(n,lo,1)&&!gainUR(n,lw,1)?`<p class="hint dn">Under ${lo} reps on your first set two sessions in a row. ${dr?dr+' '+TD+'.':(x.er||(x.hr?'Try an easier version today.':'Drop the weight a little today.')).replace(/ today\.$/,' '+TD+'.')}</p>`:'';
 const gl=(()=>{
-if(up||dn||!x.r||!lw||!lw.length)return '';
+if((up&&!window.__SA)||dn||!x.r||!lw||!lw.length)return '';
 const gR=window.__SA?goalRows(x,n)||[]:[],gW=gR.filter(a=>a[2]!=='w'),gs=gW.length===lw.length?gW.map(a=>[parseFloat(a[0])||0,parseFloat(a[1])||0]):lw.map(a=>[parseFloat(a[0])||0,Math.min(tp,(parseFloat(a[1])||0)+1)]),ws=[...new Set(gs.map(g=>g[0]))];
-const lgt=gW.length===lw.length?gs.map((g,i)=>g[0]!==(parseFloat(lw[i][0])||0)?gR.length-gW.length+i+1:0).filter(Boolean):[],lgw=lgt.length?` (set${lgt.length>1?'s':''} ${lgt.join(' and ')} ${AS.has(n)?'with more assistance':'lighter'}: under ${lo} reps in each of your last two workouts)`:'';
+const lgt=gW.length===lw.length&&!up?gs.map((g,i)=>g[0]!==(parseFloat(lw[i][0])||0)?gR.length-gW.length+i+1:0).filter(Boolean):[],lgw=lgt.length?` (set${lgt.length>1?'s':''} ${lgt.join(' and ')} ${AS.has(n)?'with more assistance':'lighter'}: under ${lo} reps in each of your last two workouts)`:'';
 return `<p class="hint goal">Goal ${TD}: ${E(ws.length===1?gs.map(g=>g[1]).join(', ')+' reps'+(ws[0]>0?' at '+ws[0]+(AS.has(n)?' lb of assistance':' lb'):''):gs.map(g=>(g[0]?g[0]+(AS.has(n)?' assist':''):'BW')+'×'+g[1]).join(', '))}${E(lgw)}</p>`})();
-const lWk=l?l.filter(a=>a[2]!=='w'):[],lWu=l?l.filter(a=>a[2]==='w'):[];
+const gq=window.__SA?goalRows(x,n):null,lq=gq||l,lWk=lq?lq.filter(a=>a[2]!=='w'):[],lWu=lq?lq.filter(a=>a[2]==='w'):[];
 const sets=r.map((a,i)=>{
 const ph=window.__SA?(((a[2]==='w')?lWu:lWk)[r.slice(0,i).filter(b=>(b[2]==='w')===(a[2]==='w')).length]||[]):((l&&l[i])||[]);
 return `<div class="set"><span>${i+1}</span><input inputmode="decimal" placeholder="${E(ph[0]||'lb')}" value="${E(a[0])}" data-n="${E(n)}" data-i="${i}" data-j="0" aria-label="Set ${i+1} weight in pounds"><input inputmode="numeric" placeholder="${E(ph[1]||'reps')}" value="${E(a[1])}" data-n="${E(n)}" data-i="${i}" data-j="1" aria-label="Set ${i+1} reps"><button class="wu" aria-pressed="${a[2]==='w'}" data-a="wu" data-n="${E(n)}" data-i="${i}" aria-label="Warm-up set ${i+1}">W</button><button class="x${armed==='x'+n+'|'+i?' warn':''}" data-a="del" data-n="${E(n)}" data-i="${i}" aria-label="${armed==='x'+n+'|'+i?'Tap again to remove':'Remove'} set ${i+1}">×</button></div>`}).join('');
@@ -2885,12 +2981,12 @@ const upb=upAlert.length?`<section class="pr"><h2>Level up next time</h2><p>${up
 const wkb=wkAlert?`<section class="pr"><h2>Week in review</h2>${wkAlert}${fag('wk')}</section>`:'';
 const dnb=dnAlert.length?`<section class="pr dn"><h2>Ease off next time</h2><p>${dnAlert.map(E).join(', ')}</p>${fag('dn')}</section>`:'';
 const W=weeks(),ck=wkKey(today()),cur=W.find(w=>w.k===ck)||{n:0,sets:0,vol:0},pw=W.filter(w=>w.k!==ck);
-const stats=`<div class="wk"><div><b>${cur.n}/${ORDER.length}</b><small>Workouts this week</small></div><div><b>${cur.sets}</b><small>Sets</small></div><div><b>${fmt(cur.vol)}</b><small>Volume (lb)</small></div></div>`;
+const stats=`<div class="wk"><div><b>${window.__SA?wkDays(ck):cur.n}/${ORDER.length}</b><small>Workouts this week</small></div><div><b>${cur.sets}</b><small>Sets</small></div><div><b>${fmt(cur.vol)}</b><small>Volume (lb)</small></div></div>`;
 const wkRows=(window.__SA&&cur.n?`<p><b>This week so far, ${E(wkRange(cur.k,addD(cur.k,6)))}</b><span>${cur.n} workout${cur.n===1?'':'s'}, ${cur.sets} sets, ${fmt(cur.vol)} lb</span></p>`:'')+pw.slice(0,window.__SA?(gwAll?pw.length:(cur.n?7:8)):6).map((w,i)=>{
 const o=pw[i+1],c=o&&o.vol>0&&w.vol>0?Math.round((w.vol/o.vol-1)*100):null;
 const d=window.__SA?wkRange(w.k,addD(w.k,6)):'Week of '+new Date(w.k+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'});
 return `<p><b>${E(d)}</b><span>${w.n} workouts, ${w.sets} sets, ${fmt(w.vol)} lb${c===null?'':` (${c>=0?'+':''}${c}%)`}</span></p>`}).join('');
-app.innerHTML=`${tabs}${todayBar()}${prb}${upb}${dnb}${wkb}${alertCard()}${FEM?cyRough():''}<h1>${p.t}</h1><p class="sub">${FN[day]}${day===T?', today':''}${FEM&&p.m&&(!window.__SA||p===P0[day])?', about '+p.m+' min':''}. Weights in lb.${{cut:' Cut phase: holding strength is a win.',bulk:' Bulk phase: aim to beat last time.',maint:'',recomp:' Recomp: aim to beat last time.'}[phase().k]}</p>${(FEM||window.__SA)?(()=>{const d=S.draft[day]||{},td=today(),t=d.t||td;return d.id?`<p class="hint dn">Editing your ${E(wtLong(t))} workout. Finish saves the changes. <button class="edit" data-a="wkcancel" style="padding:0">Cancel</button></p>`:`<label class="pf"><span>Workout date</span><input type="date" class="sel" id="wkd" max="${td}" value="${t}"></label>${t!==td?`<p class="hint">Logging this workout for ${E(wtLong(t))}. <button class="edit" data-a="wktoday" style="padding:0">Use today</button></p>`:''}`})():window.__SA&&(S.draft[day]||{}).id?`<p class="hint dn">Editing your ${E(wtLong(S.draft[day].t||today()))} workout. Finish saves the changes.${S.draft[day].ed||S.draft[day].o?' <button class="edit" data-a="wkcancel" style="padding:0">Cancel</button>':''}</p>`:''}${slNote()}${stats}${cards}${window.__SA&&!p.x.length?`<p class="hint" style="margin:.6rem 0">No exercises yet. Tap Edit this day’s exercises to add some.</p>`:''}<button class="fin" data-a="fin">Finish workout</button>${window.__SA?`<button class="edit" data-a="pged" style="display:block;padding:.7rem 0 .3rem;margin:0 0 1.1rem">Edit this day’s exercises</button><button class="edit" data-a="schopen" style="display:block;padding:0 0 .3rem;margin:-.8rem 0 1.1rem">Change workout days</button>`:''}${wkRows?`<div class="hist"><h3>${window.__SA?'Weeks':'Past weeks'}</h3>${wkRows}${window.__SA?showAll(pw.length+(cur.n?1:0),gwAll,'gwall'):''}</div>`:''}${hist?`<div class="hist"><h3>Recent workouts</h3>${hist}${window.__SA?showAll(S.log.length,rwAll,'rwall'):''}</div>`:''}`}
+app.innerHTML=`${tabs}${todayBar()}${prb}${upb}${dnb}${wkb}${alertCard()}${FEM?cyRough():''}<h1>${p.t}</h1><p class="sub">${FN[day]}${window.__SA&&TD==='next time'?', next time’s workout':day===T?', today':''}${FEM&&p.m&&(!window.__SA||p===P0[day])?', about '+p.m+' min':''}. Weights in lb.${{cut:' Cut phase: holding strength is a win.',bulk:' Bulk phase: aim to beat last time.',maint:'',recomp:' Recomp: aim to beat last time.'}[phase().k]}</p>${(FEM||window.__SA)?(()=>{const d=S.draft[day]||{},td=today(),t=d.t||td;return d.id?`<p class="hint dn">Editing your ${E(wtLong(t))} workout. Finish saves the changes. <button class="edit" data-a="wkcancel" style="padding:0">Cancel</button></p>`:`${svBox(TD)}${wkOldCard(d)}<label class="pf"><span>Workout date</span><input type="date" class="sel" id="wkd" max="${td}" value="${t}"></label>${t!==td?`<p class="hint">Logging this workout for ${E(wtLong(t))}. <button class="edit" data-a="wktoday" style="padding:0">Use today</button></p>`:''}`})():window.__SA&&(S.draft[day]||{}).id?`<p class="hint dn">Editing your ${E(wtLong(S.draft[day].t||today()))} workout. Finish saves the changes.${S.draft[day].ed||S.draft[day].o?' <button class="edit" data-a="wkcancel" style="padding:0">Cancel</button>':''}</p>`:''}${slNote()}${stats}${cards}${window.__SA&&!p.x.length?`<p class="hint" style="margin:.6rem 0">No exercises yet. Tap Edit this day’s exercises to add some.</p>`:''}<button class="fin" data-a="fin">Finish workout</button>${window.__SA?`<button class="edit" data-a="pged" style="display:block;padding:.7rem 0 .3rem;margin:0 0 1.1rem">Edit this day’s exercises</button><button class="edit" data-a="schopen" style="display:block;padding:0 0 .3rem;margin:-.8rem 0 1.1rem">Change workout days</button>`:''}${wkRows?`<div class="hist"><h3>${window.__SA?'Weeks':'Past weeks'}</h3>${wkRows}${window.__SA?showAll(pw.length+(cur.n?1:0),gwAll,'gwall'):''}</div>`:''}${hist?`<div class="hist"><h3>Recent workouts</h3>${hist}${window.__SA?showAll(S.log.length,rwAll,'rwall'):''}</div>`:''}`}
 let wkView=null;
 let docRef=null,coll=null,fcol=null,armed=null,prAlert=[],upAlert=[],dnAlert=[],wkAlert='',busy=false,again=false,tm,syncFail=0,rtT=null,ldT=null,ldN=0,ldBusy=false;
 const LKB=LK+'-base',FLDS=['draft','log','dl','scans','labs','wt','food','rev','phases','prof','plan','lock','ci','hl','rarc','bk','waist','cyc','prog','setup','steps','bm','hkt','wtx','wdays','msx','fa'],J=x=>JSON.stringify(x===undefined?null:x);
@@ -2900,7 +2996,7 @@ function pick(d){d=d||{};const o={draft:d.draft&&typeof d.draft==='object'?d.dra
 for(const k in d)if(!(k in o)&&d[k]!==undefined)o[k]=d[k];return o}
 const cdr=dr=>{const o={};for(const k in dr||{}){const x=dr[k];if(x&&x.s&&Object.values(x.s).some(r=>Array.isArray(r)&&r.some(a=>a&&(a[0]!==''||a[1]!==''))))o[k]=x}return o};
 const nz=x=>{const p=pick(x);p.draft=cdr(p.draft);return J(p)};
-const KF={log:e=>e&&(e.id||e.t+'-'+e.day),wt:e=>e&&e.t,waist:e=>e&&e.t,food:e=>e&&e.t,hl:e=>e&&e.t,labs:e=>e&&e.t,scans:e=>e&&e.t,ci:e=>e&&e.pid+'|'+e.w};
+const KF={log:e=>e&&(e.id||e.t+'-'+e.day),wt:e=>e&&e.t,waist:e=>e&&e.t,food:e=>e&&e.t,hl:e=>e&&e.t,labs:e=>e&&e.t,scans:e=>e&&e.t,ci:e=>e&&e.pid+'|'+e.w+(e.v==='change'&&['dexa','pace','floor'].includes(e.f)?'|'+e.f:'')};
 // Three-way merge: keeps this device's unsynced changes and anything another device saved meanwhile.
 // keep (standalone, when it can't be sure which copy is newer): nothing is removed; entries either copy has are kept.
 function merge3(b0,l0,r0,keep){
@@ -3083,22 +3179,22 @@ const downs=[];
 for(const x of P[day].x){const n=nm(x),f=(s[n]||[]).filter(a=>a[2]!=='w');if(!x.r||x.nn||!f.length||upN.has(n))continue;const lo=+String(x.r).split('-')[0],F=v=>parseFloat(v)||0,w0=F(f[0][0]);const one=F(f[0][1])<lo&&weak2(n,lo,0)&&!gainUR(n,f,0),rc=one?rec(x,n,w0,F(f[0][1]),lo,+String(x.r).split('-').pop(),-1):'',g0=one?easeW(x,n,w0,F(f[0][1])):null;const es=easeAt(x,n,f,(lastN(n,0)||[]).filter(a=>a[2]!=='w')).filter(q=>!(g0!=null&&F(f[q.i][0])===w0));if(!es.length){if(one)downs.push(n+(rc?': '+rc.toLowerCase():''));continue}const L=(g0!=null?f.map((a,i)=>({i,g:g0})).filter(q=>F(f[q.i][0])===w0):[]).concat(es).sort((p,q)=>p.i-q.i);downs.push(n+': try '+easeTxt(n,s[n],L))}
 const prs=[];
 for(const[n,f]of Object.entries(s)){
-const nt=sbest(n,f,d.t||today());if(!nt)continue;
-let pb=(S.rarc||{})[n]||null;
-for(const e of S.log){if(d.id&&e.id===d.id)continue;if(window.__SA&&d.ed&&e.t>=(d.t||today()))continue;const b=sbest(n,e.s[n],e.t);if(b&&better(b,pb))pb=b}
+const nt=sbest(n,f,d.t||today(),asT());if(!nt)continue;
+let pb=(window.__SA?rcAs(S.rarc):S.rarc||{})[n]||null;
+for(const e of S.log){if(d.id&&e.id===d.id)continue;if(window.__SA&&d.ed&&e.t>=(d.t||today()))continue;const b=sbest(n,e.s[n],e.t,asT());if(b&&better(b,pb))pb=b}
 if(pb&&better(nt,pb))prs.push({n,nt:bsx(nt),pb:bsx(pb)})}
 if(d.ed&&d.id)S.log=S.log.filter(e=>e.id!==d.id);
 let nid=d.id;if(!nid||S.log.some(e=>e.id===nid)){do{nid=Date.now().toString(36)+Math.random().toString(36).slice(2,6)}while(S.log.some(e=>e.id===nid))}
 const ent={id:nid,t:d.t||today(),day,s,pr:prs.length};if(window.__SA&&d.o&&d.o.t===ent.t){const f=d.o.fd||(+d.o.day!==day?logFor(d.o):null);if(f)ent.fd=f}if((FEM||window.__SA)&&d.nt){const nt={};for(const k in d.nt){const v=String(d.nt[k]||'').trim();if(s[k]&&v)nt[k]=v.slice(0,200)}if(Object.keys(nt).length)ent.nt=nt}if(FEM){const ca=cyAt(ent.t);if(ca){ent.cd=ca.day;if(ca.ph)ent.cp=ca.ph}}{const bx=window.__SA?(P[day]&&P[day].x.find(q=>q.id==='b1')):(day===4?P[4].x[0]:null);if(bx){const b=nm(bx);if(!window.__SA||s[b])ent.b1=b;else if(Array.isArray(bx.o)){const o=bx.o.filter(q=>s[q]);if(o.length===1)ent.b1=o[0]}}}S.log.unshift(ent);S.log.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0);if(!window.__SA&&S.log.length>120){const x=S.log.slice(120),gone=x.filter(e=>e.a&&coll);if(gone.length){recFold(gone);S.log=S.log.slice(0,120).concat(x.filter(e=>!(e.a&&coll)))}}arch(ent);delete S.draft[day];
-const wasEd=!!(window.__SA&&d.ed);if(window.__SA)wTouch.clear();
-wkAlert=wasEd?'':(()=>{const k=logWk(ent),w=weeks().find(x=>x.k===k);return w&&w.n>=ORDER.length?recapHtml(k,'Week complete'):''})();prAlert=wasEd?[]:prs;upAlert=wasEd?[]:ups;dnAlert=wasEd?[]:downs;if(window.__SA)S.fa=wasEd||!(prs.length||ups.length||downs.length||wkAlert)?null:{t:today(),id:ent.id,d:ent.day,pr:prs,up:ups,dn:downs,wk:wkAlert?logWk(ent):null};save();render();window.scrollTo(0,0);say(wasEd?'Changes saved':prs.length?'Workout saved. New best!':'Workout saved')}
+const wasEd=!!(window.__SA&&d.ed);if(window.__SA){svId=ent.id;svEd=wasEd}if(window.__SA)wTouch.clear();
+wkAlert=wasEd?'':(()=>{const k=logWk(ent),w=weeks().find(x=>x.k===k);return w&&(window.__SA?wkDays(k)>=ORDER.length&&wkDays(k,ent.id)<ORDER.length:w.n>=ORDER.length)?recapHtml(k,'Week complete'):''})();prAlert=wasEd?[]:prs;upAlert=wasEd?[]:ups;dnAlert=wasEd?[]:downs;if(window.__SA)S.fa=wasEd||!(prs.length||ups.length||downs.length||wkAlert)?null:{t:today(),id:ent.id,d:ent.day,pr:prs,up:ups,dn:downs,wk:wkAlert?logWk(ent):null};save();render();window.scrollTo(0,0);say(wasEd?'Changes saved':prs.length?'Workout saved. New best!':'Workout saved')}
 app.addEventListener('click',e=>ancSet(e.target),true);
 app.onclick=e=>{
 {const g=e.target.closest('a[data-clgo]');if(g){clGo(g.dataset.clgo);return}}
 const b=e.target.closest('[data-a]');if(!b)return;
 const a=b.dataset.a;
 if(a==='rdback'){day=rdOk;render();window.scrollTo(0,0);return}if(a==='rdset'){day='set';render();window.scrollTo(0,0);return}
-if(a!=='rm'&&a!=='sdel'&&a!=='wtdel'&&a!=='fddel'&&a!=='hldel'&&a!=='wsdel'&&a!=='ph'&&a!=='del'&&a!=='cyclr'&&a!=='cyrm'&&a!=='pgrm'&&a!=='pgreset'&&a!=='bmrm'&&a!=='wtrm'&&a!=='schrm')armed=null;
+if(a!=='rm'&&a!=='sdel'&&a!=='wtdel'&&a!=='fddel'&&a!=='hldel'&&a!=='wsdel'&&a!=='ph'&&a!=='del'&&a!=='cyclr'&&a!=='cyrm'&&a!=='pgrm'&&a!=='pgreset'&&a!=='bmrm'&&a!=='wtrm'&&a!=='schrm'&&a!=='wkdisc')armed=null;
 if(a!=='seated'&&a!=='seatstep'&&a!=='seatdone')seatEd=null;
 if(a!=='bmundo'&&a!=='bmnow'&&a!=='bmadd')bmUndo=null;
 if(a!=='wt')wtArm=null;
@@ -3121,7 +3217,9 @@ if(a==='cyendo'){cySet({endo:!(S.cyc&&S.cyc.endo)});return}
 if(a==='cyshare'){cySet({share:S.cyc&&S.cyc.share===false});return}
 if(a==='cyhide'){cyHid=today();render();return}
 if(a==='ntadd'){const d=D();d.nt=Object.assign({},d.nt||{},{[b.dataset.n]:(d.nt&&d.nt[b.dataset.n])||''});lastEx=b.dataset.n;render();const i=[...app.querySelectorAll('input[data-nt]')].find(x=>x.dataset.nt===b.dataset.n);if(i)i.focus();return}
-if(a==='wktoday'){const d=S.draft[day];if(d)delete d.t;save();render();return}
+if(a==='wktoday'){const d=S.draft[day];if(d){delete d.t;dStamp(d)}save();render();return}
+if(a==='wkfin'){finish();return}
+if(a==='wkdisc'){const k='wkdisc'+day;if(armed!==k){armed=k;render();return}armed=null;delete S.draft[day];lastEx=null;openEx=null;wTouch.clear();save();render();say('Unfinished workout discarded');return}
 if(a==='wkcancel'){const d=S.draft[day];if(d&&d.o&&!d.ed){S.log.push(d.o);S.log.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0)}delete S.draft[day];save();render();say('Edit cancelled');return}
 if(a==='pged'){pgSnap=J((S.prog||{})[day]||null);pgEd=day;pgPick=null;pgOpen=null;render();window.scrollTo(0,0);return}
 if(a==='pgdone'){const ch=pgSnap!==J((S.prog||{})[pgEd]||null);pgEd=null;pgPick=null;pgOpen=null;render();window.scrollTo(0,0);say(ch?'Program saved':'No changes');return}
@@ -3257,8 +3355,8 @@ if(t.dataset.j==='0'){const v=t.value.replace(/,/g,'.').replace(/[^\d.]/g,'').re
 if(window.__SA&&t.dataset.j==='0')wTouch.add(n+'|'+t.dataset.i);
 const gx=window.__SA&&t.dataset.j==='1'&&P[day]&&P[day].x.find(q=>nm(q)===n);
 if(gx&&!AS.has(n)&&!gx.hr&&!gx.er&&t.value&&!wTouch.has(n+'|'+t.dataset.i)){const rw=rows(n)[+t.dataset.i];if(rw&&String(rw[0]==null?'':rw[0]).trim()===''&&String(rw[1]==null?'':rw[1]).trim()===''){const wi=t.parentNode&&t.parentNode.querySelector('input[data-j="0"]'),ph=wi&&wi.placeholder;if(ph&&/^\d+(\.\d+)?$/.test(ph)&&+ph>0){rw[0]=ph;wi.value=ph}}}
-rows(n)[+t.dataset.i][+t.dataset.j]=t.value;liveIx[n]=+t.dataset.i;if(lastEx!==n){exLeave(lastEx,n);lastEx=n;openEx=null;foldOthers(n,t)}save();if(t.dataset.j==='1'){clearTimeout(liveT);liveT=setTimeout(()=>updLive(n),700)}};
-app.onchange=e=>{const t=e.target;if(t.id==='stp'){const p2=Object.assign({},S.prof||{},{st:+t.value});delete p2.steps;S.prof=p2;save();render();return}if(t.id==='suby'||t.id==='suht'){su[t.id==='suby'?'by':'ht']=t.value?+t.value:undefined;return}if(t.id==='pby'||t.id==='pht'){const k=t.id==='pby'?'by':'ht',p2=Object.assign({},S.prof||{});if(t.value)p2[k]=+t.value;else delete p2[k];S.prof=p2;save();render();return}if(t.id==='wkd'){const v=t.value,td=today();if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>td||v<'2020-01-01'){t.value=(S.draft[day]&&S.draft[day].t)||td;say('Pick a day up to today');return}const d=D();if(v===td)delete d.t;else d.t=v;save();render();return}if(t.id==='gwr'){setGoal('gw',+t.value);return}if(t.id==='cylen'){cySet({len:+t.value});return}if(t.id==='wtd'){setWtDate(t);return}if(t.id==='imf'){const f=t.files&&t.files[0];t.value='';if(f)imRead(f);return}if(t.id==='cyd'){const td=today();let v=t.value;if(!v||v>td||v<'2020-01-01'){v=td;say('Pick a date from 2020 up to today')}wtDate=v===td?null:v;armed=null;render();return}if(t.id==='wsd'){setWsDate(t);return}if(t.id==='lbf'){const f=t.files&&t.files[0];t.value='';if(f)lbRead(f);return}if(t.id==='dxf'){const f=t.files&&t.files[0];t.value='';if(f)dxRead(f);return}if(t.id==='fdf'){const f=[...(t.files||[])];t.value='';fdRead(f);return}if(t.id==='hlf'){const f=[...(t.files||[])];t.value='';hlRead(f);return}if(t.dataset&&t.dataset.hd!==undefined){const d=hlPend&&hlPend.days[+t.dataset.hd];if(d){const v=t.value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>today()||v<'2020-01-01'){t.value=d.t;say('Pick a day up to today');return}d.t=v;d.df=true;render()}return}if(t.id==='fdd'){if(fdPend){const v=t.value,td=today();if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>td||v<'2020-01-01'){t.value=fdPend.t;say('Pick a day up to today');return}fdPend.t=v;render()}return}if(t.dataset&&t.dataset.sel!==undefined){pSel=t.value;render()}};
+rows(n)[+t.dataset.i][+t.dataset.j]=t.value;if(window.__SA)dStamp(S.draft[day]);liveIx[n]=+t.dataset.i;if(lastEx!==n){exLeave(lastEx,n);lastEx=n;openEx=null;foldOthers(n,t)}save();if(t.dataset.j==='1'){clearTimeout(liveT);liveT=setTimeout(()=>updLive(n),700)}};
+app.onchange=e=>{const t=e.target;if(t.id==='stp'){const p2=Object.assign({},S.prof||{},{st:+t.value});delete p2.steps;S.prof=p2;save();render();return}if(t.id==='suby'||t.id==='suht'){su[t.id==='suby'?'by':'ht']=t.value?+t.value:undefined;return}if(t.id==='pby'||t.id==='pht'){const k=t.id==='pby'?'by':'ht',p2=Object.assign({},S.prof||{});if(t.value)p2[k]=+t.value;else delete p2[k];S.prof=p2;save();render();return}if(t.id==='wkd'){const v=t.value,td=today();if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>td||v<'2020-01-01'){t.value=(S.draft[day]&&S.draft[day].t)||td;say('Pick a day up to today');return}const d=D();if(v===td)delete d.t;else d.t=v;dStamp(d);save();render();return}if(t.id==='gwr'){setGoal('gw',+t.value);return}if(t.id==='cylen'){cySet({len:+t.value});return}if(t.id==='wtd'){setWtDate(t);return}if(t.id==='imf'){const f=t.files&&t.files[0];t.value='';if(f)imRead(f);return}if(t.id==='cyd'){const td=today();let v=t.value;if(!v||v>td||v<'2020-01-01'){v=td;say('Pick a date from 2020 up to today')}wtDate=v===td?null:v;armed=null;render();return}if(t.id==='wsd'){setWsDate(t);return}if(t.id==='lbf'){const f=t.files&&t.files[0];t.value='';if(f)lbRead(f);return}if(t.id==='dxf'){const f=t.files&&t.files[0];t.value='';if(f)dxRead(f);return}if(t.id==='fdf'){const f=[...(t.files||[])];t.value='';fdRead(f);return}if(t.id==='hlf'){const f=[...(t.files||[])];t.value='';hlRead(f);return}if(t.dataset&&t.dataset.hd!==undefined){const d=hlPend&&hlPend.days[+t.dataset.hd];if(d){const v=t.value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>today()||v<'2020-01-01'){t.value=d.t;say('Pick a day up to today');return}d.t=v;d.df=true;render()}return}if(t.id==='fdd'){if(fdPend){const v=t.value,td=today();if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>td||v<'2020-01-01'){t.value=fdPend.t;say('Pick a day up to today');return}fdPend.t=v;render()}return}if(t.dataset&&t.dataset.sel!==undefined){pSel=t.value;render()}};
 app.addEventListener('paste',e=>{const t=e.target;if(t&&t.id==='cltx'){e.preventDefault();clTake((e.clipboardData||window.clipboardData).getData('text'),t.dataset.k);return}if(t&&t.id==='hkta'){e.preventDefault();hkTake((e.clipboardData||window.clipboardData).getData('text'))}});
 app.addEventListener('toggle',e=>{const t=e.target;if(t.classList&&t.classList.contains('prog')){t.open?OPEN.add(t.dataset.n):OPEN.delete(t.dataset.n)}},true);
 try{const j=JSON.parse(localStorage.getItem(LK));if(j&&Array.isArray(j.log)){S=pick(window.__SA?dsFix(j):j);lkOK=true}}catch(e){}
@@ -3267,7 +3365,9 @@ applyProg();
 // opening day: the next workout this week (today or later, weeks as above) not logged yet; if none, next week's first
 function nextGymDay(){if(!ORDER.length)return null;const td=today(),wk=wkKey(td),w0=wkDow(),mi=d=>(d-w0+7)%7,ti=mi(new Date(td+'T12:00:00').getDay()),done=new Set(S.log.filter(e=>e&&e.t&&logWk(e)===wk).map(e=>+e.day)),ds=ORDER.slice().sort((a,b)=>mi(a)-mi(b)),up=ds.find(d=>mi(d)>=ti&&!done.has(d));if(up!=null)return up;const nx=new Set(S.log.filter(e=>e&&e.t&&logWk(e)===addD(wk,7)).map(e=>+e.day)),n2=ds.find(d=>!nx.has(d));return n2!=null?n2:ds[0]}
 if(window.__SA){const nx=nextGymDay();if(nx!=null){day=nx;gymLast=nx}}
-if((FEM||window.__SA)&&new Date().getHours()<12&&!(S.wt||[]).some(x=>x.t===today()))day=window.__SA?'hk':'w';
+// standalone: an unfinished workout from an earlier day opens first, to finish or discard
+if(window.__SA){const u=wkOldDay();if(u!=null){day=u;gymLast=u}}
+if((FEM||window.__SA)&&new Date().getHours()<12&&!(S.wt||[]).some(x=>x.t===today())&&!(window.__SA&&S.wtx&&S.wtx[today()]!=null))day=window.__SA?'hk':'w';
 let pgBack=null;try{pgBack=JSON.parse(sessionStorage.getItem('gym-sa-pg')||'null');sessionStorage.removeItem('gym-sa-pg')}catch(e){}
 if(window.__SA&&pgBack&&pgBack.d!=null&&(typeof pgBack.d==='number'?ORDER.includes(pgBack.d):typeof pgBack.d==='string')){day=pgBack.d;if(inGym(day))gymLast=day;if(inHl(day))hlLast=day}else pgBack=null;
 if(FEM)document.documentElement.classList.add('fem');
