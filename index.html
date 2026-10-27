@@ -370,7 +370,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='f0fe95c69c',SFB=+'1793129696'||0,sfT0=Date.now();
+const SFV='aff9244649',SFB=+'1793131216'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1178,9 +1178,9 @@ const fM=ts=>new Date(ts).toLocaleDateString(undefined,{month:'short',year:'nume
 let goal='';
 const LKr=(L=>L?(window.__SA?plRate(L,bw):L.rate):null)(planT());
 // p105: a % pace (not held at the calorie floor) eases in pounds as weight falls: the goal date compounds it
-const gPc=window.__SA&&p.pc>0&&!lkFl(planT())?p.pc:0,gWk=(gw,left,r)=>gPc&&bw>0&&gw>0&&gw<bw?Math.log(gw/bw)/Math.log(1-gPc/100):r>0&&left!=null?left/r:null,gAt=r=>gPc?`${gPc}% a week (${rS(r)} lb now)`:window.__SA?rS(r)+' lb a week':f1(r)+' lb a week';
-if(p.k==='cut'&&!c){const gwT=goalW(),left=bw==null||gwT==null?null:bw-gwT,r=Math.abs(LKr!=null?LKr:rate),wks=gWk(gwT,left,r);goal=left==null?(window.__SA?(bw==null?'Once your first weigh-in is in, pick your goal weight here.':'Pick your goal weight below.'):'Log a weigh-in on the Weight tab to set your goal weight.'):left<=0?`You’re at your goal weight of ${Math.round(gwT)} lb.`:`Reach ${Math.round(gwT)} lb: ${f1(left)} lb from now${wks&&wks<260?`, around ${fM(wtD(today())+wks*6048e5)} at ${gAt(r)}`:''}.`}
-else if(p.k==='cut'){const gwT=goalW(p.g.bf),left=bw-gwT,r=Math.abs(LKr!=null?LKr:rate),wks=gWk(gwT,left,r);goal=left<=0?`You’re at your ${p.g.bf}% body fat weight (about ${Math.round(gwT)} lb).`:`Reach ${p.g.bf}% body fat: about ${Math.round(gwT)} lb ${window.__SA?gwLean(p.g.bf):'if you keep your lean mass'}, ${f1(left)} lb from now${wks&&wks<260?`, around ${fM(wtD(today())+wks*6048e5)} at ${gAt(r)}`:''}.`}
+const gPc=window.__SA&&ws&&ws.gpc?ws.gpc:0,gDt=k=>gPc&&ws.projT?ws.projT:fM(wtD(today())+k*6048e5),gWk=(gw,left,r)=>gPc&&bw>0&&gw>0&&gw<bw?Math.log(gw/bw)/Math.log(1-gPc/100):r>0&&left!=null?left/r:null,gAt=r=>gPc?`${gPc}% a week (${rS(r)} lb now)`:window.__SA?rS(r)+' lb a week':f1(r)+' lb a week';
+if(p.k==='cut'&&!c){const gwT=goalW(),left=bw==null||gwT==null?null:bw-gwT,r=Math.abs(LKr!=null?LKr:rate),wks=gWk(gwT,left,r);goal=left==null?(window.__SA?(bw==null?'Once your first weigh-in is in, pick your goal weight here.':'Pick your goal weight below.'):'Log a weigh-in on the Weight tab to set your goal weight.'):left<=0?`You’re at your goal weight of ${Math.round(gwT)} lb.`:`Reach ${Math.round(gwT)} lb: ${f1(left)} lb from now${wks&&wks<260?`, around ${gDt(wks)} at ${gAt(r)}`:''}.`}
+else if(p.k==='cut'){const gwT=goalW(p.g.bf),left=bw-gwT,r=Math.abs(LKr!=null?LKr:rate),wks=gWk(gwT,left,r);goal=left<=0?`You’re at your ${p.g.bf}% body fat weight (about ${Math.round(gwT)} lb).`:`Reach ${p.g.bf}% body fat: about ${Math.round(gwT)} lb ${window.__SA?gwLean(p.g.bf):'if you keep your lean mass'}, ${f1(left)} lb from now${wks&&wks<260?`, around ${gDt(wks)} at ${gAt(r)}`:''}.`}
 else if(p.k==='bulk')goal=`Lean bulk for ${p.g.wk} weeks, to about ${Math.round(ps+p.r*p.g.wk)} lb by ${fM(wtD(addD(p.since,7*p.g.wk)))}. Stop early if a DEXA scan shows more than ${p.g.cap}% body fat.`;
 else if(p.k==='recomp')goal=`Recomp for ${p.g.wk} weeks at maintenance calories, until ${fM(wtD(addD(p.since,7*p.g.wk)))}. It’s working when your lifts climb and your next DEXA shows less fat and more lean at about the same weight.`;
 else goal=window.__SA&&ps==null?`Hold around your weight at your first weigh-in (within 2 lb either way) for ${p.g.wk} weeks, until ${fM(wtD(addD(p.since,7*p.g.wk)))}.`:`Hold around ${Math.round(ps)} lb (within 2 lb either way) for ${p.g.wk} weeks, until ${fM(wtD(addD(p.since,7*p.g.wk)))}.`;
@@ -1684,7 +1684,7 @@ function goalCard(){if(!window.__SA)return '';const s=wtStats();if(!s)return '';
 if(ph.k==='cut'){if(!ps||!(gw>0)||!(ps.w>gw))return '';const ref=s.ref,av=s.a7!=null,tot=ps.w-gw,dn=ps.w-ref,pc=Math.max(0,Math.min(100,dn/tot*100)),left=Math.max(0,ref-gw);
 if(left<=0)return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Goal reached:</b> ${f1(ref)} lb${av?' (your 7-day average)':''}, at or under ${Math.round(gw)} lb (${ph.g.bf}% body fat at your lean mass).</p>${bar(100)}<p class="hint">A DEXA scan confirms where your body fat landed. Then pick what’s next under Plan.</p></section>`;
 const cp=s.cp,yp=cp!=null&&cp<0?(proj||'More than 5 years'):cp!=null?'Not losing yet':'Too early to tell';
-const rows=`<div class="gdt"><div><span>Planned (${window.__SA&&ph.pc>0&&!lkFl(planT())?ph.pc+'% a week, '+rS(s.er)+' lb now':rS(s.er)+' lb a week'})</span><b>${E(projT||'-')}</b></div><div><span>At your pace${cp!=null&&cp<0?' ('+f1(-cp)+' lb a week)':''}</span><b>${E(yp)}</b></div></div>`;
+const rows=`<div class="gdt"><div><span>Planned (${s.gpc?s.gpc+'% a week, '+rS(s.er)+' lb now':rS(s.er)+' lb a week'})</span><b>${E(projT||'-')}</b></div><div><span>At your pace${cp!=null&&cp<0?' ('+f1(-cp)+' lb a week)':''}</span><b>${E(yp)}</b></div></div>`;
 return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>${Math.round(pc)}%</b> of the way to ${Math.round(gw)} lb (${ph.g.bf}% body fat)</p>${bar(pc)}<p class="hint">${av?'Your 7-day average is '+(dn>=0?'down ':'up '):dn>=0?'Down ':'Up '}${f1(Math.abs(dn))} lb from ${f1(ps.w)} lb on ${E(dsh(ps))}, ${f1(left)} lb to go.${wtAsOf()?' '+E(wtAsOf()):''}</p>${dxNote(ph)}${ctV(s,ph)}${rows}<p class="hint">Planned and At your pace come from your weekly average weight, so they move as each week’s weigh-ins come in.</p>${gfRow(s)}</section>`}
 if((ph.k==='recomp'||ph.k==='bulk')&&ph.g&&ph.g.wk){const wk=ph.g.wk,el=Math.max(0,Math.round((wtD(today())-wtD(ph.since))/864e5)),n=Math.min(wk,Math.floor(el/7)+1),pc=Math.min(100,el/(wk*7)*100),end=addD(ph.since,wk*7),nm=phN(ph.k);
 return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Week ${n} of ${wk}</b> of your ${nm}</p>${bar(pc)}<p class="hint">${el>=wk*7?`Your ${wk} weeks are up. `:`Ends around ${E(yd(end))}. `}${ph.k==='recomp'?'A recomp is judged by your lifts, your waist and your next DEXA, not the scale.':`Judged by a slow, steady gain, climbing lifts${ph.g.cap?' and staying under '+ph.g.cap+'% body fat':''}.`}</p>${ph.k==='bulk'?bkCard(ph)+bkDx(ph):''}${ph.k==='recomp'?rcCard(ph):''}</section>`}
@@ -1714,7 +1714,7 @@ const pdP=pc=>{if(!lm||!(lm.a>gw)||!(pc>0))return null;const k=Math.log(gw/lm.a)
 const ph=phase(),tg=tgt(),cut=ph.k==='cut';
 // the check-in's view: expected rate (the plan's, after the calorie floor), its trend, and the 7-day average for the goal
 const ref=a7!=null?a7:L.w,LK=planT(),dn0=wk.filter(x=>x.e<today()),cW=dn0[dn0.length-1],cx=window.__SA&&cW?{bw:cW.a,wk:Math.floor(Math.round((wtD(cW.e)-wtD(ph.since))/864e5)/7)+1}:null,er=window.__SA&&LK?plRate(LK,cW?cW.a:ref):LK&&isFinite(LK.rate)?LK.rate:tg,ctr=ciTrend(dn0,ph),cp=ctr.a,cpc=cp!=null?cp/ctr.use[ctr.use.length-1].a*100:null;
-const proj=cut&&cp!=null&&cp<0?pd(-cp):null,projT=cut?(window.__SA&&ph.pc>0&&LK&&!lkFl(LK)?pdP(ph.pc):pd(-er)):null,tpc=Math.abs(tg)/ref*100;
+const proj=cut&&cp!=null&&cp<0?pd(-cp):null,gpc=window.__SA&&cut&&ph.pc>0&&LK&&!plFl(LK,cW?cW.a:ref)?ph.pc:0,projT=cut?(gpc?pdP(gpc):pd(-er)):null,tpc=Math.abs(tg)/ref*100;
 let stat=null;
 if(cut&&ref<=gw)stat={k:'goal',tile:'At goal'};
 else if(cp==null)stat={k:'wait',tile:'Too early'};
@@ -1724,7 +1724,7 @@ else stat=Math.abs(cp)<=.3?{k:'on',tile:'Holding'}:cp<0?{k:'down',tile:'Losing'}
 const ps=w.filter(x=>x.t<=ph.since).pop()||w.find(x=>x.t>=ph.since)||null;
 const tdy=wtD(today()),n7=window.__SA?w.filter(x=>x.t>=addD(r7,-6)&&x.t<=r7).length:w.filter(x=>dy(x)>=tdy-6*864e5&&dy(x)<=tdy).length,low=w.reduce((b,x)=>x.w<b.w?x:b,w[0]);
 const high=w.reduce((b,x)=>x.w>b.w?x:b,w[0]);
-return{w,L,st,dy,avg,a7,pa,wk,wa,pace,pct,pf,pl,pw,proj,projT,tpc,stat,gw,low,high,n7,ph,tg,ps,lost:st.w-L.w,ref,er,ctr,cp,cpc,cx}}
+return{w,L,st,dy,avg,a7,pa,wk,wa,pace,pct,pf,pl,pw,proj,projT,tpc,stat,gw,low,high,n7,ph,tg,ps,lost:st.w-L.w,ref,er,ctr,cp,cpc,cx,gpc}}
 function niceTicks(lo,hi){
 const r=hi-lo,c=[.5,1,2,2.5,5,10,20,25,50,100];
 let st=c[0],bd=1e9;
@@ -1786,7 +1786,7 @@ const w4=ctr.use?(window.__SA?wsHoldT(ph,ctr.use[ctr.use.length-1].e):wsTrend(ct
 const wb=ph.k==='bulk'&&w4&&w4.n>=3&&w4.span>=14&&w4.ch>=(window.__SA?WS_H:.5)?(()=>{const a0=wAvg(w4.first.t),b0=wAvg(w4.last.t);return `<p class="hint dn">${window.__SA?E(wsHT(w4).replace(/^y/,'Y')):`Your waist is up ${inF(w4.ch)} in over the weeks your weight trend covers, ${E(wrg)} (${inF(w4.first.v)} → ${inF(w4.last.v)} in)`}${a0!=null&&b0!=null?` while your weight went ${b0>=a0?'up':'down'} ${f1(Math.abs(b0-a0))} lb`:''}. On a ${phN('bulk')} that suggests more of the gain is fat. While ${window.__SA?'that line is up 0.75 in or more':'your waist is up 0.5 in or more over those weeks'}, the weekly check-in holds off adding calories (at most twice between plan changes).</p>`})():'';
 const banner=(stat?(B[ph.k][stat.k]||''):'')+wnote+wb+(sdir&&ss?`<p class="hint dn">Your steps averaged ${fmt(ss.sa)} a day over the last 7 days against your ${fmt(ss.tg)} target. That’s the first thing to fix, before eating differently.</p>`:'')+defer;
 const guide=cut&&window.__SA&&ph.pc?`Your target is ${ph.pc}% of your weight a week, about ${f1(ph.r)} lb now; the pounds ease as you lose. Common guidance for lifters is up to about 1% of body weight a week, with 0.5-0.75% gentler on muscle.${ph.pc>1?' Your target is over 1%, the aggressive end.':''}${plFl(planT(),cx?cx.bw:ref)?` Your calorie floor stops the plan short of that, so it works out to about ${R0} lb a week, and that’s what your status is judged against.`:''}`:ph.k==='bulk'&&window.__SA&&ph.pc?`Your target is ${ph.pc}% of your weight a week, about ${f1(ph.r)} lb now. ${bkGuide()}; gaining faster mostly adds fat.${bkFast(ph,ref)?' Your target is faster than that.':''}`:cut?`Your target of ${ph.r} lb a week is ${f1(tpc)}% of your weight. Common guidance for lifters is up to about 1% of body weight a week, with 0.5-0.75% gentler on muscle.${+tpc.toFixed(1)>1?' Your target is now over 1%, the aggressive end.':''}${Math.abs(Math.abs(er)-ph.r)>=.05?` Your calorie floor stops the plan short of that, so it works out to about ${R0} lb a week, and that’s what your status is judged against.`:''}`:ph.k==='bulk'?`Your target of ${ph.r} lb a week is ${f1(tpc)}% of your weight. ${bkGuide()}; gaining faster mostly adds fat.${bkFast(ph,ref)?' Your target is faster than that.':''}`:ph.k==='recomp'?'A recomp eats at maintenance, so the scale should hold within about 0.3 lb a week either way. Progress shows in your strength, waist and DEXA.':'Maintenance means holding within about 0.3 lb a week either way.';
-const dt=proj&&projT?` At this pace you reach about ${Math.round(gw)} lb around ${proj}; at ${R0} lb a week, around ${projT}.`:projT?` At ${R0} lb a week you would reach about ${Math.round(gw)} lb around ${projT}.`:'';
+const RW=s.gpc?`${s.gpc}% a week (${R0} lb now)`:R0+' lb a week',dt=proj&&projT?` At this pace you reach about ${Math.round(gw)} lb around ${proj}; at ${RW}, around ${projT}.`:projT?` At ${RW} you would reach about ${Math.round(gw)} lb around ${projT}.`:'';
 const hint=pace!=null?`<p class="hint">Pace: the trend through your weekly averages over ${E(wrg)}, the one the weekly check-in uses, so ${sg(pace)} lb (${sg(pct)}%) a week. ${guide}${dt}</p>`:`<p class="hint">Pace: shows once the weekly check-in starts judging your trend, measured the same way. ${guide}${dt}</p>`;
 return `<section class="ex"><h2>Trend</h2>${wtAsOf()?`<p class="hint">${E(wtAsOf())} New weigh-ins come in when you sync with Apple Health. <button class="edit" data-a="tab" data-d="hk" style="padding:0">Sync now</button></p>`:''}${tiles}${banner}${hint}${wtChart(s)}</section>${wtWeeks(s)}`}
 function wtWeeks(s){
@@ -2454,7 +2454,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'f0fe95c69c',d:'Oct 27, 2026 at 3:34 PM',b:+'1793129696'||0};
+const APP_V={h:'aff9244649',d:'Oct 27, 2026 at 4:00 PM',b:+'1793131216'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
