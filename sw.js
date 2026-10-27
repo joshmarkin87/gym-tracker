@@ -1,5 +1,5 @@
 // Offline support: the app opens instantly from this phone's copy, and picks up a new version in the background for next time.
-const V='gym-aff9244649',PV='gym-pdf-e3ecb67c75',BT=1793131216;
+const V='gym-a0748069ca',PV='gym-pdf-e3ecb67c75',BT=1793141079;
 const SHELL=['./','index.html','manifest.webmanifest','icons/icon-180.png','icons/icon-192.png','icons/icon-512.png','icons/icon-maskable-512.png','fonts/bc-600.woff2','fonts/bc-700.woff2'];
 // the PDF reader: kept across app versions (its own cache); a hiccup fetching it never holds up an update
 const PDF=['pdf/pdf.min.js','pdf/pdf.worker.min.js'];
