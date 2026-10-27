@@ -231,11 +231,89 @@ const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=
 const done=t=>new Promise((res,rej)=>{t.oncomplete=()=>res();t.onerror=t.onabort=()=>rej(t.error||new Error('write failed'))});
 const cl=v=>v===undefined?undefined:JSON.parse(JSON.stringify(v));
 async function get(k){const d=await open();return req(d.transaction(ST).objectStore(ST).get(k))}
-async function put(k,v){const d=await open(),t=d.transaction(ST,'readwrite');t.objectStore(ST).put(cl(v),k);return done(t)}
+// p93: the tracker document has a revision number beside it (key + '~rev'), raised by every write in the same
+// transaction, so a save can tell whether another copy of the app (a second tab) saved in between.
+const RK=k=>k+'~rev',isT=k=>/\/tracker$/.test(k);
+async function put(k,v){const d=await open(),t=d.transaction(ST,'readwrite'),s=t.objectStore(ST);s.put(cl(v),k);if(isT(k)){const r=s.get(RK(k));r.onsuccess=()=>{try{s.put((+r.result||0)+1,RK(k))}catch(e){try{t.abort()}catch(x){}}}}return done(t)}
 async function del(k){const d=await open(),t=d.transaction(ST,'readwrite');t.objectStore(ST).delete(k);return done(t)}
 async function list(p,n){const d=await open();return req(d.transaction(ST).objectStore(ST).getAll(IDBKeyRange.bound(p,p+'￿'),n))}
-const doc=k=>({get:async()=>{const v=await get(k);return{exists:v!==undefined,data:()=>cl(v)}},set:v=>put(k,v),delete:()=>del(k)});
-const db={doc,collection:p=>({doc:id=>doc(p+'/'+id),limit:n=>({get:async()=>({docs:(await list(p+'/',n)).map(v=>({data:()=>cl(v)}))})})})};
+// p93: every record under a prefix, read 500 at a time (backups had a 1,000 cap)
+async function listAll(p){const d=await open(),out=[];let lo=p,ex=false;for(;;){const s=d.transaction(ST).objectStore(ST),r=IDBKeyRange.bound(lo,p+'￿',ex,false);const[ks,vs]=await Promise.all([req(s.getAllKeys(r,500)),req(s.getAll(r,500))]);for(const v of vs)out.push(v);if(ks.length<500)return out;lo=ks[ks.length-1];ex=true}}
+async function count(p){const d=await open();return req(d.transaction(ST).objectStore(ST).count(IDBKeyRange.bound(p,p+'￿')))}
+async function getRev(k){const d=await open();return new Promise((res,rej)=>{const t=d.transaction(ST),s=t.objectStore(ST),a=s.get(k),b=s.get(RK(k));t.oncomplete=()=>res({exists:a.result!==undefined,data:()=>cl(a.result),rev:+b.result||0});t.onerror=t.onabort=()=>rej(t.error||new Error('read failed'))})}
+// p93: write only if nobody saved since revision `rev`, and only if guard(old, new) has no objection; read and write in one transaction
+async function setIf(k,v,rev,guard){const d=await open();return new Promise((res,rej)=>{const t=d.transaction(ST,'readwrite'),s=t.objectStore(ST),a=s.get(RK(k)),b=s.get(k);let out=null,err=null;
+b.onsuccess=()=>{try{const cur=+a.result||0,old=b.result;if(rev!=null&&cur!==rev){out={ok:false,rev:cur,v:cl(old)};return}
+const why=guard&&old!==undefined?guard(old,v):'';if(why){out={ok:false,refused:why,rev:cur,v:cl(old)};return}
+s.put(cl(v),k);s.put(cur+1,RK(k));out={ok:true,rev:cur+1}}catch(e){err=e;try{t.abort()}catch(x){}}};
+t.oncomplete=()=>res(out);t.onerror=t.onabort=()=>rej(err||t.error||new Error('write failed'))})}
+const doc=k=>({get:async()=>{const v=await get(k);return{exists:v!==undefined,data:()=>cl(v)}},set:v=>put(k,v),delete:()=>del(k),getRev:()=>getRev(k),setIf:(v,rev,g)=>setIf(k,v,rev,g)});
+const db={doc,collection:p=>({doc:id=>doc(p+'/'+id),limit:n=>({get:async()=>({docs:(await list(p+'/',n)).map(v=>({data:()=>cl(v)}))})}),all:async()=>({docs:(await listAll(p+'/')).map(v=>({data:()=>cl(v)}))}),count:()=>count(p+'/')})};
+// p93: a restore replaces everything in one transaction: the archives are emptied (the previous person's archived workouts
+// and food days go), the backup's archive and tracker are written, and the revision is raised. If any part fails, nothing changes.
+const TK='data/users/me/tracker';
+window.__saRestore=async(doc,ss,fd)=>{const d=await open();return new Promise((res,rej)=>{const t=d.transaction(ST,'readwrite'),s=t.objectStore(ST),sp=TK+'/sessions/',fp=TK+'/food/';let rev=0,err=null;
+try{s.delete(IDBKeyRange.bound(sp,sp+'￿'));s.delete(IDBKeyRange.bound(fp,fp+'￿'));
+for(const x of ss)s.put(cl(x),sp+x.id);for(const x of fd)s.put(cl(x),fp+x.t);s.put(cl(doc),TK)}catch(e){err=e;try{t.abort()}catch(x){}return}
+const r=s.get(RK(TK));r.onsuccess=()=>{try{rev=(+r.result||0)+1;s.put(rev,RK(TK))}catch(e){err=e;try{t.abort()}catch(x){}}};
+t.oncomplete=()=>res(rev);t.onerror=t.onabort=()=>rej(err||t.error||new Error('write failed'))})};
+// p93: checking a backup before it's restored. A file that isn't a tracker backup is refused. Every field is checked: an entry
+// that can't be used (no valid date, a weigh-in with no weight, a scan with no results, a workout with no sets) is left out
+// and listed for the person; an optional number that isn't one loses only that field; a field of the wrong kind starts
+// empty. Valid data comes back unchanged (the same objects), so a good backup restores exactly.
+const saO=x=>!!x&&typeof x==='object'&&!Array.isArray(x),saDay=t=>typeof t==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(t)&&!isNaN(Date.parse(t+'T12:00:00Z'));
+const saNum=x=>typeof x==='number'?(isFinite(x)?x:null):typeof x==='string'&&/^\s*-?\d+(\.\d+)?\s*$/.test(x)?+x:null;
+const saAddD=(t,n)=>{const d=new Date(t+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+window.__saSane=function(o,opt){opt=opt||{};
+if(!saO(o)||o.app!=='gym-tracker'||o.kind!=='backup'||!saO(o.data)||!Array.isArray(o.data.log))return{ok:false};
+const late=t=>!!(opt.today&&t>saAddD(opt.today,1)),sk={},D=Object.assign({},o.data);
+const nf=(e,ks)=>{let c=null;for(const k of ks)if(e[k]!=null){const v=saNum(e[k]);if(v===e[k])continue;c=c||Object.assign({},e);if(v==null)delete c[k];else c[k]=v}return c||e};
+const base=e=>saO(e)&&saDay(e.t)&&!late(e.t);
+const FX={
+log:e=>{if(!base(e)||!saO(e.s))return null;let c=null;for(const n in e.s){const r=e.s[n];if(Array.isArray(r)&&r.every(Array.isArray))continue;c=c||Object.assign({},e.s);const f=Array.isArray(r)?r.filter(Array.isArray):[];if(f.length)c[n]=f;else delete c[n]}
+if(!c)return Object.keys(e.s).length?e:null;return Object.keys(c).length?Object.assign({},e,{s:c}):null},
+wt:e=>{if(!base(e))return null;const w=saNum(e.w);return w==null||!(w>0&&w<2000)?null:w===e.w?e:Object.assign({},e,{w})},
+waist:e=>{if(!base(e))return null;const v=saNum(e.v);return v==null||!(v>0)?null:v===e.v?e:Object.assign({},e,{v})},
+food:e=>{if(!base(e))return null;let x=nf(e,['b','c','p','pg','cb','cg','f','fg','fi','na','su','sf']);if(x.m!=null&&!(Array.isArray(x.m)&&x.m.every(saO))){x=x===e?Object.assign({},e):x;if(Array.isArray(x.m)&&x.m.some(saO))x.m=x.m.filter(saO);else{delete x.m;delete x.mf}}return x},
+hl:e=>base(e)?nf(e,['st','sl','hr']):null,
+scans:e=>base(e)&&['tm','fm','lm'].every(k=>typeof e[k]==='number'&&isFinite(e[k])&&e[k]>0)?e:null,
+labs:e=>{if(!base(e)||!saO(e.v))return null;const ks=Object.keys(e.v);if(ks.every(k=>saO(e.v[k])))return ks.length?e:null;const v={};for(const k of ks)if(saO(e.v[k]))v[k]=e.v[k];return Object.keys(v).length?Object.assign({},e,{v}):null},
+phases:e=>saO(e)&&saDay(e.t)&&typeof e.k==='string'&&e.k?nf(e,['r']):null,
+ci:e=>saO(e)?e:null};
+for(const f in FX){if(D[f]==null)continue;const a=D[f];if(!Array.isArray(a)){sk[f]='all';D[f]=[];continue}
+let ch=false,n=0;const out=[];for(const e of a){const x=FX[f](e);if(x==null){n++;ch=true}else{if(x!==e)ch=true;out.push(x)}}if(ch)D[f]=out;if(n)sk[f]=n}
+for(const f of ['prof','lock','plan','rev','cyc','prog','setup','steps','rarc','hkt','wtx','fa'])if(D[f]!=null&&!saO(D[f])){delete D[f];sk[f]=1}
+if(saO(D.prof)&&D.prof.sex!=null&&D.prof.sex!=='m'&&D.prof.sex!=='f'){D.prof=Object.assign({},D.prof);delete D.prof.sex;sk.sex=1}
+if(saO(D.prog)&&Object.values(D.prog).some(x=>!saO(x))){const p={};for(const k in D.prog)if(saO(D.prog[k]))p[k]=D.prog[k];D.prog=p;sk.prog=1}
+if(D.draft!=null&&!saO(D.draft)){D.draft={};sk.draft=1}else if(saO(D.draft)&&Object.values(D.draft).some(x=>!saO(x)||!saO(x.s))){const p={};for(const k in D.draft)if(saO(D.draft[k])&&saO(D.draft[k].s))p[k]=D.draft[k];D.draft=p;sk.draft=1}
+for(const[f,ok]of [['wdays',x=>Number.isInteger(+x)&&+x>=0&&+x<=6],['msx',x=>typeof x==='string'],['bm',x=>typeof x==='string']])if(D[f]!=null){if(!Array.isArray(D[f])){delete D[f];sk[f]=1}else if(!D[f].every(ok)){D[f]=D[f].filter(ok);sk[f]=1}}
+for(const f of ['bk','dl'])if(D[f]!=null&&!saDay(D[f]))delete D[f];
+const up=a=>{for(let i=1;i<a.length;i++)if(a[i-1].t>a[i].t)return false;return true};
+for(const f of ['wt','food','hl','waist'])if(Array.isArray(D[f])&&!up(D[f]))D[f]=D[f].slice().sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0);
+if(!up(D.log.slice().reverse()))D.log=D.log.slice().sort((p,q)=>p.t<q.t?1:p.t>q.t?-1:0);
+// the archive in the file: entries that can't be used are left out (counted only when the list doesn't have them either)
+const inL=new Set(D.log.map(e=>e&&e.id)),inF=new Set((Array.isArray(D.food)?D.food:[]).map(e=>e&&e.t)),ss=[],fd=[];let ns=0,nd=0;
+if(Array.isArray(o.sessions))for(const x of o.sessions){const y=saO(x)&&typeof x.id==='string'&&x.id?FX.log(x):null;if(y)ss.push(y);else if(!(saO(x)&&inL.has(x.id)))ns++}
+if(Array.isArray(o.food_days))for(const x of o.food_days){const y=FX.food(x);if(y)fd.push(y);else if(!(saO(x)&&inF.has(x.t)))nd++}
+if(ns&&sk.log!=='all')sk.log=(sk.log||0)+ns;if(nd&&sk.food!=='all')sk.food=(sk.food||0)+nd;
+const L={log:['workout','workouts'],wt:['weigh-in','weigh-ins'],waist:['waist measurement','waist measurements'],food:['food day','food days'],hl:['health day','health days'],scans:['DEXA scan','DEXA scans'],labs:['blood test','blood tests'],phases:['phase','phases'],ci:['check-in','check-ins']};
+const W={prof:'your About you settings',lock:'the plan’s numbers',plan:'Claude’s plan',rev:'Claude’s food review',cyc:'cycle tracking',prog:'some program changes',setup:'machine settings',steps:'weight steps',rarc:'older records',hkt:'today’s Apple Health status',wtx:'weigh-in edits',fa:'cards after Finish',draft:'an unfinished workout',sex:'who the tracker is for',wdays:'workout days',msx:'milestones seen',bm:'bowel log'};
+const skipped=Object.keys(sk).map(f=>L[f]?(sk[f]==='all'?'the '+L[f][0]+' list':sk[f]+' '+L[f][sk[f]===1?0:1]):W[f]);
+return{ok:true,data:D,sessions:ss,food_days:fd,skipped}};
+// p93: what a restore writes: the backup's tracker and its archive, plus every workout and food day only in the lists.
+// Older versions kept only their newest workouts in the list (the rest only in the archive): with 50+ in the list,
+// archived workouts older than the oldest one in it come back into it, so the Strength check, Records and Weeks have them all.
+window.__saPrep=function(r,td,ex){const cl=v=>JSON.parse(JSON.stringify(v)),D=cl(r.data),ss=cl(r.sessions||[]),fd=cl(r.food_days||[]);
+{const ids=new Set();for(const e of D.log.slice().reverse()){if(!e.id)e.id=e.t+'-'+e.day;if(ids.has(e.id)){let k=2;while(ids.has(e.id+'-'+k))k++;e.id=e.id+'-'+k}ids.add(e.id)}}
+if(D.log.length>=50){const ids=new Set(D.log.map(e=>e.id)),old=D.log.reduce((m,e)=>e.t<m?e.t:m,'9999');let add=0;for(const x of ss)if(!ids.has(x.id)&&x.t<old){D.log.push(cl(x));ids.add(x.id);add++}if(add)D.log.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0)}
+const sid=new Set(ss.map(x=>x.id)),ft=new Set(fd.map(x=>x.t));
+for(const e of D.log){if(!sid.has(e.id)){ss.push(cl({id:e.id,t:e.t,day:e.day,s:e.s,nt:e.nt,cd:e.cd,cp:e.cp}));sid.add(e.id)}e.a=1}
+if(Array.isArray(D.food))for(const e of D.food){if(!ft.has(e.t)){const x=cl(e);delete x.a;fd.push(x);ft.add(e.t)}e.a=1}
+// a restored backup counts as backed up on the day it was made, with its own scans and blood tests (so the reminder
+// only asks again for what's added after)
+if(ex&&ex<=td&&!(D.bk>=ex))D.bk=ex;
+D.prof=Object.assign({},saO(D.prof)?D.prof:{},{bkc:{s:(D.scans||[]).length,l:(D.labs||[]).length}});
+return{doc:D,sessions:ss,food:fd}};
 // saving a file: share sheet (Save to Files, AirDrop, Messages) when the phone allows it, otherwise a tap-to-save bar
 function bar(f){return new Promise(res=>{const u=URL.createObjectURL(f),b=document.createElement('div');b.className='sabar';
 b.innerHTML='<span><b>File ready</b><small></small></span><a href="'+u+'" download="'+f.name.replace(/["<&]/g,'')+'">Save</a><button type="button" aria-label="Close">×</button>';b.querySelector('small').textContent=f.name;
@@ -250,7 +328,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='22e0f8f3a1',sfT0=Date.now();
+const SFV='ef58639170',sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -263,12 +341,36 @@ window.__ERRS=[];
 window.__saErr=x=>{x=String(x).slice(0,300);window.__ERRS.push(x);sfSet('gym-sa-err',(sfGet('gym-sa-err')||[]).concat({x,t:Date.now()}).slice(-3))};
 window.__saUp=()=>{window.__BOOTED=true;window.__saStep('started');setTimeout(()=>{sfSet('gym-sa-boot',{n:0,t:Date.now(),ok:1});window.__saStep('running')},3000)};
 let sfFile=null;
-// the phone's quick copy first (no database read, in case the database is what fails); the database only if that copy is missing
-async function sfData(){const ok=x=>!!(x&&typeof x==='object'&&Array.isArray(x.log));let data=sfGet('gym-tracker-v1');const out={app:'gym-tracker',kind:'backup',exported:new Date().toISOString()};
-if(!ok(data)){data=null;try{const d=await get('data/users/me/tracker');if(ok(d))data=d}catch(e){}if(!data)return null;
-try{const a=await list('data/users/me/tracker/sessions/',1000);if(a&&a.length)out.sessions=a}catch(e){}
-try{const a=await list('data/users/me/tracker/food/',1000);if(a&&a.length)out.food_days=a}catch(e){}}
+// p93: the newest copy, complete: the database (the saved copy) with every archived workout and food day; the quick copy
+// instead when it holds changes the database doesn't have (gym-tracker-v1-meta says so), or when the database can't be read.
+// When it can't tell which is newer (data saved by an older version), anything only one copy has is added to the other.
+const KF={log:e=>e&&e.id,wt:e=>e&&e.t,waist:e=>e&&e.t,food:e=>e&&e.t,hl:e=>e&&e.t,labs:e=>e&&e.t,scans:e=>e&&e.t,ci:e=>e&&e.pid+'|'+e.w};
+function sfUnion(a,b){const o=Object.assign({},a);for(const f in KF){const x=Array.isArray(a[f])?a[f]:[],y=Array.isArray(b[f])?b[f]:[],ks=new Set(x.map(KF[f])),add=y.filter(e=>e&&!ks.has(KF[f](e)));if(add.length){o[f]=x.concat(add).sort((p,q)=>(p.t||p.w||'')<(q.t||q.w||'')?-1:(p.t||p.w||'')>(q.t||q.w||'')?1:0);if(f==='log')o.log.reverse()}}return o}
+async function sfData(){const ok=x=>!!(x&&typeof x==='object'&&Array.isArray(x.log));const lk=sfGet('gym-tracker-v1'),m=sfGet('gym-tracker-v1-meta'),out={app:'gym-tracker',kind:'backup',exported:new Date().toISOString()};
+let db=null,dbOK=false;try{db=(await getRev(TK)).data();dbOK=true}catch(e){}
+let data=null;if(ok(db)&&ok(lk))data=m&&!m.u?db:m&&m.u?sfUnion(lk,db):sfUnion(db,lk);else data=ok(db)?db:ok(lk)?lk:null;
+if(!data)return null;
+if(dbOK){try{const a=await listAll(TK+'/sessions/');if(a.length)out.sessions=a}catch(e){}try{const a=await listAll(TK+'/food/');if(a.length)out.food_days=a}catch(e){}}
 out.data=data;return out}
+// p93: restoring a backup from the rescue screen, for when the app itself can't open: the same check and the same
+// all-or-nothing write as the app's own restore, then the app reopens (in the matching his / her program)
+let sfPend=null;const sfDay=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+async function sfPick(o,f){const p=o.querySelector('.sarm');sfPend=null;let j;try{j=JSON.parse(await f.text())}catch(e){p.textContent='That file couldn’t be read. Pick a backup saved from this app (gym-tracker-backup-….json). Nothing was changed.';return}
+const td=sfDay(new Date()),r=window.__saSane(j,{today:td});
+if(!r.ok){p.textContent='That isn’t a tracker backup. Pick a backup saved from this app (gym-tracker-backup-….json). Nothing was changed.';return}
+const D=r.data,n=a=>Array.isArray(a)?a.length:0,ex=new Date(j.exported),w=Math.max(n(D.log),n(r.sessions));
+sfPend={r,ex:isNaN(ex)?null:sfDay(ex),td};
+p.innerHTML='<b></b><span></span><button type="button" data-r="rsok">Restore this backup</button><button type="button" data-r="rsno">Cancel</button>';
+p.querySelector('b').textContent='Backup from '+(isNaN(ex)?'an unknown date':ex.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'}))+': '+w+' workout'+(w===1?'':'s')+', '+n(D.wt)+' weigh-in'+(n(D.wt)===1?'':'s')+', '+Math.max(n(D.food),n(r.food_days))+' food days. ';
+p.querySelector('span').textContent='This replaces everything in the app on this phone.'+(r.skipped.length?' Some entries couldn’t be read and will be left out: '+r.skipped.join(', ')+'.':'')}
+async function sfRestore(o,b){const P=sfPend,p=o.querySelector('.sarm');if(!P)return;b.disabled=true;b.textContent='Restoring…';
+const R=window.__saPrep(P.r,P.td,P.ex),sx=R.doc.prof&&R.doc.prof.sex==='f'?'f':'m';window.__saHold=true;
+// the quick copies go first, so nothing older can be mixed back in after the restore
+try{for(const k of ['gym-tracker-v1','gym-tracker-v1-base','gym-tracker-v1-meta'])localStorage.removeItem(k)}catch(e){}
+let rev;try{rev=await window.__saRestore(R.doc,R.sessions,R.food)}catch(e){window.__saHold=false;b.disabled=false;b.textContent='Restore this backup';p.querySelector('span').textContent='Couldn’t restore it: saving to the phone’s storage failed'+(e&&e.name==='QuotaExceededError'?' (it’s full)':'')+'. Nothing was changed.';return}
+sfSet('gym-tracker-v1',R.doc);sfSet('gym-tracker-v1-base',R.doc);sfSet('gym-tracker-v1-meta',{u:0,r:rev,b:rev,f:sx});
+try{sessionStorage.setItem('gym-sa-go','1');sessionStorage.setItem('gym-sa-fem',sx);sessionStorage.removeItem('gym-sa-rl')}catch(e){}
+sfSet('gym-sa-boot',{n:0,t:Date.now(),ok:1});location.replace(location.pathname+'?sa='+sx)}
 async function sfPrep(b){try{const o=await sfData();if(!o){b.textContent='No saved data found on this phone';return}
 const t=new Date(),p=n=>String(n).padStart(2,'0');sfFile=new File([JSON.stringify(o,null,1)],'gym-tracker-backup-'+t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate())+'.json',{type:'application/json'});
 b.disabled=false;b.textContent='Save a backup'}catch(e){b.textContent='Couldn’t prepare a backup'}}
@@ -286,12 +388,13 @@ catch(e){b.disabled=false;b.textContent='Couldn’t download it. Check you’re 
 function sfRescue(why){let o=document.getElementById('sares');if(o){o.querySelector('.sawhy').textContent=why;return}
 o=document.createElement('div');o.id='sares';o.setAttribute('role','alertdialog');o.setAttribute('aria-label','The app hit a problem');
 o.innerHTML='<h2>The app hit a problem</h2><p>Your data is still saved on this phone. <b>Don’t delete the app from your Home Screen:</b> that would erase it.</p><p class="sawhy"></p>'
-+'<button type="button" data-r="bk" disabled>Preparing a backup…</button><button type="button" data-r="up">Get the latest version</button><button type="button" data-r="go">'+(window.__SAFE?'Open the app anyway':'Try again')+'</button><p class="sasm"></p>';
++'<button type="button" data-r="bk" disabled>Preparing a backup…</button><button type="button" data-r="up">Get the latest version</button><label class="sarl">Restore a backup<input type="file" accept=".json,application/json" hidden></label><p class="sarm"></p><button type="button" data-r="go">'+(window.__SAFE?'Open the app anyway':'Try again')+'</button><p class="sasm"></p>';
 o.querySelector('.sawhy').textContent=why;
 const pv=window.__SAFE&&sfPrev&&sfPrev.s?'Last step before it closed: '+sfPrev.s+' ('+(sfPrev.t/1000).toFixed(1)+' s after opening).':'',er=(sfGet('gym-sa-err')||[]).map(x=>x.x).join(' · ');
 o.querySelector('.sasm').textContent=[pv,er?'Errors: '+er+'.':'','Version '+SFV.slice(0,7)+'.'].filter(Boolean).join(' ');
 o.addEventListener('click',e=>{const b=e.target.closest('button[data-r]');if(!b||b.disabled)return;const r=b.dataset.r;
-if(r==='bk')sfSave(b);else if(r==='up')sfUpd(b);else{try{sessionStorage.setItem('gym-sa-go','1')}catch(x){}location.reload()}});
+if(r==='bk')sfSave(b);else if(r==='up')sfUpd(b);else if(r==='rsok')sfRestore(o,b);else if(r==='rsno'){sfPend=null;o.querySelector('.sarm').textContent=''}else{try{sessionStorage.setItem('gym-sa-go','1')}catch(x){}location.reload()}});
+o.addEventListener('change',e=>{const t=e.target;if(t&&t.type==='file'){const f=t.files&&t.files[0];t.value='';if(f)sfPick(o,f)}});
 document.body.appendChild(o);sfPrep(o.querySelector('[data-r="bk"]'))}
 function sfBar(x){let b=document.getElementById('saerr');
 if(!b){b=document.createElement('div');b.id='saerr';b.setAttribute('role','alert');b.innerHTML='<span><b>Something went wrong.</b> A screenshot of this helps get it fixed.<small></small></span><button type="button" aria-label="Close">×</button>';b.querySelector('button').addEventListener('click',()=>b.remove());document.body.appendChild(b)}
@@ -303,14 +406,20 @@ window.addEventListener('load',()=>setTimeout(()=>{if(!window.__BOOTED&&!window.
 if(window.__SAFE)sfRescue('It kept closing right after opening, so it’s paused here.');
 })();
 </script>
-<style>#sares{position:fixed;inset:0;z-index:100;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg,#fff);color:var(--ink,#111);padding:calc(env(safe-area-inset-top,0px) + 1.6rem) 1.2rem calc(env(safe-area-inset-bottom,0px) + 1.6rem);font:16px/1.45 system-ui,-apple-system,sans-serif}#sares h2{font-size:1.45rem;margin:0 0 .8rem}#sares p{margin:0 0 .9rem}#sares button{display:block;width:100%;margin:.6rem 0;padding:.95rem;border:0;border-radius:.8rem;font:600 17px system-ui,-apple-system,sans-serif;background:var(--acc,#0e7482);color:var(--accink,#fff);cursor:pointer}#sares button[data-r="go"]{background:none;color:var(--acc,#0e7482);border:1px solid var(--line,#ccc)}#sares button:disabled{opacity:.6}#sares .sasm{font-size:13px;opacity:.75;word-break:break-word;margin-top:1.2rem}#saerr{position:fixed;left:.8rem;right:.8rem;top:calc(env(safe-area-inset-top,0px) + .6rem);z-index:40;display:flex;gap:.6rem;align-items:flex-start;padding:.7rem .9rem;border-radius:.9rem;background:#8a1c1c;color:#fff;font:15px/1.35 system-ui,-apple-system,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25)}#saerr span{flex:1;min-width:0}#saerr small{display:block;opacity:.85;font-size:12px;word-break:break-word;margin-top:.2rem}#saerr button{background:none;border:0;color:#fff;font-size:1.4rem;line-height:1;cursor:pointer}</style>
+<style>#sares{position:fixed;inset:0;z-index:100;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg,#fff);color:var(--ink,#111);padding:calc(env(safe-area-inset-top,0px) + 1.6rem) 1.2rem calc(env(safe-area-inset-bottom,0px) + 1.6rem);font:16px/1.45 system-ui,-apple-system,sans-serif}#sares h2{font-size:1.45rem;margin:0 0 .8rem}#sares p{margin:0 0 .9rem}#sares button{display:block;width:100%;margin:.6rem 0;padding:.95rem;border:0;border-radius:.8rem;font:600 17px system-ui,-apple-system,sans-serif;background:var(--acc,#0e7482);color:var(--accink,#fff);cursor:pointer}#sares label.sarl{display:block;margin:.6rem 0;padding:.95rem;border-radius:.8rem;font:600 17px system-ui,-apple-system,sans-serif;text-align:center;background:none;color:var(--acc,#0e7482);border:1px solid var(--line,#ccc);cursor:pointer}#sares .sarm b,#sares .sarm span{display:block}#sares .sarm:empty{display:none}#sares button[data-r="go"]{background:none;color:var(--acc,#0e7482);border:1px solid var(--line,#ccc)}#sares button:disabled{opacity:.6}#sares .sasm{font-size:13px;opacity:.75;word-break:break-word;margin-top:1.2rem}#saerr{position:fixed;left:.8rem;right:.8rem;top:calc(env(safe-area-inset-top,0px) + .6rem);z-index:40;display:flex;gap:.6rem;align-items:flex-start;padding:.7rem .9rem;border-radius:.9rem;background:#8a1c1c;color:#fff;font:15px/1.35 system-ui,-apple-system,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25)}#saerr span{flex:1;min-width:0}#saerr small{display:block;opacity:.85;font-size:12px;word-break:break-word;margin-top:.2rem}#saerr button{background:none;border:0;color:#fff;font-size:1.4rem;line-height:1;cursor:pointer}</style>
 <style>.sabar{position:fixed;left:.8rem;right:.8rem;bottom:calc(1rem + env(safe-area-inset-bottom,0px));z-index:120;display:flex;align-items:center;gap:.8rem;padding:.7rem .9rem;border-radius:.9rem;background:var(--ink);color:var(--bg);font:15px/1.3 system-ui,-apple-system,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.25)}.sabar span{flex:1;min-width:0}.sabar b,.sabar small{display:block}.sabar small{opacity:.75;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sabar a{padding:.35rem .2rem}.sabar a{color:var(--bg);font-weight:700}.sabar button{background:none;border:0;color:var(--bg);font-size:1.4rem;line-height:1;cursor:pointer}</style>
 <script>
 if(window.__SAFE)throw new Error('gym-safe');
 function STP(x){try{if(window.__saStep)window.__saStep(x)}catch(e){}}STP('main');
 var GEN=0,MEMO=new Map();function memo(k,d,f){const m=MEMO.get(k);if(m&&m.g===GEN&&m.d.length===d.length&&m.d.every((x,i)=>x===d[i]))return m.v;const v=f();MEMO.set(k,{g:GEN,d,v});return v}
 // standalone: set once at setup; the program and women's numbers follow it
-const FEM=(()=>{try{const v=JSON.parse(localStorage.getItem('gym-tracker-v1')||'null');return !!(v&&v.prof&&v.prof.sex==='f')}catch(e){return false}})();
+const FEM=(()=>{const w=x=>x==='f'?true:x==='m'?false:null;let v=null;
+if(window.__SA){try{const h=/[?&]sa=([fm])(?:&|$)/.exec(location.search);if(h){v=w(h[1]);try{sessionStorage.setItem('gym-sa-fem',h[1])}catch(e){}history.replaceState(null,'',location.pathname+location.hash)}}catch(e){}
+if(v==null)try{v=w(sessionStorage.getItem('gym-sa-fem'))}catch(e){}}
+if(v!=null)return v;
+try{const x=JSON.parse(localStorage.getItem('gym-tracker-v1')||'null');if(x&&Array.isArray(x.log))return !!(x.prof&&x.prof.sex==='f')}catch(e){}
+if(window.__SA)try{const m=JSON.parse(localStorage.getItem('gym-tracker-v1-meta')||'null');if(m&&w(m.f)!=null)return w(m.f)}catch(e){}
+return false})();
 
 // her program: 5 days (Tue, Wed, Thu, Sat, Sun). k = sets (default 3)
 const PF={
@@ -583,6 +692,9 @@ for(const it of tc.items){if(!it.str||!it.str.trim())continue;const x=it.transfo
 rows.sort((p,q)=>q.y-p.y);
 for(const r of rows){r.a.sort((p,q)=>p.x-q.x);let t='',end=null;for(const it of r.a){if(end!=null)t+=it.x-end>3?'  ':(/\s$/.test(t)||/^\s/.test(it.s)?'':'');t+=it.s;end=it.x+it.w}out.push(t.replace(/[  ]/g,' ').replace(/\s+$/,''))}}
 return out}
+// p94: the sex printed on a report ("Sex: Male" on a DEXA, "Sex: M" on a lab report), as 'm' or 'f'
+function sexOf(v){const x=String(v==null?'':v).trim().toLowerCase();return /^(m|male|man)$/.test(x)?'m':/^(f|female|woman)$/.test(x)?'f':null}
+const sexMsg=(sx,w)=>`This ${w} is for a ${sx==='f'?'woman':'man'}, but this app is set up for a ${FEM?'woman':'man'}, so it wasn’t added. It’s probably someone else’s: add it in their app instead.`;
 function dxParse(L){
 const T=L.join('\n'),num=v=>{const n=parseFloat(String(v).replace(/,/g,''));return isFinite(n)?n:null},N='(-?\\d[\\d,]*(?:\\.\\d+)?)';
 const m1=re=>{const m=T.match(re);return m?num(m[1]):null};
@@ -623,19 +735,22 @@ const sc={t,tm:x['tot.t'],fm:x['tot.f'],lm:x['tot.l'],x};
 if(x.vata!=null)sc.vat=x.vata;if(x.rmr!=null)sc.rmr=x.rmr;if(x['arms.l']!=null)sc.al=x['arms.l'];if(x['legs.l']!=null)sc.ll=x['legs.l'];if(x['trunk.l']!=null)sc.tl=x['trunk.l'];if(x.rsmi!=null)sc.rs=x.rsmi;
 // your birth year and height from the report header (the app uses them only when there's no scan)
 const pf={},bd=T.match(/Birth Date:\s+\d{1,2}\/\d{1,2}\/(\d{4})/),hc=m1(/Height:\s+([\d.]+)\s*cm/);if(bd)pf.by=+bd[1];if(hc)pf.ht=Math.round(hc);
-return{scan:sc,n:Object.keys(x).length,pf:Object.keys(pf).length?pf:null}}
-let dxBusy=false,dxPend=null,dxErr='',dxPf=null;
+return{scan:sc,n:Object.keys(x).length,pf:Object.keys(pf).length?pf:null,sex:sexOf((T.match(/\bSex:\s+([A-Za-z]+)/)||[])[1])}}
+let dxBusy=false,dxPend=null,dxErr='',dxPf=null,dxPfOk=false;
 const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
 function dxLib(){return window.pdfjsLib?Promise.resolve(window.pdfjsLib):new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=PDFJS+'pdf.min.js';sc.onload=()=>{if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+'pdf.worker.min.js';res(pdfjsLib)}else rej(new Error('no reader'))};sc.onerror=()=>{sc.remove();rej(new Error('load'))};document.head.appendChild(sc)})}
-async function dxRead(f){dxErr='';dxPend=null;dxBusy=true;render();
+async function dxRead(f){dxErr='';dxPend=null;dxPfOk=false;dxBusy=true;render();
 try{let lib;try{lib=await dxLib()}catch(e){throw{u:1}}const pdf=await lib.getDocument({data:new Uint8Array(await f.arrayBuffer()),isEvalSupported:false}).promise;const r=dxParse(await dxLines(pdf));
-if(r.err)dxErr=r.err+' If it’s from another clinic, Claude can read it: tap Read it with Claude, paste in the chat, attach the PDF and send, then copy Claude’s reply and tap Paste from Claude.';else if(r.scan.t>today())dxErr='That report is dated in the future.';else if(!(r.scan.fm>0&&r.scan.lm>0&&r.scan.tm>=r.scan.fm+r.scan.lm-0.5))dxErr='The numbers in that report don’t add up, so it wasn’t added.';else{dxPend=r.scan;dxPf=r.pf||null}}
+if(r.err)dxErr=r.err+' If it’s from another clinic, Claude can read it: tap Read it with Claude, paste in the chat, attach the PDF and send, then copy Claude’s reply and tap Paste from Claude.';else if(window.__SA&&r.sex&&r.sex!==(FEM?'f':'m'))dxErr=sexMsg(r.sex,'DEXA report');else if(r.scan.t>today())dxErr='That report is dated in the future.';else if(!(r.scan.fm>0&&r.scan.lm>0&&r.scan.tm>=r.scan.fm+r.scan.lm-0.5))dxErr='The numbers in that report don’t add up, so it wasn’t added.';else{dxPend=r.scan;dxPf=r.pf||null}}
 catch(e){dxErr=e&&e.u?'Couldn’t load the PDF reader. Check your connection and try again.':'That PDF couldn’t be read here (it may be a scanned picture). Claude can read it: tap Read it with Claude, paste in the chat, attach the PDF and send, then copy Claude’s reply and tap Paste from Claude.'}
 dxBusy=false;render();const el=document.getElementById('dxc');if(el&&el.scrollIntoView)el.scrollIntoView({block:'center'})}
 function dxBox(){if(!window.__SA)return '';
 if(dxBusy)return `<div class="dxb" id="dxc"><p class="hint goal">Reading your report…</p></div>`;
-if(dxPend){const s=dxPend,n=Object.keys(s.x||{}).length;return `<div class="dxb" id="dxc"><p><b>DEXA scan from ${E(wtLong(s.t))}, ${s.t.slice(0,4)}</b></p><p class="hint">${f1(bfp(s))}% body fat · ${f1(s.fm)} lb fat · ${f1(s.lm)} lb lean · ${f1(s.tm)} lb total${s.vat!=null?' · visceral fat '+s.vat+' in²':''}${s.rmr!=null?' · RMR '+fmt(s.rmr)+' cal':''}. Read ${n} numbers from the report.${scans().some(x=>x.t===s.t)?' It replaces the scan you have for that date.':''}</p><button class="fin" data-a="dxok" style="margin:.4rem 0 .2rem">Add this scan</button><button class="edit" data-a="dxno" style="padding:.4rem 0">Cancel</button></div>`}
+if(dxPend){const s=dxPend,n=Object.keys(s.x||{}).length;return `<div class="dxb" id="dxc"><p><b>DEXA scan from ${E(wtLong(s.t))}, ${s.t.slice(0,4)}</b></p><p class="hint">${f1(bfp(s))}% body fat · ${f1(s.fm)} lb fat · ${f1(s.lm)} lb lean · ${f1(s.tm)} lb total${s.vat!=null?' · visceral fat '+s.vat+' in²':''}${s.rmr!=null?' · RMR '+fmt(s.rmr)+' cal':''}. Read ${n} numbers from the report.${scans().some(x=>x.t===s.t)?' It replaces the scan you have for that date.':''}</p>${window.__SA?dxPfAsk(s):''}<button class="fin" data-a="dxok" style="margin:.4rem 0 .2rem">Add this scan</button><button class="edit" data-a="dxno" style="padding:.4rem 0">Cancel</button></div>`}
 return `<div class="dxb" id="dxc"><label class="add upl">Upload DEXA PDF<input type="file" id="dxf" accept="application/pdf,.pdf" hidden></label><p class="hint">Pick the report PDF from your clinic. The app reads every number on your phone and shows them before adding.</p>${dxErr?`<p class="hint dn">${E(dxErr)}</p>`:''}${(dxErr&&/Claude can read it/.test(dxErr))||clK==='dx'?clRoute('dx'):''}</div>`}
+// p94: the report's height and birth year replace yours only when you tap to use them (for the newest scan only)
+function dxPfAsk(s){const pf=dxPf,pr=S.prof||{};if(!pf||scans().some(x=>x.t>s.t))return '';const d=[];if(pf.ht&&pf.ht!==+pr.ht)d.push(['height',pf.ht+' cm',pr.ht?pr.ht+' cm':null]);if(pf.by&&pf.by!==+pr.by)d.push(['birth year',String(pf.by),pr.by?String(pr.by):null]);if(!d.length)return '';
+return `<p class="hint">The report lists your ${E(d.map(x=>x[0]+' as '+x[1]).join(' and '))}; the app has ${E(d.map(x=>x[2]||'no '+x[0]).join(' and '))}. It keeps yours unless you tap below.</p><div class="chips"><button class="chip" aria-pressed="${dxPfOk}" data-a="dxpf">Use the report’s ${E(d.map(x=>x[0]).join(' and '))}</button></div>`}
 function bodySec(){
 const sc=scans(),b=sc[0],c=sc[sc.length-1];
 if(!c)return `<section class="ex"><h2>Body composition</h2><p class="hint">No DEXA scan yet. A scan measures your fat, lean and bone mass, and lets the plan use your real resting metabolic rate and lean mass instead of estimates.</p>${window.__SA?upGo('dx'):'<p class="hint">Upload your DEXA PDF in a Claude chat and say "log my scan."</p>'}</section>`;
@@ -656,7 +771,7 @@ const dots=(k,col)=>sc.map(s=>`<circle cx="${X(s).toFixed(1)}" cy="${Y(s[k]).toF
 extra=`<p>${E(txt)}</p><svg class="ch" viewBox="0 0 300 110" width="100%" role="img" aria-label="Fat and lean mass over time"><path d="${pth('fm')}" style="stroke:#d98a2b"></path><path d="${pth('lm')}"></path>${dots('fm','#d98a2b')}${dots('lm','var(--acc)')}</svg><p class="hint">Amber is fat mass, ${window.__SA?acName():'teal'} is lean mass (lb).</p>`}
 const rcp=FEM&&ph.k==='recomp'?(()=>{const s0=sc.filter(x=>x.t<=ph.since).pop(),s1=sc.filter(x=>x.t>ph.since).pop();if(!s0)return `<p class="hint">Recomp since ${E(lab({t:ph.since}))}. Rescan at the end of it to see the change.</p>`;if(!s1)return `<p class="hint">Recomp since ${E(lab({t:ph.since}))}, from your ${E(lab(s0))} scan: ${f1(s0.fm)} lb fat, ${f1(s0.lm)} lb lean. Rescan around ${E(lab({t:addD(ph.since,7*ph.g.wk)}))} to see the change.</p>`;const dF=s1.fm-s0.fm,dL=s1.lm-s0.lm,dW=s1.tm-s0.tm,ok=dF<0&&dL>0&&Math.abs(dW)<=3;return `<p><b>Since your recomp started:</b> fat ${sg(dF)} lb, lean ${sg(dL)} lb, weight ${sg(dW)} lb (${E(lab(s0))} to ${E(lab(s1))}).</p><p class="hint">${ok?'Less fat and more lean at about the same weight: the recomp is working.':'A recomp is working when fat goes down and lean goes up at about the same weight.'}</p>`})():'';
 const cmp=cmpHtml(sc);
-const list=sc.map((s,i)=>`<div class="srow"><span>${E(lab(s))}</span><b>${f1(bfp(s))}%</b><i class="hold">${i===0?'Baseline':'Logged'}</i></div>`).join('');
+const list=sc.map((s,i)=>`<div class="srow"><span>${E(lab(s))}${window.__SA?`<br><button class="edit${armed==='s'+s.t?' warn':''}" data-a="sdel" data-t="${s.t}" style="padding:0" aria-label="Remove the ${E(lab(s))} scan">${armed==='s'+s.t?'Tap again to remove':'Remove'}</button>`:''}</span><b>${f1(bfp(s))}%</b><i class="hold">${i===0?'Baseline':'Logged'}</i></div>`).join('')+(window.__SA&&/^s\d{4}-/.test(String(armed||''))?'<p class="hint dn">Removing a scan takes it out of your history and your goal, and the plan stops using its resting metabolic rate and lean mass. Changes it already made to your plan stay.</p>':'');
 const form=`<div class="scanform"><input class="sel" id="sd" type="date" value="${today()}" aria-label="Scan date"><input class="sel" id="st" inputmode="decimal" placeholder="Total mass (lb)" aria-label="Total mass in pounds"><input class="sel" id="sf" inputmode="decimal" placeholder="Fat mass (lb)" aria-label="Fat mass in pounds"><input class="sel" id="sl" inputmode="decimal" placeholder="Lean mass (lb)" aria-label="Lean mass in pounds"></div><details class="mf"><summary>More from your report (optional)</summary><div class="scanform"><input class="sel" id="sv" inputmode="decimal" placeholder="Visceral fat (in²)" aria-label="Visceral fat area in square inches"><input class="sel" id="sr" inputmode="decimal" placeholder="RMR (cal/day)" aria-label="Resting metabolic rate"><input class="sel" id="sa" inputmode="decimal" placeholder="Arms lean (lb)" aria-label="Arms lean mass in pounds"><input class="sel" id="sg" inputmode="decimal" placeholder="Legs lean (lb)" aria-label="Legs lean mass in pounds"><input class="sel" id="sk" inputmode="decimal" placeholder="Trunk lean (lb)" aria-label="Trunk lean mass in pounds"><input class="sel" id="sm" inputmode="decimal" placeholder="Muscle index (RSMI)" aria-label="Relative skeletal muscle index"></div></details><button class="add" data-a="scan">Add scan</button>`;
 return `<section class="ex"><h2>Body composition</h2>${rcp}${ph.k==='cut'?`<p><b>${f1(cb)}%</b> body fat on ${E(lab(c))}. Goal: ${B}%.</p>${sc.length>1?`<div class="pb"><i style="width:${pg.toFixed(0)}%"></i></div>`:''}<p class="hint">${sc.length>1?`${pg.toFixed(0)}% of the way from ${f1(bb)}% to ${B}%. `:'Your starting scan. '}At the lean mass from that scan, ${B}% is about ${Math.round(goalW0(B))} lb, which meant about ${Math.round(lose)} lb of fat to lose as of that scan.${Math.round(goalW0(B))-Math.round(gw)>=1?` Counting the lean mass your last two scans show you’re losing, your goal weight is about ${Math.round(gw)} lb.`:''} The Weight tab tracks what’s left.</p>`:ph.k==='bulk'?`<p><b>${f1(cb)}%</b> body fat on ${E(lab(c))}. Bulk ceiling: ${B}%.</p><div class="pb"><i style="width:${Math.min(100,cb/B*100).toFixed(0)}%"></i></div><p class="hint">${cb<B?f1(B-cb)+' points under your '+B+'% ceiling':'Over your '+B+'% ceiling, so it may be time to end the '+phN('bulk')}. Rescan around ${E(lab({t:addD(c.t,84)}))} to check.</p>`:FEM&&ph.k==='recomp'?`<p><b>${f1(cb)}%</b> body fat on ${E(lab(c))}.</p>`:`<p><b>${f1(cb)}%</b> body fat on ${E(lab(c))}.</p><p class="hint">Maintaining. Rescan around ${E(lab({t:addD(c.t,84)}))} to check your body composition is holding.</p>`}${extra}${cmp}${fullCmp(sc)}<p class="hint"><b>Scans</b></p>${list}${upGo('dx')}<p class="hint">${window.__SA?'Scans come from your clinic’s report: upload the PDF on Health › Upload and the app reads it on your phone. For a report it can’t read, the Upload page walks you through having Claude read it. Nothing here is typed in, so there’s no room for typos.':`Scans are added by uploading your DEXA PDF in a Claude chat and saying "log my scan." Nothing here is typed in, so there's no room for typos.`}</p></section>`}
 const LGF=[['Iron and blood',['Hemoglobin','Hematocrit','Red blood cells','White blood cells','Platelets','MCV','MCH','MCHC','RDW','MPV','Neutrophils','Lymphocytes','Monocytes','Eosinophils','Basophils','Immature granulocytes','Ferritin','Iron','TIBC','Transferrin saturation','Vitamin B12','Folate','Vitamin D']],['Thyroid',['TSH','Free T4','Free T3','TPO antibodies','Thyroglobulin','Thyroglobulin antibodies']],['Metabolic and heart',['Fasting glucose','Glucose (random)','HbA1c','Fasting insulin','Total cholesterol','LDL','HDL','Non-HDL cholesterol','Cholesterol/HDL ratio','Triglycerides','ApoB','Lp(a)','hs-CRP','Uric acid']],['Liver',['ALT','AST','ALP','GGT','Total bilirubin','Albumin','Total protein']],['Kidney and electrolytes',['Creatinine','eGFR','Urea (BUN)','Sodium','Potassium','Chloride','Bicarbonate','Anion gap','Calcium','Magnesium']],['Hormones',['Estradiol','Progesterone','LH','FSH','Prolactin','Total testosterone','SHBG']],['Immune and inflammation',['CRP','ESR','ANA','ANA titre','ENA screen','Anti-RNP','Anti-RNP 68','Anti-Sm','Anti-Sm/RNP','Anti-SSA','Anti-SSA 52','Anti-SSA 60','Anti-SSB','Anti-Scl-70','Anti-Jo-1','Anti-CENP-B','Anti-chromatin','Anti-ribosomal P','Anti-dsDNA','Complement C3','Complement C4','Rheumatoid factor','Alpha-1 globulin','Alpha-2 globulin','Beta-1 globulin','Beta-2 globulin','Gamma globulin']],['Muscle',['CK']]];
@@ -716,11 +831,11 @@ if(fl)o.f=/^(HI|H|HH|AH)$/.test(fl)?'H':/^(LO|L|LL|AL)$/.test(fl)?'L':'A';
 const key=LBN[nm]||nm;if(!v[key]){v[key]=o;last=o}}
 const n=Object.keys(v).length;
 if(n<3)return{err:'Couldn’t find the results table in this report.'};
-return{labs:{t,v},n}}
+return{labs:{t,v},n,sex:sexOf((T.match(/\bSex:\s+([A-Za-z]+)/)||[])[1])}}
 let lbBusy=false,lbPend=null,lbErr='';
 async function lbRead(f){lbErr='';lbPend=null;lbBusy=true;render();
 try{let lib;try{lib=await dxLib()}catch(e){throw{u:1}}const pdf=await lib.getDocument({data:new Uint8Array(await f.arrayBuffer()),isEvalSupported:false}).promise;const r=lbParse(await dxLines(pdf));
-if(r.err)lbErr=r.err+' If it’s from a lab with a different layout, Claude can read it: tap Read it with Claude, paste in the chat, attach the PDF and send, then copy Claude’s reply and tap Paste from Claude.';else if(r.labs.t>today())lbErr='That report is dated in the future.';else lbPend=r.labs}
+if(r.err)lbErr=r.err+' If it’s from a lab with a different layout, Claude can read it: tap Read it with Claude, paste in the chat, attach the PDF and send, then copy Claude’s reply and tap Paste from Claude.';else if(window.__SA&&r.sex&&r.sex!==(FEM?'f':'m'))lbErr=sexMsg(r.sex,'blood test report');else if(r.labs.t>today())lbErr='That report is dated in the future.';else lbPend=r.labs}
 catch(e){lbErr=e&&e.u?'Couldn’t load the PDF reader. Check your connection and try again.':'That PDF couldn’t be read here (it may be a scanned picture). Claude can read it: tap Read it with Claude, paste in the chat, attach the PDF and send, then copy Claude’s reply and tap Paste from Claude.'}
 lbBusy=false;render();const el=document.getElementById('lbc');if(el&&el.scrollIntoView)el.scrollIntoView({block:'center'})}
 function lbBox(){if(!window.__SA)return '';
@@ -748,7 +863,7 @@ return `<span>${E(k)}</span><span>${cell(bv,bt&&bt!==b?bt:null)}</span><span>${c
 return rows?`<details class="mf"><summary>${g[0]}</summary><div class="cmp"><b class="h">Marker</b><b class="h">Baseline</b><b class="h">Latest</b><b class="h">Change</b>${rows}</div></details>`:''}).join('');
 const hn=S.prof&&Array.isArray(S.prof.hn)&&S.prof.hn.length?`<p class="hint"><b>Health notes</b></p><ul class="tl">${S.prof.hn.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`:'';
 const out=(FEM||window.__SA)?(()=>{const lt={};for(const l of L)for(const k in l.v||{})lt[k]={v:l.v[k],t:l.t};const o=Object.keys(lt).filter(k=>{const v=lt[k].v;return v&&(v.f==='L'||v.f==='H'||v.f==='A'||(v.f==null&&typeof v.n==='number'&&((v.lo!=null&&v.n<v.lo)||(v.hi!=null&&v.n>v.hi))))});return o.length?`<p class="hint dn"><b>Outside the lab’s range at your latest test:</b> ${o.map(k=>E(k)+' ('+E(ds(lt[k]))+')').join(', ')}. Bring these to your doctor.</p>`:''})():'';
-const rl=(FEM||window.__SA)?`<details class="mf"><summary>Reports (${L.length})</summary><ul class="tl">${L.slice().reverse().map(l=>`<li><b>${E(ds(l))}</b>${l.lab?' · '+E(l.lab):''}${(c=>c?' · cycle day '+c.day:'')(cyAt(l.t))} · ${Object.keys(l.v||{}).length} results${l.nt?' · '+E(l.nt):''}</li>`).join('')}</ul></details>`:'';
+const rl=(FEM||window.__SA)?`<details class="mf"${window.__SA&&/^l\d{4}-/.test(String(armed||''))?' open':''}><summary>Reports (${L.length})</summary><ul class="tl">${L.slice().reverse().map(l=>`<li><b>${E(ds(l))}</b>${l.lab?' · '+E(l.lab):''}${(c=>c?' · cycle day '+c.day:'')(cyAt(l.t))} · ${Object.keys(l.v||{}).length} results${l.nt?' · '+E(l.nt):''}${window.__SA?` <button class="edit${armed==='l'+l.t?' warn':''}" data-a="sdel" data-l="${l.t}" style="padding:0 0 0 .4rem" aria-label="Remove the ${E(ds(l))} blood work">${armed==='l'+l.t?'Tap again to remove':'Remove'}</button>`:''}</li>`).join('')}</ul></details>`:'';
 return `<section class="ex"><h2>Blood work</h2>${hn}${upGo('lb')}<p class="hint">Baseline ${E(ds(b))}${L.length>1?'. Latest '+E(ds(c)):''}. Values outside the lab's own range are flagged. This shows numbers and trends only, so your doctor is the one to interpret them.</p>${out}${grp}${rl}${testList()}${tip}</section>`}
 function wtS(){return memo('wt',[S.wt,(S.wt||[]).length],()=>(S.wt||[]).slice().sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0))}
 function wtList(){return wtS().slice()}
@@ -887,13 +1002,34 @@ const tgt=()=>{const p=phase();return p.k==='cut'?-p.r:p.k==='bulk'?p.r:0};
 const phLbl=p=>PH[p.k].l+(HOLD(p.k)?'':', '+(p.k==='cut'?'-':'+')+p.r+' lb a week');
 function setPhase(k,r){
 const td=today(),cur=phase(),a=phases().filter(p=>p.t<=td);
+if(window.__SA&&r==null&&cur.k!==k&&PH[k].r.length){const lt=a[a.length-1],pv=lt&&lt.t===td?a[a.length-2]:null;if(pv&&pv.k===k&&(FEM?pv.pc:pv.r))r=FEM?pv.pc:pv.r}
 let pc=null;if(FEM&&PH[k].r.length){pc=r==null?PH[k].d:r;r=pcLb(pc)}
 if(r==null)r=PH[k].d;
-if(cur.k===k&&cur.r===r)return;
+if(cur.k===k&&(window.__SA?HOLD(k)||(pc!=null&&cur.pc!=null?Math.abs(cur.pc-pc)<1e-9:Math.abs(cur.r-r)<1e-9):cur.r===r))return;
+const key0=planKey(),L0=planT();
 const e={t:td,k,r},last=a[a.length-1];if(pc!=null)e.pc=pc;
 if(last&&last.t===td){if(last.k===k&&last.g)e.g=last.g;a[a.length-1]=e}else a.push(e);
-if(a.length>=2&&a[a.length-1].t===td&&a[a.length-2].k===k&&a[a.length-2].r===r)a.pop();
-S.phases=a;if(cur.k!==k)day='pl';save();render();if(cur.k!==k){const el=document.getElementById('plan');if(el&&el.scrollIntoView)el.scrollIntoView();say('Switched to '+PH[k].l+'. Here’s your new plan.')}else say('Target set to '+(k==='cut'?'-':'+')+r+' lb a week')}
+if(a.length>=2&&a[a.length-1].t===td&&a[a.length-2].k===k&&(window.__SA&&pc!=null&&a[a.length-2].pc!=null?Math.abs(a[a.length-2].pc-pc)<1e-9:a[a.length-2].r===r))a.pop();
+S.phases=a;const pm=window.__SA&&cur.k===k?plPace(cur,key0,L0):null;if(cur.k!==k)day='pl';save();render();if(cur.k!==k){const el=document.getElementById('plan');if(el&&el.scrollIntoView)el.scrollIntoView();say(window.__SA&&last&&last.t===td&&a[a.length-1].t!==td?'Back to your '+phN(k)+', with your plan as it was before today’s change.':'Switched to '+PH[k].l+'. Here’s your new plan.')}else say(pm||('Target set to '+(k==='cut'?'-':'+')+r+' lb a week'))}
+// p94: a pace change keeps the plan. Back to a plan replaced earlier today: that plan, exactly. Otherwise the base moves
+// to the new pace from the maintenance the plan was built on and the check-in's own changes (calories, steps) carry over
+// (lkPace). It's a plan change like the DEXA ease (logged, so the trend restarts and the new pace gets 3 full weeks);
+// one entry a day, removed when the day ends where it started.
+function plPace(cur,key0,L0){
+const td=today(),p=phase(),pid=planId(),key=planKey(),was=S.lock?lkStash(S.lock):null,R=lkFind(was),n=planNums(),fR=Math.ceil(Math.max(FLOOR(),n.rmr||0)/10)*10;
+let L=null;if(R)L=S.lock=Object.assign({},R,{was});else if(L0&&L0.pid===pid){L=S.lock=Object.assign(lkPace(L0,tgt(),fR),{key,t:td});if(was)L.was=was}
+const lbl=x=>FEM&&x.pc?`${x.pc}% of your weight a week (about ${f1(x.r)} lb)`:`${x.r} lb a week`,ci=S.ci||[],E=ci.find(c=>c.pid===pid&&c.f==='pace'&&c.t===td),k0=E?E.k0:key0,r0=E?E.r0:FEM&&cur.pc?`${cur.pc}% a week`:`${cur.r} lb a week`,rest=ci.filter(c=>c!==E);
+if(k0===key){S.ci=rest;return `Pace back to ${lbl(p)}: your plan is as it was before today’s change`}
+const c0=E&&E.chg?{cal:E.chg.from,st:E.chg.st0}:L0?{cal:L0.cal,st:L0.st}:null,dc=L&&c0?L.cal-c0.cal:0;
+const m=`Change: you set your ${phN(p.k)} to ${lbl(p)}, from ${r0}.${L&&c0?` ${dc?`Calories move by the difference: eat ${Math.abs(dc)} ${dc<0?'fewer':'more'} calories a day, all from carbs${L.cal<=fR?' (that’s your calorie floor)':''}`:`Calories stay at ${fmt(L.cal)}${L.cal<=fR?', your calorie floor':''}`}. The check-in’s earlier changes and your steps stay. New targets: ${fmt(L.cal)} cal, ${L.prot} g protein, ${L.carb} g carbs, ${L.fat} g fat, ${fmt(L.st)} steps.${dc?' Update Lose It to match.':''}`:''} The new pace gets 3 full weeks of weigh-ins before the next call.`;
+S.ci=rest.concat({v:'change',f:'pace',t:td,w:td,pid,k0,r0,m,chg:L&&c0?{from:c0.cal,to:L.cal,st0:c0.st,st:L.st}:null}).slice(window.__SA?0:-60);
+return L?`Pace set to ${lbl(p)}: ${fmt(L.cal)} cal a day`:`Pace set to ${lbl(p)}`}
+// p94: the plan at a new pace. Maintenance is the one the plan was built on (saved as mt; older plans: base minus the
+// expected rate x 500); the base moves to the new pace (at the floor if it's under it, with the rate it can reach there),
+// the check-in's net change (calories minus base) carries over, all from carbs, never under the floor; steps stay.
+function lkPace(L,tg,fR){const M=L.mt!=null?L.mt:L.base-(L.rate||0)*500,raw=M+tg*500,cl=raw<fR,base=cl?fR:Math.round(raw/10)*10,cal=Math.max(fR,base+(L.cal-L.base));
+let rate=cl?Math.round((base-M)/5)/100:tg;if(tg<0&&rate>-.1)rate=-.1;
+return Object.assign({},L,{base,cal,carb:Math.max(0,(L.carb||0)+Math.round((cal-L.cal)/4)),rate,mt:Math.round(M)})}
 function setGoal(key,val){const td=today(),a=phases().filter(x=>x.t<=td),p=phase(),i=a.findIndex(x=>x.t===p.since&&x.k===p.k);if(i<0)return;a[i]=Object.assign({},a[i],{g:Object.assign({},a[i].g||{},{[key]:val})});S.phases=a;save();render()}
 // the share of the loss that was lean: the DEXA check's scan pair and share on a cut, so the goal weight and the DEXA
 // line always agree; counted up to 30%, where the DEXA check eases the pace
@@ -911,10 +1047,15 @@ const bkFast=(p,bw)=>FEM&&p.pc?p.pc>bkPace().max+1e-9:!!(bw>0)&&p.r>bw*bkPace().
 let plBusy=false,plErr='',plCtl=null;
 function planNums(){
 const p=phase(),sc=scans(),c=sc[sc.length-1],ws=wtStats(),bw=ws?(ws.a7!=null?ws.a7:ws.L.w):c?c.tm:null,bwkg=bw==null?null:bw/2.2046,lmkg=c?c.lm/2.2046:null,rmr=c?c.rmr||null:(bw?Math.round(rmrMSJ(bw))||null:null),pr=S.prof||{},fm=fdMaint();
-let maint=null,src='';
+let maint=null,src='',low=null;
 if(fm&&fm.n>=MT_N){maint=fm.avg+(-fm.pace)*500;src='m'}else if(rmr&&stepsOf(pr)!=null){maint=rmr*stepF(stepsOf(pr));src='e'}
+// p94: a food-based maintenance under the calorie floor can't be right (usually food that isn't logged): the plan uses
+// the resting-rate estimate instead (your steps setting, else your usual steps from Apple Health, else 10,000) and says why
+if(window.__SA&&src==='m'&&rmr&&maint<Math.max(FLOOR(),rmr)){const u=stepsOf(pr)!=null?{v:stepsOf(pr),h:'set'}:stUsual();low={m:maint,n:fm.n,st:u.v,h:u.h};maint=rmr*stepF(u.v);src='e'}
 const tg=tgt();let cal=null,rate=tg,clamp=null;
-if(maint!=null){cal=maint+tg*500;const flo=Math.max(FLOOR(),rmr||0);if(p.k==='cut'&&cal<flo){clamp={need:cal,flo};cal=Math.ceil(flo/10)*10}else cal=Math.round(cal/10)*10;rate=HOLD(p.k)?0:(cal-maint)/500}
+if(maint!=null){cal=maint+tg*500;const flo=Math.max(FLOOR(),rmr||0);if((p.k==='cut'||window.__SA)&&cal<flo){clamp={need:cal,flo};cal=Math.ceil(flo/10)*10}else cal=Math.round(cal/10)*10;rate=HOLD(p.k)?0:(cal-maint)/500;
+// p94: a cut never expects a gain (at the floor with maintenance about the same, calories alone can't make a loss)
+if(window.__SA&&p.k==='cut'&&rate>-.1)rate=-.1}
 const prot=bwkg==null?null:Math.round((p.k==='cut'&&lmkg?2.7*lmkg:FEM?(p.k==='recomp'?2.2:1.9)*bwkg:2*bwkg)/5)*5,fp=p.k==='cut'?.25:.3,fat=cal!=null?Math.round(cal*fp/9):null,carb=cal!=null?Math.max(0,Math.round((cal-prot*4-fat*9)/4)):null;
 const fM=ts=>new Date(ts).toLocaleDateString(undefined,{month:'short',year:'numeric'}),ps=ws&&ws.ps?ws.ps.w:bw;
 let goal='';
@@ -924,7 +1065,9 @@ else if(p.k==='cut'){const gwT=goalW(p.g.bf),left=bw-gwT,r=Math.abs(LKr!=null?LK
 else if(p.k==='bulk')goal=`Lean bulk for ${p.g.wk} weeks, to about ${Math.round(ps+p.r*p.g.wk)} lb by ${fM(wtD(addD(p.since,7*p.g.wk)))}. Stop early if a DEXA scan shows more than ${p.g.cap}% body fat.`;
 else if(p.k==='recomp')goal=`Recomp for ${p.g.wk} weeks at maintenance calories, until ${fM(wtD(addD(p.since,7*p.g.wk)))}. It’s working when your lifts climb and your next DEXA shows less fat and more lean at about the same weight.`;
 else goal=`Hold around ${Math.round(ps)} lb (within 2 lb either way) for ${p.g.wk} weeks, until ${fM(wtD(addD(p.since,7*p.g.wk)))}.`;
-return{p,bw,bwkg,lmkg,rmr,maint,src,cal,rate,clamp,prot,fat,carb,fp,goal,pr}}
+return{p,bw,bwkg,lmkg,rmr,maint,src,cal,rate,clamp,prot,fat,carb,fp,goal,pr,low}}
+// p94: your usual steps for the estimate when none are set: the last 4 weeks from Apple Health (7+ days), else 10,000
+const stUsual=()=>{const td=today(),r=hlRange(addD(td,-28),addD(td,-1),10000);return r.sd>=7?{v:Math.round(r.sa/500)*500,h:'hk'}:{v:10000,h:'def'}};
 const planId=()=>{const p=phase();return p.k+'|'+p.since};
 // Lose It's goals differ from the plan (budget off by more than 25 cal, or protein by more than 5 g)
 function liOff(f,L){return !!(f&&f.b&&L&&L.cal!=null&&(Math.abs(f.b-L.cal)>25||(f.pg&&L.prot!=null&&Math.abs(f.pg-L.prot)>5)))}
@@ -958,11 +1101,11 @@ const T=(v,l)=>`<div><b>${v}</b><small>${E(l)}</small></div>`;
 let body;
 if(n.cal==null)body=!scans().length&&n.bw==null?(window.__SA?'<p class="hint dn">Sync a weigh-in from Apple Health (Health › Upload) so the plan can work out your numbers.</p>':'<p class="hint dn">Log a weigh-in on the Weight tab so the plan can work out your numbers.</p>'):!scans().length&&!n.rmr?(window.__SA?'<p class="hint dn">Pick your birth year and height in Settings › About you, so the plan can estimate your calories until you have a DEXA scan.</p>':'<p class="hint dn">Pick your birth year and height under About you below, so the plan can estimate your calories until you have a DEXA scan.</p>'):`<p class="hint dn">Pick your average daily steps below so the plan can estimate your calories. After about ${MT_N} logged days on the Food tab, it switches to your real numbers.</p>`;
 else{
-const why=`Maintenance is about ${fmt(n.maint)} cal a day, ${n.src==='m'?'from your logged food and weight trend':`estimated from your ${n.lmkg?'DEXA resting metabolic rate':'resting rate (worked out from your height, age and weight, since there’s no DEXA scan yet)'} (${fmt(n.rmr)}) and your steps. It switches to your real number after about ${MT_N} logged days`}. ${(()=>{const d=Math.round(n.cal-n.maint),mv=`Your estimate moves as you log; the plan only moves at the weekly check-in`;return p.k==='cut'?(d<0?`The plan is ${fmt(-d)} cal under that`:`The plan is ${fmt(n.cal)}, not under that right now. ${mv}`):p.k==='bulk'?(d>0?`The plan is ${fmt(d)} cal over that (${Math.round((n.cal/n.maint-1)*100)}%), for your target of +${p.r} lb a week`:`The plan is ${fmt(n.cal)}, not over that right now. ${mv}`):Math.abs(d)<=25?'The plan matches it':`The plan is ${fmt(n.cal)}, ${fmt(Math.abs(d))} cal ${d>0?'over':'under'} that. ${mv}`})()}. Protein is ${p.k==='cut'&&n.lmkg?'2.7 g per kg of your DEXA lean mass (the cutting range is 2.3-3.1)':FEM?(p.k==='recomp'?'2.2 g per kg of body weight (the top of the 1.6-2.2 range, since a recomp builds muscle without a surplus)':'1.9 g per kg of body weight (the range is 1.6-2.2)'):'2 g per kg of body weight (the range is 1.6-2.2)'}, fat is ${Math.round(n.fp*100)}% of calories, and carbs fill the rest.`;
+const why=`Maintenance is about ${fmt(n.maint)} cal a day, ${n.src==='m'?'from your logged food and weight trend':`estimated from your ${n.lmkg?'DEXA resting metabolic rate':'resting rate (worked out from your height, age and weight, since there’s no DEXA scan yet)'} (${fmt(n.rmr)}) and your steps${n.low?` (${fmt(n.low.st)} a day${n.low.h==='hk'?', your usual from Apple Health':n.low.h==='def'?', until you set your steps below':''}). Your logged food and weight trend put it at only about ${fmt(n.low.m)}, under ${n.rmr>FLOOR()?'your resting metabolic rate':'your calorie floor of '+fmt(FLOOR())}, which usually means some food isn’t getting logged, so the plan doesn’t use it`:`. It switches to your real number after about ${MT_N} logged days`}`}. ${(()=>{const d=Math.round(n.cal-n.maint),mv=`Your estimate moves as you log; the plan only moves at the weekly check-in`;return p.k==='cut'?(d<0?`The plan is ${fmt(-d)} cal under that`:`The plan is ${fmt(n.cal)}, not under that right now. ${mv}`):p.k==='bulk'?(d>0?`The plan is ${fmt(d)} cal over that (${Math.round((n.cal/n.maint-1)*100)}%), for your target of +${p.r} lb a week`:`The plan is ${fmt(n.cal)}, not over that right now. ${mv}`):Math.abs(d)<=25?'The plan matches it':`The plan is ${fmt(n.cal)}, ${fmt(Math.abs(d))} cal ${d>0?'over':'under'} that. ${mv}`})()}. Protein is ${p.k==='cut'&&n.lmkg?'2.7 g per kg of your DEXA lean mass (the cutting range is 2.3-3.1)':FEM?(p.k==='recomp'?'2.2 g per kg of body weight (the top of the 1.6-2.2 range, since a recomp builds muscle without a surplus)':'1.9 g per kg of body weight (the range is 1.6-2.2)'):'2 g per kg of body weight (the range is 1.6-2.2)'}, fat is ${Math.round(n.fp*100)}% of calories, and carbs fill the rest.`;
 const lf=fdList().slice(-1)[0],off=window.__SA?!liOk(n):liOff(lf,n);
 const sur=FEM&&p.k==='bulk'?(()=>{const c0=LK0?LK0.cal:n.cal,d=Math.round(c0-n.maint);return d>0?`<p class="hint">Surplus: +${fmt(d)} cal a day, ${Math.round(d/n.maint*100)}% over maintenance. It’s kept small on purpose: women build muscle at a similar rate to men relative to their size, but fewer pounds of it, so a bigger surplus mostly adds fat.</p>`:''})():'';
 const xp=FEM&&p.k==='bulk'&&pr.exp?(()=>{const pc={n:.35,i:.25,a:.15}[pr.exp];return `<p class="hint">For ${EXP[pr.exp].toLowerCase()} of lifting, about ${pc}% of body weight a week (${f1(n.bw*pc/100)} lb) suits a lean bulk: newer lifters toward 0.35%, 3+ years toward 0.15%.${bkFast(p,n.bw)?' Your target is faster than that.':''}</p>`})():p.k==='bulk'&&pr.exp?`<p class="hint">For ${EXP[pr.exp].toLowerCase()} of lifting, ${pr.exp==='a'?'about 0.25% of body weight a week or less':'about 0.25-0.5% of body weight a week'} (${pr.exp==='a'?'up to '+f1(n.bw*.0025):f1(n.bw*.0025)+'-'+f1(n.bw*.005)} lb) suits a lean bulk.${bkFast(p,n.bw)?' Your target is faster than that.':''}</p>`:'';
-body=`<div class="wk">${T(fmt(n.cal),'Calories a day')+T(n.prot+' g','Protein a day')+T(n.carb+' g','Carbs a day')+T(n.fat+' g','Fat a day')+T((r=>window.__SA&&r!=null&&Math.abs(r)<.05?'0 lb':sg(r)+' lb')(LK0?LK0.rate:n.rate),'Per week')+T(fmt(LK0?LK0.st:10000),'Steps a day')}</div>${sur}${n.clamp?`<p class="hint dn">${p.r} lb a week would need about ${fmt(n.clamp.need)} cal a day, below ${n.clamp.flo===n.rmr?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):fmt(FLOOR())}. The plan stops at ${fmt(n.cal)}, which works out to about ${f1(-n.rate)} lb a week. For faster loss, add steps rather than eating less.</p>`:''}${xp}<p class="hint"><b>Set these in Lose It:</b> budget ${fmt(n.cal)} cal, protein ${n.prot} g, carbs ${n.carb} g, fat ${n.fat} g.${off?(window.__SA?(c=>c?` Last you told the app, it was set to ${fmt(c.cal)} cal${c.prot?' and '+Math.round(c.prot)+' g protein':''}.`:'')(liNow())+` <button class="edit" data-a="lidone" style="padding:0">Done, Lose It is set</button>`:` It’s currently set to ${fmt(lf.b)} cal${lf.pg?' and '+Math.round(lf.pg)+' g protein':''}.`):''}</p>${LK0?(()=>{const ch=(S.ci||[]).filter(c=>c.pid===planId()&&c.v==='change'&&c.chg&&c.t>=LK0.t).pop(),g=ch&&ch.chg;return `<p class="hint">Set ${E(dsh({t:LK0.t}))}${g?` at ${fmt(LK0.base)} cal. Last changed by the ${E(dsh({t:ch.t}))} check-in: ${g.from!==g.to?fmt(g.from)+' → '+fmt(g.to)+' cal':''}${g.from!==g.to&&g.st!==g.st0?', ':''}${g.st!==g.st0?fmt(g.st0)+' → '+fmt(g.st)+' steps':''}`:''}. Only the weekly check-in changes these, unless you change your phase${HOLD(p.k)?'':' or pace'}${n.src==='m'?'':', or your steps below'}. Your goal settings don’t change them.</p>`})():''}<details class="mf"><summary>How these were worked out</summary><p class="hint">${E(why)}</p></details>`}
+body=`<div class="wk">${T(fmt(n.cal),'Calories a day')+T(n.prot+' g','Protein a day')+T(n.carb+' g','Carbs a day')+T(n.fat+' g','Fat a day')+T((r=>window.__SA&&r!=null&&Math.abs(r)<.05?'0 lb':sg(r)+' lb')(LK0?LK0.rate:n.rate),'Per week')+T(fmt(LK0?LK0.st:10000),'Steps a day')}</div>${sur}${n.clamp&&p.k!=='cut'?`<p class="hint dn">The plan would be about ${fmt(n.clamp.need)} cal a day, under ${n.clamp.flo===n.rmr?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):'your calorie floor of '+fmt(FLOOR())}, so it doesn’t go below the floor.</p>`:''}${n.clamp&&p.k==='cut'?`<p class="hint dn">${p.r} lb a week would need about ${fmt(n.clamp.need)} cal a day, below ${n.clamp.flo===n.rmr?(n.lmkg?`your DEXA resting metabolic rate (${fmt(n.rmr)})`:`your estimated resting rate (${fmt(n.rmr)})`):fmt(FLOOR())}. The plan stops at ${fmt(n.cal)}, which works out to about ${f1(-(window.__SA&&LK0?LK0.rate:n.rate))} lb a week. For faster loss, add steps rather than eating less.</p>`:''}${xp}<p class="hint"><b>Set these in Lose It:</b> budget ${fmt(n.cal)} cal, protein ${n.prot} g, carbs ${n.carb} g, fat ${n.fat} g.${off?(window.__SA?(c=>c?` Last you told the app, it was set to ${fmt(c.cal)} cal${c.prot?' and '+Math.round(c.prot)+' g protein':''}.`:'')(liNow())+` <button class="edit" data-a="lidone" style="padding:0">Done, Lose It is set</button>`:` It’s currently set to ${fmt(lf.b)} cal${lf.pg?' and '+Math.round(lf.pg)+' g protein':''}.`):''}</p>${LK0?(()=>{const ch=(S.ci||[]).filter(c=>c.pid===planId()&&c.v==='change'&&c.chg&&c.t>=LK0.t).pop(),g=ch&&ch.chg;return `<p class="hint">Set ${E(dsh({t:LK0.t}))}${g?` at ${fmt(LK0.base)} cal. Last changed ${window.__SA&&ch.f==='pace'?`${E(dsh({t:ch.t}))}, when you changed your pace`:window.__SA&&ch.f==='dexa'?`by your ${E(dsh({t:ch.t}))} DEXA check`:window.__SA&&ch.f==='floor'?`${E(dsh({t:ch.t}))}, to stay at your calorie floor`:`by the ${E(dsh({t:ch.t}))} check-in`}: ${g.from!==g.to?fmt(g.from)+' → '+fmt(g.to)+' cal':''}${g.from!==g.to&&g.st!==g.st0?', ':''}${g.st!==g.st0?fmt(g.st0)+' → '+fmt(g.st)+' steps':''}`:''}. Only the weekly check-in changes these, unless you change your phase${window.__SA||HOLD(p.k)?'':' or pace'}${n.src==='m'?'':', or your steps below'}. Your goal settings don’t change them.${window.__SA&&!HOLD(p.k)?' A new pace moves calories by the difference and keeps the check-in’s changes.':''}</p>`})():''}<details class="mf"><summary>How these were worked out</summary><p class="hint">${E(why)}</p></details>`}
 const pl=S.plan,cur=pl&&pl.pid===planId(),r=pl&&plFix(pl.r),sx=cur?planStale(pl):null,sx0=cur?planStale(pl,1):null,gp=(c,g)=>`${fmt(c)} cal${g?' and '+Math.round(g)+' g protein':''}`,
 olds=y=>!!(sx0&&sx0.lc&&sx0.ok&&/Lose It/i.test(y)&&(y.includes(fmt(sx0.lb.b))||y.includes(String(sx0.lb.b)))),li=y=>olds(y)?`<li class="done"><s>${E(y)}</s> <b>Done since</b></li>`:`<li>${E(y)}</li>`;
 const ai=plBusy?'<p class="hint goal">Claude is building your plan from your DEXA, weight, workouts, food and labs. This can take a minute or two.</p><button class="edit" data-a="pbstop" style="padding:.4rem 0 0">Stop</button>':(r?`${cur?'':`<p class="hint dn">This plan was written for your ${E(phN(pl.pid.split('|')[0]))}. ${window.__SA?'Get one for this phase: tap Get a plan from Claude below.':'Build a new one for this phase.'}</p>`}<p class="hint">Written ${E(wtLong(pl.t))}, from your data that day.</p>${window.__SA&&!sx?plStale(pl):''}${sx?`<p class="hint dn"><b>Out of date.</b>${sx.num?` It was written for ${fmt(sx.n.cal)} cal${sx.n.prot!==sx.L.prot?', '+sx.n.prot+' g protein':''}${sx.n.st!=null&&sx.n.st!==sx.L.st?' and '+fmt(sx.n.st)+' steps':''}; your numbers are now ${fmt(sx.L.cal)} cal${sx.n.prot!==sx.L.prot?', '+sx.L.prot+' g protein':''}${sx.n.st!=null&&sx.n.st!==sx.L.st?' and '+fmt(sx.L.st)+' steps':''} (shown above).`:''}${sx.lc?` When it was written, Lose It was set to ${gp(sx.lb.b,sx.lb.pg)}; it’s now ${gp(sx.now.b,sx.now.pg)}${sx.ok?', which matches your plan':''}.`:''}${window.__SA?' For an updated one, tap Update with Claude below.':' Rebuild it so the advice matches.'}</p>`:''}${r.h?`<p class="hint goal">${E(r.h)}</p>`:''}${[['Nutrition',r.nu],['Training',r.tr],['Habits',r.hb]].filter(x=>x[1]&&x[1].length).map(x=>`<p class="hint"><b>${x[0]}</b></p><ul class="tl">${x[1].map(li).join('')}</ul>`).join('')}${r.ck&&r.ck.length?`<p class="hint"><b>Checkpoints</b></p><ul class="tl">${r.ck.map(y=>olds(y.x)?`<li class="done"><s><b>${E(y.w)}:</b> ${E(y.x)}</s> <b>Done since</b></li>`:`<li><b>${E(y.w)}:</b> ${E(y.x)}</li>`).join('')}</ul>`:''}${r.wa&&r.wa.length?`<p class="hint"><b>Keep an eye on</b></p><ul class="tl">${r.wa.map(li).join('')}</ul>`:''}`:'<p class="hint">Claude can turn these numbers into a full plan: how to set up your meals, how to adjust your training for this phase, daily habits, and checkpoints like when to rescan.</p>')+(window.__SA?`${clLink('pl',r?'Update with Claude':'Get a plan from Claude',n.cal==null)}<p class="hint">Copies your plan request with your data and opens Claude. Paste it there and send. When Claude replies, press and hold the reply, tap Copy, then come back and tap Paste plan from Claude.</p>${clBox('pl')}<button class="edit" data-a="plcp" style="padding:.2rem 0 .4rem"${n.cal==null?' disabled':''}>Copy only</button>`:smpReady&&!smp?'<p class="hint dn">Building a plan isn’t available in this view. Ask in a Claude chat instead.</p>':plBusy?'':`<button class="fin" data-a="pb" style="margin:.6rem 0 .2rem"${n.cal==null?' disabled':''}>${r&&cur?'Rebuild my plan':'Build my full plan'}</button>`);
@@ -1000,11 +1143,29 @@ const planKey=()=>{const p=phase(),pr=S.prof||{};return JSON.stringify(scans().l
 // a plan saved before p90 has its goal settings in the key: it matches when everything else does (matched, not rewritten,
 // so the saved data stays exactly as it was until the plan really changes)
 const pkSame=(k,n)=>{if(k===n)return true;try{const a=JSON.parse(k);if(!Array.isArray(a)||a[4]!==2||!a[2]||typeof a[2]!=='object')return false;a.splice(2,1);a[3]=3;return JSON.stringify(a)===n}catch(e){return false}};
+// p94: the plans replaced today (kept in the lock as `was`, today only), so going somewhere and back the same day
+// restores one exactly
+function lkStash(L){const td=today(),a=(L.was&&L.was.t===td?L.was.a:[]).filter(x=>!(x.pid===L.pid&&x.key===L.key)),c=Object.assign({},L);delete c.was;return{t:td,a:a.concat(c).slice(-6)}}
+function lkFind(was){if(!was||was.t!==today())return null;const pid=planId(),k=planKey();return was.a.filter(x=>x&&x.pid===pid&&pkSame(x.key,k)).pop()||null}
+// p94: a plan key in today's shape (a key saved before p90 had the goal settings in it)
+const pkA=k=>{try{const a=JSON.parse(k);if(!Array.isArray(a))return null;if(a[4]===2&&a[2]&&typeof a[2]==='object'){a.splice(2,1);a[3]=3}return a}catch(e){return null}};
+// p94: same phase, pace and steps, but a first scan (or removing the last one) or a new height / birth year changed the
+// key: the plan carries over. A scan changes only what it legitimately changes: protein (lean-mass based on a cut) and
+// the floor (the check-in raises calories to a higher floor, logged); calories, steps and the expected rate stay. A new
+// height or birth year (no scan) moves the estimate: the base follows it and the check-in's changes stay.
+function lkCarry(L,k,n){if(L.pid!==planId()||L.cal==null||L.base==null)return null;const a=pkA(L.key),b=pkA(k);if(!a||!b||a[0]!==b[0]||a[1]!==b[1]||a[2]!==b[2])return null;
+if(a.length!==b.length){const prot=n.p.k==='cut'?n.prot:L.prot,fat=L.fat!=null?L.fat:Math.round(L.cal*L.fp/9);return Object.assign({},L,{key:k,prot,fat,carb:Math.max(0,Math.round((L.cal-prot*4-fat*9)/4))})}
+const fR=Math.ceil(Math.max(FLOOR(),n.rmr||0)/10)*10,cal=Math.max(fR,n.cal+(L.cal-L.base)),fat=Math.round(cal*L.fp/9);
+return Object.assign({},L,{key:k,t:today(),base:n.cal,cal,fat,carb:Math.max(0,Math.round((cal-L.prot*4-fat*9)/4)),rate:Math.round(n.rate*100)/100,mt:Math.round(n.maint)})}
 function ensureLock(){
 const n=planNums();if(n.cal==null)return false;
 const k=planKey(),L=S.lock;
-if(L&&L.pid===planId()&&pkSame(L.key,k))return false;
-S.lock={pid:planId(),key:k,t:today(),base:n.cal,cal:n.cal,prot:n.prot,fat:n.fat,carb:n.carb,st:Math.max(10000,Math.round((stepsOf(S.prof||{})||0)/500)*500),rate:Math.round(n.rate*100)/100,fp:n.fp};return true}
+if(L&&L.pid===planId()&&pkSame(L.key,k)){
+// p94: a cut always expects a loss (corrects a plan saved while an under-logged food estimate made it a gain)
+if(window.__SA&&n.p.k==='cut'&&!(L.rate<0)){S.lock=Object.assign({},L,{rate:Math.min(-.1,Math.round((L.base-n.maint)/5)/100)});return true}
+return false}
+let was=null;if(window.__SA&&L){was=lkStash(L);const R=lkFind(was);if(R){S.lock=Object.assign({},R,{was});return true}const C=lkCarry(L,k,n);if(C){S.lock=Object.assign(C,{was});return true}}
+S.lock={pid:planId(),key:k,t:today(),base:n.cal,cal:n.cal,prot:n.prot,fat:n.fat,carb:n.carb,st:Math.max(10000,Math.round((stepsOf(S.prof||{})||0)/500)*500),rate:Math.round(n.rate*100)/100,fp:n.fp};if(window.__SA){S.lock.mt=Math.round(n.maint);if(was)S.lock.was=was}return true}
 function planT(){const L=S.lock;return L&&L.pid===planId()&&pkSame(L.key,planKey())?L:null}
 function judgeOn(){const nx=nextCheck();if(!nx)return null;const a0=wtList()[0].t,p=phase(),lc=(S.ci||[]).filter(c=>c.pid===planId()&&c.v==='change').pop();for(let i=0;i<12;i++){const d=addD(nx,7*i),last=addD(d,-7);let inP=0,aft=0;for(let s=a0;s<=last;s=addD(s,7)){if(s>=p.since)inP++;if(lc&&s>lc.w)aft++}if(inP>=4&&(!lc||aft>=3))return d}return null}
 function nextCheck(){const w=wtList();if(!w.length)return null;const a0=w[0].t,d=Math.round((wtD(today())-wtD(a0))/864e5),i=Math.max(0,Math.floor(d/7));return addD(a0,7*i+7)}
@@ -1043,7 +1204,7 @@ let f=null;
 if(p.k==='cut'){const r=a/e;f=r<.75?'less':(r>1.5||(r>1.2&&liftSlip()))?'more':null}
 else if(p.k==='bulk'){const r=a/e;f=r<(FEM?.6:.7)?'more':r>(FEM?1.6:1.5)?'less':null}
 else f=a<-.3?'more':a>.3?'less':null;
-const vs=`over ${wkRange(use[0].s,use[use.length-1].e)}, `+(HOLD(p.k)?'against a plan of holding steady':`against the plan’s ${f1(Math.abs(e))}`),base={a:Math.round(a*100)/100,e,avg:avg==null?null:Math.round(avg)};
+const vs=`over ${wkRange(use[0].s,use[use.length-1].e)}, `+(HOLD(p.k)?'against a plan of holding steady':`against the plan’s ${window.__SA?sg(e):f1(Math.abs(e))}`),base={a:Math.round(a*100)/100,e,avg:avg==null?null:Math.round(avg)};
 const hw=hlRange(W.s,W.e),wt=wsTrend(use[0].s,use[use.length-1].e),wn=wt&&wt.n>=2?` Waist: ${inF(wt.first.v)} → ${inF(wt.last.v)} in over the same weeks.`:'';
 if(f==='less'&&hw.sd>=4&&hw.sa<L.st*.9&&(r0=blk(Object.assign({},base,{v:'steps',f,m:`Plan unchanged. You averaged ${fmt(hw.sa)} steps a day against your ${fmt(L.st)} target, so last week didn’t test the plan (${mvTxt(a)} ${vs}). Hit ${fmt(L.st)} steps a day this week.`}),`You averaged ${fmt(hw.sa)} steps a day against your ${fmt(L.st)} target.`)))return r0;
 // her cycle: no deeper cut on an irregular or missing cycle; a late period holds everything; water weeks don't count
@@ -1070,13 +1231,22 @@ if(cal===L.cal&&st===L.st)return SK(Object.assign(base,{v:'limit',f,m:`The plan 
 const fat=Math.round(cal*L.fp/9),carb=Math.max(0,Math.round((cal-L.prot*4-fat*9)/4));
 S.lock=Object.assign({},L,{cal,fat,carb,st});
 return SK(Object.assign(base,{v:'change',f,chg:{from:L.cal,to:cal,st0:L.st,st},m:`Change: ${txt}. Two check-ins in a row point the same way (${mvTxt(a)} ${vs}).${wn} New targets: ${fmt(cal)} cal, ${L.prot} g protein, ${carb} g carbs, ${fat} g fat, ${fmt(st)} steps.${cal!==L.cal?' Update Lose It to match.':''}`}))}
+// p94: the plan never sits under the floor (the fixed floor or the latest DEXA resting metabolic rate): a new scan with a
+// higher RMR, or a plan saved under it, moves calories up to it at the check-in, logged as a plan change that says why.
+// Steps and the check-in's other changes stay; a base under the new floor moves up with it (and a cut's expected rate
+// follows). The estimated resting rate (no scan) isn't used here: it moves with every weigh-in.
+function flRaise(){const L=planT();if(!L||L.cal==null)return false;const sc=scans(),c=sc[sc.length-1],r=c&&c.rmr>FLOOR()?c.rmr:0,fR=Math.ceil(Math.max(FLOOR(),r)/10)*10;if(!(L.cal<fR))return false;
+const td=today(),ph=phase(),cal=fR,dc=cal-L.cal,fat=Math.round(cal*L.fp/9),carb=Math.max(0,Math.round((cal-L.prot*4-fat*9)/4)),M=L.mt!=null?L.mt:Math.round(L.base-(L.rate||0)*500),o={cal,fat,carb,mt:M};
+if(L.base<fR){o.base=fR;if(ph.k==='cut')o.rate=Math.min(-.1,Math.round((fR-M)/5)/100)}
+S.lock=Object.assign({},L,o);
+S.ci=(S.ci||[]).concat({v:'change',f:'floor',t:td,w:td,pid:planId(),chg:{from:L.cal,to:cal,st0:L.st,st:L.st},m:`Change: eat ${dc} more calories a day. ${r?`Your ${dsh(c)} DEXA puts your resting metabolic rate at ${fmt(r)} cal a day`:`Your calorie floor is ${fmt(FLOOR())} cal a day`}, and the plan never goes under ${r?'it':'that'}, so it moves up from ${fmt(L.cal)} to ${fmt(cal)}. Your steps and the check-in’s other changes stay. New targets: ${fmt(cal)} cal, ${L.prot} g protein, ${carb} g carbs, ${fat} g fat, ${fmt(L.st)} steps. Update Lose It to match. The new numbers get 3 full weeks before the next call.`}).slice(window.__SA?0:-60);return true}
 function autoCheck(){
 if(!initDone)return;
 STP('check-in: DEXA');try{dxAct()}catch(e){}
-STP('check-in: plan');let dirty=ensureLock();STP('check-in: weeks');
+STP('check-in: plan');let dirty=ensureLock();if(window.__SA&&flRaise())dirty=true;STP('check-in: weeks');
 const L=planT(),ws=wtStats(),p=phase(),pid=planId(),td=today();
 if(L&&ws){const done=ws.wk.filter(x=>x.e<td),W=done[done.length-1],ci=S.ci||[];
-if(W&&W.e>=p.since&&!ci.some(c=>c.pid===pid&&c.w===W.e)){STP('check-in: judging');const r=ciEval(W,done,planT()||L,ws,p);{const hw=hlRange(W.s,W.e);if(hw.nd>=4&&hw.sla<(window.__SA?SLP:390))r.m+=` Sleep averaged ${hm(hw.sla)} a night last week; under 7 hours makes hunger and recovery harder.`}r.t=td;r.w=W.e;r.pid=pid;S.ci=ci.concat(r).slice(-60);dirty=true}}
+if(W&&W.e>=p.since&&!ci.some(c=>c.pid===pid&&c.w===W.e)){STP('check-in: judging');const r=ciEval(W,done,planT()||L,ws,p);{const hw=hlRange(W.s,W.e);if(hw.nd>=4&&hw.sla<(window.__SA?SLP:390))r.m+=` Sleep averaged ${hm(hw.sla)} a night last week; under 7 hours makes hunger and recovery harder.`}r.t=td;r.w=W.e;r.pid=pid;S.ci=ci.concat(r).slice(window.__SA?0:-60);dirty=true}}
 STP('check-in: done');if(dirty)save()}
 function ordersLine(){
 const L=planT();if(!L)return '';
@@ -1310,7 +1480,7 @@ const all=phases().filter(x=>x.t<=td),last=all[all.length-1];if(last&&last.t===t
 const sign=ph.k==='cut'?1:-1,dc=Math.round(sign*(x-st.r)*500/10)*10;let msg='';
 if(L){const n=planNums(),cal=L.cal+dc;S.lock={pid:planId(),key:planKey(),t:td,base:n.cal,cal,prot:L.prot,fat:L.fat,carb:Math.max(0,(L.carb||0)+Math.round(dc/4)),st:L.st,rate:-sign*st.r,fp:L.fp};msg=` New targets: ${fmt(cal)} cal a day (${dc>=0?'+':''}${dc}, all from carbs), same steps.`}
 const pct=J.pc,m=ph.k==='cut'?`Change: your ${dsh(b)} DEXA shows ${pct}% of the ${f1(J.amt)} lb you lost since ${dsh(a)} was lean, so your cut eases from ${r0}${fl?' lb a week'+fl:''} to ${st.r} lb a week to protect muscle.${msg} The new numbers get 3 full weeks before the next call.`:`Change: your ${dsh(b)} DEXA shows only ${pct}% of the ${f1(J.amt)} lb you gained since ${dsh(a)} was lean, so your ${phN('bulk')} slows from ${r0} to ${st.r} lb a week to limit fat gain.${msg} The new numbers get 3 full weeks before the next call.`;
-S.prof=Object.assign({},S.prof,{dxe:{t:td,s:b.t,from:r0,to:st.r}});S.ci=(S.ci||[]).concat({v:'change',f:'dexa',t:td,w:td,pid:planId(),m,chg:L?{from:L.cal,to:L.cal+dc,st0:L.st,st:L.st}:null}).slice(-60);save();setTimeout(()=>say(ph.k==='cut'?`New DEXA: too much lean loss, so your cut eased to ${st.r} lb a week`:`New DEXA: mostly fat, so your ${phN('bulk')} slowed to ${st.r} lb a week`),300)}
+S.prof=Object.assign({},S.prof,{dxe:{t:td,s:b.t,from:r0,to:st.r}});S.ci=(S.ci||[]).concat({v:'change',f:'dexa',t:td,w:td,pid:planId(),m,chg:L?{from:L.cal,to:L.cal+dc,st0:L.st,st:L.st}:null}).slice(window.__SA?0:-60);save();setTimeout(()=>say(ph.k==='cut'?`New DEXA: too much lean loss, so your cut eased to ${st.r} lb a week`:`New DEXA: mostly fat, so your ${phN('bulk')} slowed to ${st.r} lb a week`),300)}
 // the Goal card line
 function dxVerdict(ph,a,b){const J=dxJudge(ph.k,a,b);if(!J)return null;const pct=J.pc,x=(S.prof||{}).dxe,acted=x&&x.s===b.t;
 const head=J.v==='ok'?'DEXA: on track.':J.v==='watch'?'DEXA: watch your lean mass.':ph.k==='cut'?'DEXA: too much lean loss.':'DEXA: mostly fat.';
@@ -1777,11 +1947,13 @@ const lp=use[use.length-1];
 c3=`<select class="sel" data-sel="1" aria-label="Choose a lift">${lifts.map(n=>`<option${n===pSel?' selected':''}>${E(n)}</option>`).join('')}</select>${lms.length>1?`<div class="chips lpm">${[['top','Top set'],['e1','Est. max'],['bw','× body weight'],['vol','All sets']].filter(([k])=>lms.includes(k)).map(([k,l])=>`<button class="chip" aria-pressed="${lm===k}" data-a="lpm" data-v="${k}">${l}</button>`).join('')}</div>`:''}<svg class="ch" viewBox="0 0 ${CW} ${VH}" width="100%" role="img" aria-label="Top set trend"><path d="${path}"></path>${dots}${LB?lpLabels(use,ys,xy,lm,H):''}</svg><p class="hint">${lm==='e1'?`Estimated one-rep max (lb) from your best set each session (sets over 20 reps count as 20), so more reps at the same weight show as progress.${AS.has(pSel)?' It uses your current body weight minus the assistance for every session, so only the assistance and reps move it.':''} Latest ${Math.round(use[use.length-1].e)} lb, first here ${Math.round(use[0].e)} lb${E(lpB(p=>Math.round(p.e)+' lb','best',p=>p.bb))}.`:lm==='bw'?`Estimated max divided by your body weight that day. ${phase().k==='cut'?'On a cut it climbs while you hold strength.':'It climbs as you get stronger for your size.'} Latest ${use[use.length-1].x.toFixed(2)}× BW, first here ${use[0].x.toFixed(2)}×${E(lpB(p=>p.x.toFixed(2)+'×','best',p=>p.b))}.`:lm==='vol'?(use[0].vu==='lb'?`All your working sets each workout added up: weight × reps${AS.has(pSel)?', with your body weight minus the assistance':''}, warm-ups left out. It climbs when your later sets hold up better, even if your top set doesn’t. Adding or dropping a set moves it too. Latest ${fmt(use[use.length-1].v)} lb, first here ${fmt(use[0].v)} lb${E(lpB(p=>fmt(p.v)+' lb','most'))}.`:`Your reps across all working sets each workout, warm-ups left out. It climbs when your later sets hold up better. Adding or dropping a set moves it too. Latest ${use[use.length-1].v} reps, first here ${use[0].v}${E(lpB(p=>p.v+' reps','most'))}.`):''}${lm!=='top'?'</p><p class="hint">':''}${AS.has(pSel)?'Top set (higher means less assistance)':byW?'Top set weight (lb)':'Top set reps'} over your last ${use.length} sessions. Latest ${E(tsx(lp))}${(()=>{const tv=p=>byW?p.w:p.r;let ti=0;for(let i=1;i<use.length;i++)if(tv(use[i])>=tv(use[ti]))ti=i;return ti<use.length-1?`, ${AS.has(pSel)?'least assistance':byW?'heaviest':'most reps'} ${E(tsx(use[ti]))} on ${E(dfmt(use[ti].t))}`:''})()}.</p>`}
 return `<h1>Gym progress</h1><p class="sub">Your lifts over time. Updates when you finish a workout.${window.__SA?' <button class="edit" data-a="schopen" style="padding:0">Change workout days</button>':''}</p>${phaseLine()}${checkSec()}${recSec()}<section class="ex"><h2>Lift progress</h2>${c3}</section><section class="ex"><h2>Weekly volume</h2>${c1}</section><section class="ex"><h2>Sets per muscle this week</h2>${c2}<p class="hint">${window.__SA?'Direct sets from this week’s finished workouts ('+FN[wkDow()]+' to '+FN[(wkDow()+6)%7]+'), scale 0-20.':'Direct sets, scale 0-20.'} The line marks 10. Presses and pulls also work your arms.</p></section>${stallSec()}`}
 function progressHtml(){return `<h1>Progress</h1><p class="sub">Your weekly check-in, recap, body composition and blood work. Your phase and daily numbers are under Plan; lifting progress is under Gym.</p>${goalCard()}${msSec()}${ciCard()}${recapSec()}${bodySec()}${labSec()}${FEM?cyProg():''}${window.__SA?'':bkSec()}`}
-function planHtml(){return `<h1>Plan</h1><p class="sub">Your phase, your daily numbers and your full plan. The weekly check-in on the Progress tab adjusts the numbers; changing your phase, goal or steps here resets them.</p>${phaseWarn()}${phaseCard()}${planCard()}${window.__SA?'':aboutSec()}`}
+function planHtml(){return `<h1>Plan</h1><p class="sub">Your phase, your daily numbers and your full plan. The weekly check-in on the Progress tab adjusts the numbers; ${window.__SA?'changing your phase or steps here resets them, while a new pace or goal keeps the check-in’s changes.':'changing your phase, goal or steps here resets them.'}</p>${phaseWarn()}${phaseCard()}${planCard()}${window.__SA?'':aboutSec()}`}
 // workout weeks start on the weekday of the first weigh-in, the same weeks as the weigh-ins and check-ins (Monday before any)
 function wkDow(){return memo('wkd',[S.wt,(S.wt||[]).length],()=>{const w=wtS();return w.length?new Date(w[0].t+'T12:00:00').getDay():1})}
 // the week a workout counts toward: the week of the day it was for (that weekday nearest the date it was done, within 3 days)
-function logWk(e){const d=new Date(e.t+'T12:00:00'),dd=+e.day;if(!(dd>=0&&dd<=6&&dd%1===0))return wkKey(e.t);let df=(dd-d.getDay()+7)%7;if(df>3)df-=7;d.setDate(d.getDate()+df);return wkKey(isoD(d))}
+// the date it was for; standalone: a workout whose day was moved (Change workout days) keeps the date it had (fd)
+function logFor(e){if(window.__SA&&e.fd&&/^\d{4}-\d{2}-\d{2}$/.test(e.fd))return e.fd;const d=new Date(e.t+'T12:00:00'),dd=+e.day;if(!(dd>=0&&dd<=6&&dd%1===0))return e.t;let df=(dd-d.getDay()+7)%7;if(df>3)df-=7;d.setDate(d.getDate()+df);return isoD(d)}
+function logWk(e){return wkKey(logFor(e))}
 function wkKey(t){const d=new Date(t+'T12:00:00');d.setDate(d.getDate()-(d.getDay()-wkDow()+7)%7);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function weeks(){
 const m={};
@@ -1951,10 +2123,13 @@ async function backup(){
 if(bkBusy)return;bkBusy=true;render();
 try{
 const d=await dlP;if(!d){say('Backup isn’t available in this view. Ask in a Claude chat instead.');return}
-const out={app:'gym-tracker',kind:'backup',exported:new Date().toISOString(),data:JSON.parse(J(S))};
-const grab=async c=>{try{if(!c)return null;const q=await c.limit(1000).get();return q.docs.map(x=>x.data())}catch(e){return null}};
+const out={app:'gym-tracker',kind:'backup',exported:new Date().toISOString(),data:JSON.parse(J(S))},bkd=today(),bkc=bkCnt();
+// standalone: the file says it's a backup made today with these scans and blood tests (the phone takes them once it's saved)
+// (and leaves out empty workout pages: they hold no sets, only the blank rows the Gym page draws)
+if(window.__SA){out.data.draft=cdr(out.data.draft);out.data.bk=bkd;out.data.prof=Object.assign({},out.data.prof||{},{bkc});delete out.data.prof.bks}
+const grab=async c=>{try{if(!c)return null;const q=await(window.__SA&&c.all?c.all():c.limit(1000).get());return q.docs.map(x=>x.data())}catch(e){return null}};
 const ss=await grab(coll),fd=await grab(fcol);if(ss)out.sessions=ss;if(fd)out.food_days=fd;
-await d.save({filename:'gym-tracker-backup-'+today()+'.json',data:JSON.stringify(out,null,1)});S.bk=today();S.prof=Object.assign({},S.prof||{},{bkc:bkCnt()});delete S.prof.bks;save();say('Backup saved')
+await d.save({filename:'gym-tracker-backup-'+bkd+'.json',data:JSON.stringify(out,null,1)});S.bk=bkd;S.prof=Object.assign({},S.prof||{},{bkc});delete S.prof.bks;save();say(window.__SA&&coll&&(!ss||!fd)?'Backup saved, but without the archived workouts and food details: the phone’s storage couldn’t be read. Try again later.':'Backup saved')
 }catch(e){const c=e&&e.code;say(c==='declined'?'Backup cancelled':c==='rate_limited'?'Another save is open. Try again in a moment.':c==='too_large'?'The backup is too large to save here. Ask in a Claude chat instead.':'Backup isn’t available in this view. Ask in a Claude chat instead.')}
 finally{bkBusy=false;render()}}
 function bkSec(){const off=dlReady&&!dlNs;return `<section class="ex" id="setbk"><h2>Backup</h2><p class="hint">Download everything in one file: workouts (including archived ones), weights, waist, food, health, scans, labs, plan and check-ins. Keep it somewhere safe. ${window.__SA?'To restore it, or to add a DEXA, blood work or weight file made in a Claude chat, use Import a file.':'To restore it, send the file in a Claude chat.'}${S.bk?' Last backup: '+E(dsh({t:S.bk}))+'.':''}</p>${off?'<p class="hint dn">Backups aren’t available in this view. Ask in a Claude chat instead.</p>':`<button class="fin" data-a="bk" style="margin:.6rem 0 .2rem"${bkBusy?' disabled':''}>${bkBusy?'Preparing…':'Download backup'}</button>`}${window.__SA?`<label class="add upl">Import a file<input type="file" id="imf" accept=".json,application/json" hidden></label>`:''}</section>${window.__SA?imCard():''}`}
@@ -1964,15 +2139,18 @@ let imPend=null;
 // a backup's export time, as a date on this phone's calendar
 const imDay=o=>{const d=new Date(o&&o.exported);return isNaN(d)?null:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 async function imRead(f){
-let o;try{o=JSON.parse(await f.text())}catch(e){say('That file couldn’t be read.');return}
+let o;try{o=JSON.parse(await f.text())}catch(e){say('That file couldn’t be read. It may be damaged, or not a tracker file. Nothing was changed.');return}
 const k=o&&o.app==='gym-tracker'?o.kind:null,dOK=t=>typeof t==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(t)&&t<=today();
-const ok=k==='backup'?!!(o.data&&Array.isArray(o.data.log)):k==='scan'?!!(o.scan&&dOK(o.scan.t)&&o.scan.fm>0&&o.scan.lm>0&&o.scan.tm>=o.scan.fm+o.scan.lm):k==='labs'?!!(o.labs&&dOK(o.labs.t)&&o.labs.v&&typeof o.labs.v==='object'&&Object.keys(o.labs.v).length):k==='weights'?Array.isArray(o.weights)&&o.weights.length>0&&o.weights.every(x=>x&&dOK(x.t)&&x.w>=50&&x.w<=600):false;
+// p93: a backup is checked field by field (window.__saSane): what can't be used is left out and listed on the card
+const rs=k==='backup'&&window.__saSane?window.__saSane(o,{today:today()}):null;
+if(k==='backup'&&!(rs&&rs.ok)){say('That isn’t a tracker file it can restore: the backup’s saved data is missing or damaged. Nothing was changed.');return}
+const ok=k==='backup'?true:k==='scan'?!!(o.scan&&dOK(o.scan.t)&&o.scan.fm>0&&o.scan.lm>0&&o.scan.tm>=o.scan.fm+o.scan.lm):k==='labs'?!!(o.labs&&dOK(o.labs.t)&&o.labs.v&&typeof o.labs.v==='object'&&Object.keys(o.labs.v).length):k==='weights'?Array.isArray(o.weights)&&o.weights.length>0&&o.weights.every(x=>x&&dOK(x.t)&&x.w>=50&&x.w<=600):false;
 if(!ok){say('That isn’t a tracker file. Use a backup from this app, or a file made for it in a Claude chat.');return}
-imPend={k,o};render();const el=document.getElementById('imcard');if(el&&el.scrollIntoView)el.scrollIntoView()}
+imPend={k,o,rs};render();const el=document.getElementById('imcard');if(el&&el.scrollIntoView)el.scrollIntoView()}
 function imCard(){
 if(!imPend)return '';
 const{k,o}=imPend,n=a=>(a||[]).length;let d='';
-if(k==='backup'){const D=o.data,ex=imDay(o);const c=(k,a,b)=>k?k+' '+(k===1?a:b):'',w=n(D.log)||n(o.sessions);d=`Backup from ${ex?wtLong(ex)+', '+ex.slice(0,4):'an unknown date'}: ${[w+' workout'+(w===1?'':'s'),c(n(D.wt),'weigh-in','weigh-ins'),c(n(D.food)||n(o.food_days),'food day','food days'),c(n(D.hl),'health day','health days'),c(n(D.waist),'waist measurement','waist measurements'),c(n(D.scans),'DEXA scan','DEXA scans'),c(n(D.labs),'blood test','blood tests')].filter(Boolean).join(', ')}. This replaces everything in this app.`}
+if(k==='backup'){const R=imPend.rs,D=R.data,ex=imDay(o);const c=(k,a,b)=>k?k+' '+(k===1?a:b):'',w=Math.max(n(D.log),n(R.sessions));d=`Backup from ${ex?wtLong(ex)+', '+ex.slice(0,4):'an unknown date'}: ${[w+' workout'+(w===1?'':'s'),c(n(D.wt),'weigh-in','weigh-ins'),c(Math.max(n(D.food),n(R.food_days)),'food day','food days'),c(n(D.hl),'health day','health days'),c(n(D.waist),'waist measurement','waist measurements'),c(n(D.scans),'DEXA scan','DEXA scans'),c(n(D.labs),'blood test','blood tests')].filter(Boolean).join(', ')}. This replaces everything in this app.${R.skipped.length?' Some entries couldn’t be read and will be left out: '+R.skipped.join(', ')+'.':''}`}
 else if(k==='scan')d=`DEXA scan from ${wtLong(o.scan.t)}, ${o.scan.t.slice(0,4)}: ${f1(bfp(o.scan))}% body fat, ${f1(o.scan.fm)} lb fat, ${f1(o.scan.lm)} lb lean.${scans().some(x=>x.t===o.scan.t)?' It replaces the scan you have for that date.':''}`;
 else if(k==='labs')d=`Blood work from ${wtLong(o.labs.t)}, ${o.labs.t.slice(0,4)}: ${Object.keys(o.labs.v).length} results.${(S.labs||[]).some(l=>l.t===o.labs.t)?' It replaces the results you have for that date.':''}`;
 else{const w=o.weights.slice().sort((p,q)=>p.t<q.t?-1:1);d=`${w.length} weigh-in${w.length===1?'':'s'} from ${dsh(w[0])} to ${dsh(w[w.length-1])}. Days you already logged take the numbers from the file.`}
@@ -1980,18 +2158,19 @@ return `<section class="ex" id="imcard"><h2>Check before importing</h2><p class=
 async function imApply(){
 const p=imPend;if(!p)return;imPend=null;const{k,o}=p,cl=v=>JSON.parse(JSON.stringify(v)),srt=a=>a.sort((x,y)=>x.t<y.t?-1:x.t>y.t?1:0);
 if(k==='backup'){
-const D=pick(cl(o.data)),ss=Array.isArray(o.sessions)?o.sessions:[],fd=Array.isArray(o.food_days)?o.food_days:[];
-for(const x of ss)if(x&&x.id)try{await coll.doc(x.id).set(cl(x))}catch(e){}
-for(const x of fd)if(x&&x.t)try{await fcol.doc(x.t).set(cl(x))}catch(e){}
-const sid=new Set(ss.map(x=>x&&x.id)),ft=new Set(fd.map(x=>x&&x.t));
-for(const e of D.log)e.a=sid.has(e.id)?1:0;for(const e of (D.food||[]))e.a=ft.has(e.t)?1:0;
-const ex=imDay(o);if(ex&&ex<=today()&&!(D.bk>=ex))D.bk=ex;
-S=D;cleanDrafts();if(typeof applyProg==='function')applyProg();lastEx=null;openEx=null;wtDate=null;armed=null;
-lsSet(LK,S);try{if(docRef){const P=cl(S);await docRef.set(P);lsSet(LKB,P)}}catch(e){}
-// a backup for the other program: store it and reopen in that mode before anything is worked out
-if(typeof feMatch==='function'&&!!(S.prof&&S.prof.sex==='f')!==FEM){for(const e of S.log)if(!e.a)await arch(e);for(const e of (S.food||[]))if(!e.a)await archF(e);clearTimeout(tm);lsSet(LK,S);try{if(docRef){const P=cl(S);await docRef.set(P);lsSet(LKB,P)}}catch(e){}if(feMatch())return}
-for(const e of S.log)if(!e.a)await arch(e);for(const e of (S.food||[]))if(!e.a)await archF(e);
-save();render();say('Backup restored');if(typeof feMatch==='function')feMatch();return}
+// p93: everything is written in one transaction (tracker, archive emptied and refilled), so a restore either fully
+// replaces what's on the phone or, if saving fails, changes nothing and says so
+const r=p.rs,td=today();if(!r||!window.__saPrep||!window.__saRestore){say('Couldn’t restore the backup. Nothing was changed.');render();return}
+const R=window.__saPrep(r,td,imDay(o));if(typeof dsHold==='function')dsHold(true);
+let rev;try{rev=await window.__saRestore(R.doc,R.sessions,R.food)}catch(e){if(typeof dsHold==='function')dsHold(false);say('Couldn’t restore the backup: saving to the phone’s storage failed'+(e&&e.name==='QuotaExceededError'?' (it’s full)':'')+'. Nothing was changed.');render();return}
+S=pick(cl(R.doc));cleanDrafts();if(typeof applyProg==='function')applyProg();lastEx=null;openEx=null;wtDate=null;armed=null;
+if(typeof dsAdopt==='function')dsAdopt(rev,R.doc);else{lsSet(LK,S);lsSet(LKB,cl(R.doc))}
+// a backup for the other program reopens in that one before anything is worked out
+const said=r.skipped.length?'Backup restored. Left out what couldn’t be read: '+r.skipped.join(', ')+'.':'Backup restored';
+if(typeof feBad==='function'&&feBad())try{sessionStorage.setItem('gym-sa-said',said)}catch(e){}
+if(typeof feMatch==='function'&&feMatch())return;
+try{sessionStorage.removeItem('gym-sa-said')}catch(e){}
+render();say(r.skipped.length?'Backup restored. Left out what couldn’t be read: '+r.skipped.join(', ')+'.':'Backup restored');return}
 if(k==='scan'){const x=cl(o.scan);S.scans=srt((S.scans||[]).filter(y=>y.t!==x.t).concat(x));say('DEXA scan imported')}
 else if(k==='labs'){const x=cl(o.labs);S.labs=srt((S.labs||[]).filter(y=>y.t!==x.t).concat(x));say('Blood work imported')}
 else{const m=new Map(wtList().map(x=>[x.t,x]));for(const x of o.weights)m.set(x.t,{t:x.t,w:Math.round(x.w*10)/10});S.wt=srt([...m.values()]);say('Weigh-ins imported')}
@@ -2015,7 +2194,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say('All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'22e0f8f3a1',d:'Oct 26, 2026 at 2:58 PM'};
+const APP_V={h:'ef58639170',d:'Oct 26, 2026 at 8:21 PM'};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const m=(await r.text()).match(/const V='gym-([0-9a-f]+)'/);if(!m)throw 0;return m[1]}
@@ -2057,10 +2236,17 @@ if(!window.__SA)return '';
 const pr=S.prof||{},dx=scans().length;
 return `<section class="ex" id="about"><h2>About you</h2><p class="hint">${window.__SA&&J(ORDER)!==J(ORD0)?`${pr.sex==='f'?'Women’s':'Men’s'} ranges and your ${ORDER.length}-day program (${andL(ORDER.map(d=>DN[d]))}).`:pr.sex==='f'?'Women’s ranges and the 5-day program.':'Men’s ranges and the 3-day program.'} ${dx?'Your DEXA scan sets your resting metabolic rate, so these are only used when there’s no scan.':'With no DEXA scan yet, your calories are estimated from your height, age and weight.'}</p>${selH('pby','Birth year',BYO(),pr.by)}${selH('pht','Height',HTO,pr.ht)}<p class="hint" style="margin-top:.8rem"><b>App colour</b></p><div class="chips">${ACS.map(([k,l,c])=>`<button class="chip acs" aria-pressed="${((pr.ac||'')===k)}" data-a="acset" data-v="${k}"><i style="background:${c}"></i>${l}</button>`).join('')}</div></section>`}
 // the program follows who the tracker is for; if that changed (a restored backup, or another phone), reopen once
+// whose data this is: his or hers from About you; data with no profile is his (as before); nothing yet = either
+function feWho(){const x=S.prof&&S.prof.sex;return x==='f'?true:x==='m'?false:needSetup()?null:false}
+function feBad(){if(!window.__SA)return false;const w=feWho();return w!==null&&w!==FEM}
+// reopen in the matching app; the address carries it (?sa=f / ?sa=m), so it works even when localStorage doesn't.
+// At most 3 automatic reopens a minute; after that the page waits for a tap on Reopen now.
+function feGo(){const x=feWho()?'f':'m';try{sessionStorage.setItem('gym-sa-fem',x)}catch(e){}dsLk(true);location.replace(location.pathname+'?sa='+x)}
 function feMatch(){
-if(!window.__SA)return false;const f=!!(S.prof&&S.prof.sex==='f');if(f===FEM)return false;
-let n=0;try{n=+sessionStorage.getItem('gym-sa-rl')||0;sessionStorage.setItem('gym-sa-rl',String(n+1));if(+sessionStorage.getItem('gym-sa-rl')!==n+1)n=9}catch(e){n=9}
-if(n<2){lsSet(LK,S);location.reload();return true}return false}
+if(!window.__SA||!feBad())return false;
+let n=0;try{const r=JSON.parse(sessionStorage.getItem('gym-sa-rl')||'null');n=r&&Math.abs(Date.now()-r.t)<60000?r.n:0;sessionStorage.setItem('gym-sa-rl',JSON.stringify({n:n+1,t:Date.now()}))}catch(e){}
+if(n>=3)return false;feGo();return true}
+function feHtml(){return `<h1>One moment</h1><p class="sub">This tracker’s saved data is ${feWho()?'a women’s':'a men’s'} tracker, so the app is reopening in that program.</p><button class="fin" data-a="feopen">Reopen now</button>`}
 
 // ===== Cycle tracker (women): logged on the Weight tab; predictions, safety flags and where it feeds in =====
 const CYM={nat:'Natural cycle',cp:'Combined pill',pop:'Progestin-only pill',hiud:'Hormonal IUD',imp:'Implant or shot',cu:'Copper IUD',pcos:'Irregular or PCOS',peri:'Perimenopause',off:'Not tracking'};
@@ -2069,7 +2255,13 @@ const ddays=(a,b)=>Math.round((wtD(b)-wtD(a))/864e5);
 const cyOn=()=>FEM&&!!(S.cyc&&S.cyc.m&&S.cyc.m!=='off');
 const cyNat=()=>cyOn()&&CYNAT.has(S.cyc.m);
 let cyHid=null;
-function cyPer(){return((S.cyc&&S.cyc.p)||[]).filter(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(x.s)).slice().sort((p,q)=>p.s<q.s?-1:p.s>q.s?1:0)}
+function cyPer(){const a=((S.cyc&&S.cyc.p)||[]).filter(x=>x&&/^\d{4}-\d{2}-\d{2}$/.test(x.s)).slice().sort((p,q)=>p.s<q.s?-1:p.s>q.s?1:0);return window.__SA?cyMerge(a):a}
+// standalone: periods that overlap (possible before Oct 26, 2026, when an earlier start was added next to an open period)
+// read as one, from the earlier start to the later end; the next change saves them that way
+function cyMerge(a){const o=[];for(const x of a){const p=o[o.length-1];if(p&&x.s<=(p.e||addD(p.s,9))){o[o.length-1]=Object.assign({},p,{e:x.e?(p.e&&p.e>x.e?p.e:x.e):(p.e&&p.e>=x.s?p.e:null)});continue}o.push(x)}return o}
+// standalone: Period started on a day inside a logged period, or up to 10 days before one, fixes that period's start (its end stays)
+function cyFix(t){if(!window.__SA)return null;const P=cyPer();if(P.some(x=>x.s===t))return null;return P.find(x=>t>x.s&&t<=(x.e||cyEnd(x)))||P.find(x=>x.s>t&&ddays(t,x.s)<=10)||null}
+const cyFixL=t=>{const f=cyFix(t);return f&&!(f.e&&ddays(t,f.e)>14)?' instead of '+dsh({t:f.s}):''};
 // an open period counts through today for up to 10 days; past that it's taken as 5 days until Period ended is tapped
 const cyEnd=x=>{if(x.e)return x.e;const td=today();return ddays(x.s,td)<=9?(td<x.s?x.s:td):addD(x.s,4)};
 function cyStats(){return memo('cys',[S.cyc,today()],()=>{
@@ -2098,6 +2290,8 @@ function cyStart(t){
 if(t>today()){say('Pick a day up to today');return}
 const P=cyPer();
 if(P.some(x=>x.s===t)){say('A period already starts '+dsh({t}));return}
+{const f=cyFix(t);if(f){if(f.e&&ddays(t,f.e)>14){say('That would make your '+dsh({t:f.s})+' period '+(ddays(t,f.e)+1)+' days long. Check the date.');return}
+cySet({p:P.map(x=>x===f?Object.assign({},x,{s:t}):(t<f.s&&!x.e&&x.s<t)?Object.assign({},x,{e:addD(t,-1)<addD(x.s,9)?addD(t,-1):addD(x.s,9)}):x)});say('Period start changed from '+dsh({t:f.s})+' to '+dsh({t}));return}}
 const inside=P.find(x=>x.e&&t>x.s&&t<=x.e);if(inside){say('That day is already in your '+dsh({t:inside.s})+' period');return}
 const a=P.map(x=>{if(!x.e&&x.s<t){const e=addD(t,-1),cap=addD(x.s,9);return Object.assign({},x,{e:e<cap?e:cap})}return x});
 a.push({s:t,e:null});a.sort((p,q)=>p.s<q.s?-1:1);cySet({p:a});say('Period started '+dsh({t}))}
@@ -2152,7 +2346,7 @@ const wn=nat&&a&&cyWater(td,3)?'<p class="hint up">Water retention peaks just be
 const rm=armed==='cyd'+t,hasX=!!(x.f||(x.sy&&x.sy.length));
 const fl=cyFlags(),rd=fl.length&&phase().k==='cut'&&cyIrreg()?'<p class="hint dn"><b>On a cut:</b> with your cycle irregular or missing, the check-in won’t cut any deeper. Raise calories toward maintenance and talk to your doctor: a long, low energy intake can disrupt your period and harm your bones and health (low energy availability, or RED-S).</p>':'';
 const recent=st.P.slice(-6).reverse().map(p=>{const k='cyp'+p.s;return `<p><b>${E(dsh({t:p.s}))}${p.e?'–'+E(dsh({t:p.e})):''}</b><span>${p.e?(ddays(p.s,p.e)+1)+' days':(ddays(p.s,today())>10?'no end logged':'ongoing')}</span><button class="edit${armed===k?' warn':''}" data-a="cyrm" data-s="${p.s}">${armed===k?'Tap again to remove':'Remove'}</button></p>`}).join('');
-return `<section class="ex" id="cycle"><h2>Period and symptoms</h2><p class="hint">${E(status)}</p>${wn}${fl.map(f=>`<p class="hint dn">${E(f.x)}</p>`).join('')}${rd}<div class="addrow"><button class="add" data-a="cyps">Period started ${E(t===td?'today':dsh({t}))}</button><button class="add" data-a="cype">Period ended ${E(t===td?'today':dsh({t}))}</button></div><p class="hint"><b>Flow, ${E(lab)}</b></p><div class="chips">${Object.entries(CYF).map(([k,l])=>`<button class="chip" aria-pressed="${x.f===k}" data-a="cyf" data-v="${k}">${l}</button>`).join('')}</div><p class="hint"><b>Symptoms, ${E(lab)}</b> (optional)</p><div class="chips">${Object.entries(CYS).map(([k,l])=>`<button class="chip" aria-pressed="${!!(x.sy&&x.sy.includes(k))}" data-a="cysy" data-v="${k}">${l}</button>`).join('')}</div>${hasX?`<button class="edit${rm?' warn':''}" data-a="cyclr" style="padding:.3rem 0 0">${rm?'Tap again to clear '+E(lab):'Clear '+E(lab)}</button>`:''}${recent?`<p class="hint"><b>Recent ${nat?'periods':'bleeds'}</b></p><div class="hist" style="margin:.2rem 0 0">${recent}</div>`:''}${settings}</section>`}
+return `<section class="ex" id="cycle"><h2>Period and symptoms</h2><p class="hint">${E(status)}</p>${wn}${fl.map(f=>`<p class="hint dn">${E(f.x)}</p>`).join('')}${rd}<div class="addrow"><button class="add" data-a="cyps">Period started ${E(t===td?'today':dsh({t}))}${E(cyFixL(t))}</button><button class="add" data-a="cype">Period ended ${E(t===td?'today':dsh({t}))}</button></div><p class="hint"><b>Flow, ${E(lab)}</b></p><div class="chips">${Object.entries(CYF).map(([k,l])=>`<button class="chip" aria-pressed="${x.f===k}" data-a="cyf" data-v="${k}">${l}</button>`).join('')}</div><p class="hint"><b>Symptoms, ${E(lab)}</b> (optional)</p><div class="chips">${Object.entries(CYS).map(([k,l])=>`<button class="chip" aria-pressed="${!!(x.sy&&x.sy.includes(k))}" data-a="cysy" data-v="${k}">${l}</button>`).join('')}</div>${hasX?`<button class="edit${rm?' warn':''}" data-a="cyclr" style="padding:.3rem 0 0">${rm?'Tap again to clear '+E(lab):'Clear '+E(lab)}</button>`:''}${recent?`<p class="hint"><b>Recent ${nat?'periods':'bleeds'}</b></p><div class="hist" style="margin:.2rem 0 0">${recent}</div>`:''}${settings}</section>`}
 // its own tab: a day to log for (today unless she picks another), then the card
 function cyHtml(){const td=today(),sd=wtDate||td;return `<h1>Cycle</h1><p class="sub">Log your period, flow and symptoms. Your cycle day and phase show next to your weight, workouts and food.</p>${cyOn()?`<section class="ex" id="cylog"><h2>Day to log</h2><input class="sel" type="date" id="cyd" style="margin-top:.6rem" value="${sd}" min="2020-01-01" max="${td}" aria-label="Day to log"><p class="hint" style="margin-top:.4rem">${sd===td?'Today. Pick another day to log a past period or symptoms.':'Logging for <b>'+E(wtLong(sd))+'</b>. <button class="edit" data-a="cytd" style="padding:0">Back to today</button>'}</p></section>`:''}${cySec()}`}
 // on the Weight tab: just the cycle day, and the water note when it applies
@@ -2267,8 +2461,8 @@ const clParse=txt=>{if(typeof txt!=='string')return null;const c=[];for(const m 
 for(const x of c){for(const t of [x.trim(),x.trim().replace(/[“”]/g,'"')]){try{const o=JSON.parse(t);if(o&&typeof o==='object'&&!Array.isArray(o))return o}catch(e){}}}return null};
 const clAsk=k=>'Write your reply in two parts. First, the '+(k==='rv'?'review':'plan')+' in plain language, written to the person, with short headings. Then end with the same content as one JSON object in a ```json code block, so the person can copy your reply back into their tracker app. Use this shape: {"kind": "gym-'+(k==='rv'?'review':'plan')+'", ';
 // instructions for a report the app can't read
-const clIns=k=>k==='dx'?'Read the attached DEXA body composition report. First list the numbers you read, so I can check them. Then end with one JSON object in a ```json code block for my tracker app, in this shape: {"kind": "scan", "scan": {"t": the scan date as YYYY-MM-DD, "tm": total body mass in lb, "fm": total fat mass in lb, "lm": total lean mass in lb (lean tissue only, not bone), "vat": visceral fat area in square inches, "rmr": resting metabolic rate in calories a day, "al": arms lean mass in lb, "ll": legs lean mass in lb, "tl": trunk lean mass in lb, "rs": relative skeletal muscle index in kg/m²}}. Convert kg to lb (multiply by 2.2046) if the report is in kg. Use null for anything the report doesn’t show, and don’t estimate any number.'
-:'Read the attached blood test report. First list the results you read, so I can check them. Then end with one JSON object in a ```json code block for my tracker app, in this shape: {"kind": "labs", "labs": {"t": the collection date as YYYY-MM-DD, "v": {"test name": {"n": the result as a number (or as text if it isn’t a number), "u": the unit as printed, "lo": the low end of the reference range or null, "hi": the high end or null, "f": "H" or "L" only if the lab flagged it}}}}. Use these test names when a test matches one: '+[...new Set(Object.values(LBN))].join(', ')+'. For any other test, use its name as printed. Include every result, and don’t estimate any number.';
+const clIns=k=>k==='dx'?'Read the attached DEXA body composition report. First list the numbers you read, so I can check them. Then end with one JSON object in a ```json code block for my tracker app, in this shape: {"kind": "scan", "scan": {"t": the scan date as YYYY-MM-DD, "tm": total body mass in lb, "fm": total fat mass in lb, "lm": total lean mass in lb (lean tissue only, not bone), "vat": visceral fat area in square inches, "rmr": resting metabolic rate in calories a day, "al": arms lean mass in lb, "ll": legs lean mass in lb, "tl": trunk lean mass in lb, "rs": relative skeletal muscle index in kg/m², "sex": "M" or "F" as printed on the report}}. Convert kg to lb (multiply by 2.2046) if the report is in kg. Use null for anything the report doesn’t show, and don’t estimate any number.'
+:'Read the attached blood test report. First list the results you read, so I can check them. Then end with one JSON object in a ```json code block for my tracker app, in this shape: {"kind": "labs", "labs": {"t": the collection date as YYYY-MM-DD, "sex": "M" or "F" as printed on the report, "v": {"test name": {"n": the result as a number (or as text if it isn’t a number), "u": the unit as printed, "lo": the low end of the reference range or null, "hi": the high end or null, "f": "H" or "L" only if the lab flagged it}}}}. Use these test names when a test matches one: '+[...new Set(Object.values(LBN))].join(', ')+'. For any other test, use its name as printed. Include every result, and don’t estimate any number.';
 const clBox=k=>`<button class="fin fin2" data-a="clpaste" data-k="${k}" style="margin:.3rem 0 .2rem">${({pl:'Paste plan from Claude',rv:'Paste review from Claude'})[k]||'Paste from Claude'}</button>${clTa===k?`<textarea class="sel hkta" id="cltx" data-k="${k}" rows="2" placeholder="Long-press here and tap Paste" aria-label="Paste Claude’s reply here"></textarea><p class="hint">Your phone didn’t let the app read the clipboard directly. Long-press the box and tap Paste.</p>`:''}${clErr&&clK===k?`<p class="hint dn">${E(clErr)}</p>`:''}`;
 const clRoute=k=>`${clLink(k,'Read it with Claude')}${clBox(k)}<button class="edit" data-a="clcp" data-k="${k}" style="padding:.2rem 0 .4rem">Copy only</button>`;
 async function clPaste(k){clErr='';clK=k;try{if(!navigator.clipboard||!navigator.clipboard.readText)throw 0;clTake(await navigator.clipboard.readText(),k)}catch(e){clTa=k;render();const x=app.querySelector('#cltx');if(x)x.focus()}}
@@ -2291,10 +2485,12 @@ S.plan={pid:planId(),t:today(),r,n:{cal:L0?L0.cal:null,prot:L0?L0.prot:null,st:(
 return done('pl',k==='pl'?'New plan saved':'That was a plan, so it’s saved under Plan')}
 if(K==='scan'||o.scan){const c=o.scan||{},sc={t:c.t,tm:num(c.tm),fm:num(c.fm),lm:num(c.lm)};
 if(!dOK(sc.t)||!(sc.fm>0&&sc.lm>0&&sc.tm>=sc.fm+sc.lm-0.5))return fail('The numbers in Claude’s answer don’t add up (fat and lean have to fit inside the total), so nothing was added. Ask Claude to check them.');
+if(window.__SA&&sexOf(c.sex)&&sexOf(c.sex)!==(FEM?'f':'m'))return fail(sexMsg(sexOf(c.sex),'DEXA report'));
 const x={'tot.t':sc.tm,'tot.f':sc.fm,'tot.l':sc.lm};for(const[a,b,xk]of[['vat','vat','vata'],['rmr','rmr','rmr'],['al','al','arms.l'],['ll','ll','legs.l'],['tl','tl','trunk.l'],['rs','rs','rsmi']]){const v=num(c[a]);if(v!=null&&v>0){sc[b]=v;x[xk]=v}}sc.x=x;
 dxPend=sc;dxPf=null;dxErr='';clTa=null;clErr='';clK=null;if(day!=='hk'){day='hk';hlLast='hk'}render();const el=document.getElementById('dxc');if(el&&el.scrollIntoView)el.scrollIntoView({block:'center'});say('Check the numbers, then tap Add this scan');return}
 if(K==='labs'||o.labs){const c=o.labs||{},v={};if(c.v&&typeof c.v==='object')for(const[nm,e]of Object.entries(c.v)){if(!e||typeof e!=='object')continue;const n=num(e.n),z={};if(n!=null)z.n=n;else if(typeof e.n==='string'&&e.n.trim())z.n=e.n.trim().slice(0,40);else continue;if(typeof e.u==='string'&&e.u.trim())z.u=e.u.trim().slice(0,20);const lo=num(e.lo),hi=num(e.hi);if(lo!=null)z.lo=lo;if(hi!=null)z.hi=hi;if(e.f==='H'||e.f==='L')z.f=e.f;const key=LBN[String(nm).trim()]||String(nm).trim().slice(0,60);if(key&&!v[key])v[key]=z}
 if(!dOK(c.t)||!Object.keys(v).length)return fail('Claude’s answer didn’t have a collection date and results, so nothing was added. Ask Claude to try again.');
+if(window.__SA&&sexOf(c.sex)&&sexOf(c.sex)!==(FEM?'f':'m'))return fail(sexMsg(sexOf(c.sex),'blood test report'));
 lbPend={t:c.t,v};lbErr='';clTa=null;clErr='';clK=null;if(day!=='hk'){day='hk';hlLast='hk'}render();const el=document.getElementById('lbc');if(el&&el.scrollIntoView)el.scrollIntoView({block:'center'});say('Check the results, then tap Add these results');return}
 return fail('That doesn’t look like a plan, review or report from Claude. Copy Claude’s whole reply and try again.')}
 // one tap: copy the request, and the link opens Claude
@@ -2369,7 +2565,7 @@ if(okD('sl',t)&&x.sl!=null&&x.sl>=30&&x.sl<=960)o.sl=Math.round(x.sl);
 if(o.sl!=null&&x.hr!=null)o.hr=Math.round(x.hr);
 const day0=t===td&&!late;
 if(okD('st',t)&&x.st!=null&&x.st>0&&x.st<=100000){if(day0)skipT=true;else o.st=Math.round(x.st)}
-if(okD('c',t)&&x.c!=null&&x.c>0&&x.c<15000){if(day0)skipT=true;else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(okD(k,t)&&x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb&&okD('fb',t)){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}}}
+if(okD('c',t)&&x.c!=null&&x.c>0&&x.c<15000){if(day0)skipT=true;else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(okD(k,t)&&x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb&&okD('fb',t)&&(x.fb!=null||!window.__SA)){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}if(window.__SA)o.mx=['p','cb','f'].filter(k=>o[k]==null&&okD(k,t))}}
 if(Object.keys(o).length>1)out.push(o)}
 if(!out.length)return{err:skipT?'Only today’s food and steps were found. They come in after '+evT()+', or with tomorrow morning’s paste.':'Nothing from the last 3 days to add yet.'};
 return{days:out,seen,skipT,badDate,hro:(()=>{if(!hrs.length)return null;const lt=hkDay(new Date(Math.max(...hrs.map(x=>x.t))));return lt<td&&D[td]&&D[td].sl!=null&&D[td].hr==null?lt:null})()}}
@@ -2444,7 +2640,7 @@ const W=new Map(wtList().map(x=>[x.t,x])),H=new Map(hlList().map(x=>[x.t,x])),F=
 for(const d of p.days){
 if(d.wt!=null)W.set(d.t,{t:d.t,w:d.wt});
 if(d.st!=null||d.sl!=null||d.hr!=null){const o=Object.assign({},H.get(d.t)||{t:d.t});for(const k of['st','sl','hr'])if(d[k]!=null)o[k]=d[k];H.set(d.t,o)}
-if(d.c!=null){const o=Object.assign({},F.get(d.t)||{t:d.t});o.c=d.c;for(const k of['p','cb','f'])if(d[k]!=null)o[k]=d[k];if(d.fb!=null)o.fb=d.fb;else delete o.fb;if(!o.b&&li){o.b=li.cal;if(li.prot)o.pg=li.prot}if(window.__SA){const g=macPl(o,'carb'),h=macPl(o,'fat');if(g)o.cg=g;if(h)o.fg=h;if(g||h)o.gp=1}o.hk=1;delete o.a;F.set(d.t,o);fs.push(d.t)}
+if(d.c!=null){const o=Object.assign({},F.get(d.t)||{t:d.t});o.c=d.c;for(const k of['p','cb','f'])if(d[k]!=null)o[k]=d[k];else if(window.__SA&&Array.isArray(d.mx)&&d.mx.includes(k))delete o[k];if(d.fb!=null)o.fb=d.fb;else delete o.fb;if(!o.b&&li){o.b=li.cal;if(li.prot)o.pg=li.prot}if(window.__SA){const g=macPl(o,'carb'),h=macPl(o,'fat');if(g)o.cg=g;if(h)o.fg=h;if(g||h)o.gp=1}o.hk=1;delete o.a;F.set(d.t,o);fs.push(d.t)}
 nd++}
 const srt=a=>a.sort((x,y)=>x.t<y.t?-1:x.t>y.t?1:0);
 S.wt=srt([...W.values()]);S.hl=srt([...H.values()]);S.food=fdPrune(srt([...F.values()]));
@@ -2484,7 +2680,24 @@ AS.clear();for(const n of ASB)AS.add(n);for(const d in P)for(const x of P[d].x){
 const pgNorm=a=>{a.forEach((x,i)=>{if(x.ss===1&&!(a[i+1]&&a[i+1].ss===2))delete x.ss;if(x.ss===2&&!(a[i-1]&&a[i-1].ss===1))delete x.ss});return a};
 // untouched set rows in today's workout are redrawn from the new program (sets typed in are kept)
 function pgDraft(d){const dd=S.draft[d];if(dd&&dd.s)for(const n in dd.s){const r=dd.s[n];if(Array.isArray(r)&&r.every(a=>String(a[0]==null?'':a[0]).trim()===''&&String(a[1]==null?'':a[1]).trim()===''&&a[2]!=='w'))delete dd.s[n]}}
-function pgSet(fn){const d=pgEd;if(d==null||!P[d])return;const cur=JSON.parse(JSON.stringify(P[d]));fn(cur.x);pgNorm(cur.x);S.prog=Object.assign({},S.prog||{},{[d]:cur});applyProg();pgDraft(d);save();render()}
+// standalone: the sets typed for each slot follow it when its exercise changes name (B, A: slot -> name before, after).
+// A name that already holds typed sets that weren't on a card (an older draft, an edited workout that has both) is just shown.
+function dFollow(dd,B,A){if(!dd||!dd.s)return;const own=(o,k)=>!!o&&Object.prototype.hasOwnProperty.call(o,k),sh=new Set(B.values()),ty=n=>own(dd.s,n)&&Array.isArray(dd.s[n])&&dd.s[n].some(a=>!rowEmpty(a)||a[2]==='w'),mp=new Map();
+for(const[k,n]of A){const b=B.get(k);if(b!=null&&b!==n&&!(ty(n)&&!sh.has(n)))mp.set(b,n)}if(!mp.size)return;
+const mv=o=>{const r=Object.assign({},o);for(const k of mp.keys())delete r[k];for(const[k,v]of mp){if(own(o,k))r[v]=o[k];else delete r[v]}return r};
+dd.s=mv(dd.s);if(dd.nt)dd.nt=mv(dd.nt);if(Array.isArray(dd.lf))dd.lf=[...new Set(dd.lf.map(n=>mp.has(n)?mp.get(n):n))];
+if(mp.has(lastEx))lastEx=mp.get(lastEx);if(mp.has(openEx))openEx=mp.get(openEx);
+for(const k of [...wTouch]){const i=k.lastIndexOf('|'),n=k.slice(0,i);if(mp.has(n)){wTouch.delete(k);wTouch.add(mp.get(n)+k.slice(i))}}}
+// an option chip: which variation you did, so the card's sets go with it (and the other bench's with the other bench)
+function vSwitch(id,o){const d=D(),xs=(P[day]&&P[day].x)||[],B=new Map(xs.map(x=>[x.id,nm(x)]));d.v[id]=o;dFollow(d,B,new Map(xs.map(x=>[x.id,nm(x)])))}
+// after a program edit: the second bench keeps showing what it showed; a swap's typed sets go to the replacement
+// (not in an edited saved workout, which keeps what you did)
+function pgFollow(d,B,sw){const dd=S.draft[d];if(!dd||!P[d])return;const A=new Map();
+for(const y of P[d].x){const k=sw&&y.id===sw[1]?sw[0]:y.id;if(!B.has(k))continue;if(k===y.id&&Array.isArray(y.o)&&y.o.includes(B.get(k))&&nm(y)!==B.get(k))dd.v[y.id]=B.get(k);A.set(k,nm(y))}
+if(!dd.id)dFollow(dd,B,A)}
+// sets typed today for an exercise no longer on the day aren't saved at Finish; Remove says so
+const pgTyped=n=>{const dd=n&&S.draft[day];return !!(dd&&!dd.id&&dd.s&&Object.prototype.hasOwnProperty.call(dd.s,n)&&Array.isArray(dd.s[n])&&dd.s[n].some(a=>!rowEmpty(a))&&!P[day].x.some(x=>nm(x)===n))};
+function pgSet(fn,sw){const d=pgEd;if(d==null||!P[d])return;const B=window.__SA&&d===day&&S.draft[d]?new Map(P[d].x.map(y=>[y.id,nm(y)])):null;const cur=JSON.parse(JSON.stringify(P[d]));fn(cur.x);pgNorm(cur.x);S.prog=Object.assign({},S.prog||{},{[d]:cur});applyProg();if(B)pgFollow(d,B,sw);pgDraft(d);save();render()}
 const pgName=x=>Array.isArray(x.o)?x.o.join(' / '):x.o==='rest'?'Bench press (the other one from your first bench)':x.n;
 let pgSnap=null;
 const pgRest=x=>x.rs||RS[x.id]||'';
@@ -2525,7 +2738,7 @@ function schCopyX(src){const o=JSON.parse(JSON.stringify(P[src].x)),b1=o.find(x=
 function schSet(ds){S.wdays=ds.slice();applyProg();save()}
 function schMove(a,b){const cur=JSON.parse(JSON.stringify(P[a]));const o0=S.prog&&S.prog[a];cur.src=o0&&o0.src!=null?o0.src:(P0[a]?a:undefined);if(!cur.x.length)cur.e=1;
 const pr=Object.assign({},S.prog||{});pr[b]=cur;delete pr[a];S.prog=pr;
-for(const e of S.log)if(e.day===a){e.day=b;if(e.a){delete e.a;arch(e)}}
+for(const e of S.log)if(e.day===a){if(window.__SA&&!e.fd)e.fd=logFor(e);e.day=b;if(e.a){delete e.a;arch(e)}}
 if(S.draft[a]){S.draft[b]=S.draft[a];delete S.draft[a]}else delete S.draft[b];
 schSet(ORDER.map(d=>d===a?b:d));if(gymLast===a)gymLast=b}
 function schHtml(){const act=new Set(ORDER),free=SCHW.filter(d=>!act.has(d));
@@ -2545,7 +2758,7 @@ function pgNew(n,mu,ty,fl){fl=fl||'';const t=PTY[ty]||PTY.comp,x={id:pgId(),n,r:
 function pgCopy(o){const x=JSON.parse(JSON.stringify(o.x));delete x.ss;const r=x.rs||RS[x.id];if(!x.id||P[pgEd].x.some(y=>y.id===x.id)||o.k[0]==='h'){x.id=pgId();if(r)x.rs=r}if(o.k[0]==='h'){x.ty=pgTy(x.mu);if(x.mu&&!M2[x.n])x.mu=x.mu;else delete x.mu}return x}
 function pgPut(x){const p=pgPick;if(!p)return;const ns=pgNs(x);if(P[pgEd].x.some((y,j)=>pgNs(y).some(n=>ns.includes(n))&&!(p.mode==='swap'&&j===p.i))){say(pgName(x)+' is already on this day');return}
 pgPick=null;pgOpen=null;let at=p.i;
-pgSet(a=>{if(p.mode==='swap'){const o=a[p.i];if(o.k)x.k=o.k;if(o.ss)x.ss=o.ss;a[p.i]=x;if(o.id==='b1'&&x.id!=='b1'&&Array.isArray(o.o))for(const y of a)if(y.o==='rest')y.o=o.o.slice()}else{a.push(x);at=a.length-1}});say((p.mode==='swap'?'Swapped in ':'Added ')+pgName(x));pgShow(at)}
+pgSet(a=>{if(p.mode==='swap'){const o=a[p.i];if(o.k)x.k=o.k;if(o.ss)x.ss=o.ss;a[p.i]=x;if(o.id==='b1'&&x.id!=='b1'&&Array.isArray(o.o))for(const y of a)if(y.o==='rest')y.o=o.o.slice()}else{a.push(x);at=a.length-1}},p.mode==='swap'&&P[pgEd].x[p.i]?[P[pgEd].x[p.i].id,x.id]:null);say((p.mode==='swap'?'Swapped in ':'Added ')+pgName(x));pgShow(at)}
 // after the swap / add panel closes, show the row that changed
 function pgShow(i){const r=app.querySelectorAll('.pgrow')[i];if(!r||!r.scrollIntoView)return;try{r.scrollIntoView({block:'center'})}catch(e){r.scrollIntoView()}}
 
@@ -2607,6 +2820,8 @@ function render(){try{render0();lbWords();rdOk=day;STP('drawn');ancFix()}catch(e
 function rdErr(e){const m=String(e&&e.message||e),st=String(e&&e.stack||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,4).join(' ← '),v=(()=>{try{return String(APP_V.h).slice(0,7)}catch(x){return '?'}})();try{if(window.__saErr)window.__saErr('page '+day+': '+m)}catch(x){}STP('page error');try{e.__rd=1}catch(x){}setTimeout(()=>{throw e},0);app.innerHTML=`<section class="ex" id="rderr"><h2>This page hit a problem</h2><p class="hint">Your data is safe on this phone. A screenshot of this helps get it fixed.</p><p class="hint" style="word-break:break-word;font-size:.8rem"><b>${E(m)}</b>${st?'<br>'+E(st.slice(0,500)):''}<br>Page: ${E(String(day))} · Version ${E(v)}</p>${rdOk!=null&&rdOk!==day?'<button class="fin" data-a="rdback">Go back</button>':''}${window.__SA&&day!=='set'?'<button class="fin" data-a="rdset">Open Settings</button>':''}${window.__SA?'<button class="edit" data-a="bk" style="padding:.4rem 0">Save a backup</button>':''}</section>`}
 function render0(){
 acApply();
+// standalone: never draw (or run the check-in) under the other program's rules
+if(window.__SA&&feBad()){app.innerHTML=feHtml();if(dbReady||ldN)setTimeout(feMatch,0);return}
 if(needSetup()){app.innerHTML=initDone?setupHtml():'';return}
 if(window.__SA)for(const k in S.draft){const x=S.draft[k];if(x&&typeof x.ed==='string'&&x.ed!==today()){delete S.draft[k];save()}}
 GEN++;autoCheck();STP('drawing '+day);
@@ -2680,28 +2895,34 @@ let wkView=null;
 let docRef=null,coll=null,fcol=null,armed=null,prAlert=[],upAlert=[],dnAlert=[],wkAlert='',busy=false,again=false,tm,syncFail=0,rtT=null,ldT=null,ldN=0,ldBusy=false;
 const LKB=LK+'-base',FLDS=['draft','log','dl','scans','labs','wt','food','rev','phases','prof','plan','lock','ci','hl','rarc','bk','waist','cyc','prog','setup','steps','bm','hkt','wtx','wdays','msx','fa'],J=x=>JSON.stringify(x===undefined?null:x);
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-function pick(d){d=d||{};return{draft:d.draft&&typeof d.draft==='object'?d.draft:{},log:Array.isArray(d.log)?d.log:[],dl:d.dl,scans:d.scans,labs:d.labs,wt:d.wt,food:d.food,rev:d.rev,phases:d.phases,prof:d.prof,plan:d.plan,lock:d.lock,ci:d.ci,hl:d.hl,rarc:d.rarc,bk:d.bk,waist:d.waist,cyc:d.cyc,prog:d.prog,setup:d.setup,steps:d.steps,bm:d.bm,hkt:d.hkt,wtx:d.wtx,wdays:d.wdays,msx:d.msx,fa:d.fa}}
+function pick(d){d=d||{};const o={draft:d.draft&&typeof d.draft==='object'?d.draft:{},log:Array.isArray(d.log)?d.log:[],dl:d.dl,scans:d.scans,labs:d.labs,wt:d.wt,food:d.food,rev:d.rev,phases:d.phases,prof:d.prof,plan:d.plan,lock:d.lock,ci:d.ci,hl:d.hl,rarc:d.rarc,bk:d.bk,waist:d.waist,cyc:d.cyc,prog:d.prog,setup:d.setup,steps:d.steps,bm:d.bm,hkt:d.hkt,wtx:d.wtx,wdays:d.wdays,msx:d.msx,fa:d.fa};
+// fields a newer version saved are kept as they are
+for(const k in d)if(!(k in o)&&d[k]!==undefined)o[k]=d[k];return o}
 const cdr=dr=>{const o={};for(const k in dr||{}){const x=dr[k];if(x&&x.s&&Object.values(x.s).some(r=>Array.isArray(r)&&r.some(a=>a&&(a[0]!==''||a[1]!==''))))o[k]=x}return o};
 const nz=x=>{const p=pick(x);p.draft=cdr(p.draft);return J(p)};
 const KF={log:e=>e&&(e.id||e.t+'-'+e.day),wt:e=>e&&e.t,waist:e=>e&&e.t,food:e=>e&&e.t,hl:e=>e&&e.t,labs:e=>e&&e.t,scans:e=>e&&e.t,ci:e=>e&&e.pid+'|'+e.w};
 // Three-way merge: keeps this device's unsynced changes and anything another device saved meanwhile.
-function merge3(b0,l0,r0){
+// keep (standalone, when it can't be sure which copy is newer): nothing is removed; entries either copy has are kept.
+function merge3(b0,l0,r0,keep){
 const b=pick(b0),l=pick(l0),r=pick(r0);b.draft=cdr(b.draft);l.draft=cdr(l.draft);r.draft=cdr(r.draft);
 const o={};
-for(const f of FLDS){
+for(const f of new Set(FLDS.concat(Object.keys(l),Object.keys(r)))){
 const bv=b[f],lv=l[f],rv=r[f];
 if(J(lv)===J(bv)){o[f]=rv;continue}
-if(J(rv)===J(bv)||J(rv)===J(lv)){o[f]=lv;continue}
-if(KF[f]&&Array.isArray(lv)&&Array.isArray(rv)){const k=KF[f],bm=new Map((Array.isArray(bv)?bv:[]).map(x=>[k(x),x])),lm=new Map(lv.map(x=>[k(x),x])),out=new Map(rv.map(x=>[k(x),x]));for(const[i,x]of lm){const y=bm.get(i);if(!y||J(y)!==J(x))out.set(i,x)}for(const i of bm.keys())if(!lm.has(i))out.delete(i);o[f]=[...out.values()]}
+if(keep&&lv==null&&rv!=null){o[f]=rv;continue}
+if(keep&&lv&&rv&&typeof lv==='object'&&typeof rv==='object'&&!Array.isArray(lv)&&!Array.isArray(rv)){o[f]=Object.assign({},rv,lv);continue}
+if(!(keep&&KF[f]&&Array.isArray(lv)&&Array.isArray(rv))&&(J(rv)===J(bv)||J(rv)===J(lv))){o[f]=lv;continue}
+if(KF[f]&&Array.isArray(lv)&&Array.isArray(rv)){const k=KF[f],bm=new Map((Array.isArray(bv)?bv:[]).map(x=>[k(x),x])),lm=new Map(lv.map(x=>[k(x),x])),out=new Map(rv.map(x=>[k(x),x]));for(const[i,x]of lm){const y=bm.get(i);if(!y||J(y)!==J(x))out.set(i,x)}if(!keep)for(const i of bm.keys())if(!lm.has(i))out.delete(i);o[f]=[...out.values()]}
 else if(f==='draft'){const d=Object.assign({},rv);for(const k of new Set(Object.keys(lv).concat(Object.keys(bv))))if(J(lv[k])!==J(bv[k])){if(lv[k]===undefined)delete d[k];else d[k]=lv[k]}o[f]=d}
 else o[f]=lv}
 o.log.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0);
 for(const f of['wt','food','hl','waist'])if(Array.isArray(o[f]))o[f].sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0);
 if(Array.isArray(o.ci))o.ci.sort((a,b)=>(a.w||'')<(b.w||'')?-1:(a.w||'')>(b.w||'')?1:0);
 return o}
-function save(){GEN++;clearTimeout(tm);tm=setTimeout(flush,500)}
-if(window.__SA){let sg=-1;const now=()=>{if(!dbReady||sg===GEN)return;sg=GEN;clearTimeout(tm);flush()};document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')now()});window.addEventListener('pagehide',now)}
+function save(){GEN++;EDS++;if(window.__SA&&!dsLkT)dsLkT=setTimeout(()=>{dsLkT=0;dsLk()},0);clearTimeout(tm);tm=setTimeout(flush,500)}
+if(window.__SA){const now=()=>{if(dsHeld||EDS<=lsEd&&(!dbReady||EDS<=dbEd))return;clearTimeout(tm);flush()};document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')now()});window.addEventListener('pagehide',now)}
 async function flush(){
+if(window.__SA&&(!docRef||docRef.setIf))return saFlush();
 STP('saving');slim();lsSet(LK,S);STP('saved on phone');
 if(!docRef||!dbReady)return;
 if(busy){again=true;return}
@@ -2711,10 +2932,111 @@ try{await docRef.set(P);lsSet(LKB,P);if(syncFail)say('Synced');syncFail=0}catch(
 busy=false;
 if(again){again=false;flush()}}
 async function archF(e){if(!fcol||!e||!e.t)return;try{const o=JSON.parse(JSON.stringify(e));delete o.a;await fcol.doc(e.t).set(o);e.a=1;save()}catch(err){}}
+// ===== Standalone storage (p93) =====
+// The database (IndexedDB) is the saved copy. The quick copy (localStorage, gym-tracker-v1) opens the app instantly and
+// covers a save that didn't reach the database. gym-tracker-v1-meta says what the quick copy holds: u = changes the
+// database doesn't have yet, r = the database revision it builds on (null: unknown), b = the revision the base copy
+// (gym-tracker-v1-base) was saved at, f = whose app (f / m).
+const LKM=LK+'-meta',FLIM=120000;
+let EDS=0,lsEd=0,dbEd=0,dbRev=null,dbBase=null,dsGen=0,dsHeld=false,lkOK=false,m0=null,saveFail=0,dsLkT=0;
+const lsPut=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
+function dsMeta(o){const x=Object.assign({},lsGet(LKM)||{},o),sx=S.prof&&S.prof.sex;if(sx==='f'||sx==='m')x.f=sx;if(x.r===undefined)x.r=null;return lsPut(LKM,x)}
+// saved data from the phone gets the restore's check (window.__saSane, without the date rule): lists of the wrong kind
+// start empty and unusable entries go, so bad data can't stop every page from drawing
+function dsFix(d){try{const z=window.__saSane&&window.__saSane({app:'gym-tracker',kind:'backup',data:d});if(z&&z.ok){if(z.skipped.length&&window.__saErr)window.__saErr('saved data repaired: '+z.skipped.join(', '));return z.data}}catch(e){}return d}
+// write the quick copy, then record what it holds. Before the database has loaded, what's in memory builds on the quick
+// copy that opened the app (its revision, if it was up to date)
+function dsLk(force){if(dsHeld&&!force)return false;const ed=EDS;if(!lsPut(LK,S))return false;lsEd=ed;
+const r=dbReady?dbRev:m0&&m0.r!=null?m0.r:null;dsMeta(ed>dbEd||!dbReady&&(ed>0||m0&&m0.u)?{u:1,r}:{u:0,r:dbRev});return true}
+// after the database saved revision `rev` (the state at edit `s`): the base copy, and whether the quick copy is ahead,
+// level, or behind (then its base is unknown and it never counts as newer)
+function dsDone(s,rev,P){dbEd=s;dbRev=rev;dbBase=J(P);const bOK=lsPut(LKB,P);let lk=lsEd>=s;if(!lk&&lsPut(LK,S)){lsEd=EDS;lk=true}
+const m=lk?{u:lsEd>dbEd?1:0,r:dbRev}:{u:0,r:null};if(bOK)m.b=dbRev;dsMeta(m)}
+// a save the database refuses: one that would empty the tracker, drop who it's for, or drop 5+ entries
+const dsCnt=d=>['log','wt','food','hl','ci','scans','labs','waist'].map(f=>Array.isArray(d&&d[f])?d[f].length:0);
+function dsGuard(cur,next){const a=dsCnt(cur),b=dsCnt(next);let tot=0,lost=0;a.forEach((x,i)=>{tot+=x;if(b[i]<x)lost+=x-b[i]});
+const sx=cur&&cur.prof&&cur.prof.sex;if(tot&&!b.some(x=>x))return 'it would empty the tracker';if(sx&&!(next&&next.prof&&next.prof.sex))return 'it would remove who the tracker is for';return lost>=5?'it would remove '+lost+' entries':''}
+const dsTyping=()=>{const ae=document.activeElement;return !!(ae&&ae.tagName==='INPUT'&&app.contains(ae))};
+// plain words: the phone's storage for the app is full (or failing); "kept" only when the quick copy really has the change
+function dsSay(e){const why=e&&e.name==='QuotaExceededError'?'the phone’s storage for this app is full':'saving to the phone’s storage failed',kept=lsEd>=EDS;
+say(kept?'Not fully saved: '+why+'. This change is kept on the phone for now and it keeps trying. Free up space in Settings › General › iPhone Storage.':'Not saved: '+why+'. Keep the app open: it keeps trying. Free up space in Settings › General › iPhone Storage.')}
+async function saFlush(){
+if(dsHeld)return;
+STP('saving');slim();dsLk();STP('saved on phone');
+if(!docRef||!dbReady)return;
+if(busy){again=true;return}
+busy=true;clearTimeout(rtT);const g=dsGen;let changed=false;
+try{let s=EDS,P=JSON.parse(J(S));
+for(let i=0;;i++){
+const r=await docRef.setIf(P,dbRev,dsGuard);
+if(g!==dsGen||dsHeld){busy=false;return}
+if(r.ok){dsDone(s,r.rev,P);break}
+if(i>=3)throw new Error('the saved data kept changing');
+// another copy of the app saved in between, or this save would lose entries: merge, keeping both
+const R=pick(r.v||{}),B=dbBase?JSON.parse(dbBase):R;
+S=merge3(B,S,R,!!r.refused);cleanDrafts();applyProg();dbRev=r.rev;dbBase=J(R);EDS++;s=EDS;P=JSON.parse(J(S));changed=true;
+if(r.refused&&window.__saErr)window.__saErr('save kept the saved entries: '+r.refused)}
+if(saveFail)say('Saved. The phone’s storage is working again.');saveFail=0}
+catch(e){saveFail++;if(saveFail===1)dsSay(e);rtT=setTimeout(flush,Math.min(120000,15000*saveFail))}
+busy=false;
+if(changed){dsLk();if(!dsTyping())render()}
+if(again){again=false;flush()}}
+// only archived food days lose detail (their full copy stays in the food archive and in backups), and only while the
+// food list is large: item lists first, then meals, then the extra numbers of days over 6 months old. Nothing else.
+function slimSA(){
+if(!fcol||sizeOf(S.food||[])<=FLIM)return false;
+const td=today(),c=d=>addD(td,-d),ok=e=>!!e.a,keep=(e,ks)=>{const o={};for(const k of ks)if(e[k]!=null)o[k]=e[k];return o};
+const noItems=d=>()=>{S.food=(S.food||[]).map(e=>e.t<c(d)&&ok(e)&&e.m&&e.m.some(x=>x.it)?Object.assign({},e,{m:e.m.map(x=>{const y=Object.assign({},x);delete y.it;delete y.ic;return y})}):e)};
+const noMeals=d=>()=>{S.food=(S.food||[]).map(e=>e.t<c(d)&&ok(e)&&e.m?(()=>{const o=Object.assign({},e);delete o.m;delete o.mf;return o})():e)};
+for(const f of [noItems(14),noMeals(60),()=>{S.food=(S.food||[]).map(e=>e.t<c(180)&&ok(e)?keep(e,['t','b','c','p','pg','cb','a']):e)},noItems(3),noMeals(14),noItems(0)]){f();if(sizeOf(S.food||[])<=FLIM)break}
+return true}
+// base for merging the quick copy when its own base copy is missing: its entries the database also has
+function dsRecon(b0,R){const base=JSON.parse(J(b0));for(const f in KF){const rk=new Set((Array.isArray(R[f])?R[f]:[]).map(KF[f]));if(Array.isArray(b0[f]))base[f]=b0[f].filter(x=>rk.has(KF[f](x)))}return base}
+async function dbLoadSA(){
+clearTimeout(ldT);
+if(!docRef||dbReady||ldBusy)return;
+ldBusy=true;const g=dsGen;
+try{
+STP('loading saved data');const snap=await docRef.getRev(),before=J(S);STP('merging saved data');
+if(g!==dsGen||dbReady)return;
+let need=false,R0=null;dbRev=snap.rev;
+if(snap.exists){
+R0=pick(snap.data());const R=pick(dsFix(JSON.parse(J(R0))));const b0=boot0,m=m0;let X=R;
+if(lkOK&&nz(b0)!==nz(R)){
+// the quick copy that opened the app: merged only when it holds changes the database doesn't have
+if(!m){const B=lsGet(LKB);X=merge3(B?pick(B):dsRecon(b0,R),b0,R,true)}   // saved by an older version: keep everything from both
+else if(m.u){if(m.r!=null&&m.r===dbRev)X=JSON.parse(J(b0));   // nothing else saved since: the quick copy is simply newer
+else{const B=m.r!=null&&m.b===m.r?lsGet(LKB):null;X=merge3(B?pick(B):dsRecon(b0,R),b0,R,!B)}}}
+// changes made since this start, before the database had loaded
+S=nz(S)!==nz(b0)?merge3(b0,S,X):X;
+if(dsGuard(R,S))S=merge3(R,S,R,true);
+need=nz(S)!==nz(R0);dbBase=J(R0);if(lsPut(LKB,R0))dsMeta({b:dbRev})}
+else{need=FLDS.some(f=>f!=='draft'&&S[f]!=null&&!(Array.isArray(S[f])&&!S[f].length));
+// a new or emptied database: everything gets archived again
+for(const e of S.log)e.a=0;for(const e of (S.food||[]))e.a=0}
+cleanDrafts();applyProg();STP('saved data loaded');
+dbReady=true;ldN=0;if(need)EDS++;else dbEd=EDS;
+if(feBad()){if(need)await saFlush();else dsLk();if(feMatch())return}
+else try{sessionStorage.removeItem('gym-sa-rl');const w=feWho();if(w!==null)sessionStorage.setItem('gym-sa-fem',w?'f':'m')}catch(e){}
+const typing=dsTyping()&&J(S)===before;
+initDone=true;
+STP('screen with saved data');if(typing)autoCheck();else render();
+if(need)flush();else dsLk();
+{const ids=new Set();for(const e of S.log.slice().reverse()){if(!e.id)e.id=e.t+'-'+e.day;if(ids.has(e.id)){let k=2;while(ids.has(e.id+'-'+k))k++;e.id=e.id+'-'+k;e.a=0}ids.add(e.id)}}
+STP('archiving');for(const e of S.log){if(!e.a)await arch(e)}
+for(const e of (S.food||[]))if(!e.a)await archF(e)
+}catch(e){if(!dbReady){ldN++;ldT=setTimeout(dbLoad,Math.min(60000,10000*ldN));if(!initDone){initDone=true;render()}}}
+finally{ldBusy=false;if(!initDone){initDone=true;render()}}}
+// a restore (build_sa.py) wrote everything at revision `rev`: nothing older may be saved over it
+function dsHold(on){dsHeld=!!on;if(on){dsGen++;clearTimeout(tm);clearTimeout(rtT)}}
+function dsAdopt(rev,doc){dsGen++;clearTimeout(tm);clearTimeout(rtT);clearTimeout(ldT);try{for(const k of [LK,LKB,LKM])localStorage.removeItem(k)}catch(e){}
+dbReady=true;dbRev=rev;dbBase=J(pick(doc));EDS++;dbEd=EDS;lsEd=0;saveFail=0;busy=false;again=false;dsHeld=false;
+if(lsPut(LKB,JSON.parse(dbBase)))dsMeta({b:rev});dsLk()}
 const LIM=200000;
 // Keeps the synced copy well under the store's 256 KiB document limit. Full food days live in their own archive.
 const sizeOf=x=>{const j=J(x);try{return new TextEncoder().encode(j).length}catch(e){return j.length*1.1}};
 function slim(){
+if(window.__SA)return slimSA();
 if(sizeOf(S)<=LIM)return false;
 const td=today(),c=d=>addD(td,-d),ok=e=>e.a||!fcol,keep=(e,ks)=>{const o={};for(const k of ks)if(e[k]!=null)o[k]=e[k];return o};
 const noItems=d=>()=>{S.food=(S.food||[]).map(e=>e.t<c(d)&&ok(e)&&e.m&&e.m.some(x=>x.it)?Object.assign({},e,{m:e.m.map(x=>{const y=Object.assign({},x);delete y.it;delete y.ic;return y})}):e)};
@@ -2733,9 +3055,9 @@ function rmLog(i){
 const e=S.log[i];if(!e)return;
 if(armed!==e){armed=e;render();return}
 armed=null;
-S.log.splice(i,1);if(window.__SA&&S.fa&&S.fa.id===e.id)S.fa=null;
+S.log.splice(i,1);if(window.__SA&&S.fa&&S.fa.id===e.id)S.fa=null;let dx=false;if(window.__SA&&e.id)for(const k in S.draft){const x=S.draft[k];if(x&&x.id===e.id){delete S.draft[k];dx=true}}if(dx){lastEx=null;openEx=null}
 if(coll&&e.id)coll.doc(e.id).delete().catch(()=>{});
-save();render();say('Workout deleted')}
+save();render();say(dx?'Workout deleted, and the changes you were making to it':'Workout deleted')}
 function editLog(i){
 const e=S.log[i];if(!e)return;
 const dd=S.draft[e.day];
@@ -2747,10 +3069,12 @@ S.draft[e.day]={v,s:JSON.parse(JSON.stringify(e.s)),t:e.t,id:e.id};if(window.__S
 day=e.day;save();render();window.scrollTo(0,0);say('Editing saved workout. Tap Finish when done')}
 function finish(){
 const d=D(),s={};let c=0;
-const bad=[];for(const[n,r]of Object.entries(d.s))r.forEach((a,i)=>{const rp=String(a[1]==null?'':a[1]).trim(),w=String(a[0]==null?'':a[0]).trim();if(rp===''||rp==='0')return;if(!/^\d{1,3}$/.test(rp)||+rp>100)bad.push(n+', set '+(i+1)+' reps');else if(w!==''&&!(/^\d{0,4}(\.\d{1,2})?$/.test(w)&&w!=='.'&&+w<=2000))bad.push(n+', set '+(i+1)+' weight')});
-if(!bad.length&&window.__SA){let wo=null;for(const[n,r]of Object.entries(d.s))r.forEach((a,i)=>{if(!wo&&a[2]!=='w'&&String(a[1]==null?'':a[1]).trim()===''&&String(a[0]==null?'':a[0]).trim()!=='')wo=n+', set '+(i+1)});if(wo){say(wo+' has a weight but no reps. Add the reps, or clear the weight to skip it.');return}}
+// standalone: only the exercises on the day's cards are saved; an edited saved workout also keeps what it had that isn't on one
+const dE=window.__SA?(()=>{const on=new Set((P[day]?P[day].x:[]).map(nm));if(d.id&&d.o&&d.o.s)for(const n in d.o.s)on.add(n);return Object.entries(d.s).filter(([n])=>on.has(n))})():Object.entries(d.s);
+const bad=[];for(const[n,r]of dE)r.forEach((a,i)=>{const rp=String(a[1]==null?'':a[1]).trim(),w=String(a[0]==null?'':a[0]).trim();if(rp===''||rp==='0')return;if(!/^\d{1,3}$/.test(rp)||+rp>100)bad.push(n+', set '+(i+1)+' reps');else if(w!==''&&!(/^\d{0,4}(\.\d{1,2})?$/.test(w)&&w!=='.'&&+w<=2000))bad.push(n+', set '+(i+1)+' weight')});
+if(!bad.length&&window.__SA){let wo=null;for(const[n,r]of dE)r.forEach((a,i)=>{if(!wo&&a[2]!=='w'&&String(a[1]==null?'':a[1]).trim()===''&&String(a[0]==null?'':a[0]).trim()!=='')wo=n+', set '+(i+1)});if(wo){say(wo+' has a weight but no reps. Add the reps, or clear the weight to skip it.');return}}
 if(bad.length){say('Check '+bad[0]+(bad.length>1?' (and '+(bad.length-1)+' more)':'')+' before finishing');return}
-for(const[n,r]of Object.entries(d.s)){const f=r.filter(a=>{const rp=String(a[1]==null?'':a[1]).trim();return rp!==''&&rp!=='0'}).map(a=>{const b=a.slice();b[0]=String(b[0]==null?'':b[0]).trim();b[1]=String(+String(b[1]).trim());return b});if(f.length){s[n]=f;c+=f.length}}
+for(const[n,r]of dE){const f=r.filter(a=>{const rp=String(a[1]==null?'':a[1]).trim();return rp!==''&&rp!=='0'}).map(a=>{const b=a.slice();b[0]=String(b[0]==null?'':b[0]).trim();b[1]=String(+String(b[1]).trim());return b});if(f.length){s[n]=f;c+=f.length}}
 if(!c){say('Add reps for at least one set first');return}
 const ups=[],upN=new Set();
 for(const x of P[day].x){const n=nm(x),f=(s[n]||[]).filter(a=>a[2]!=='w');if(!x.r||x.nn||!f.length||(s[n]||[]).length<3)continue;const tp=+String(x.r).split('-').pop(),asx=AS.has(n),ws=f.map(a=>parseFloat(a[0])||0),mw=asx?Math.min(...ws):Math.max(...ws);if(f.filter(a=>(parseFloat(a[0])||0)===mw).every(a=>(parseFloat(a[1])||0)>=tp)){const rc=rec(x,n,mw,tp,+String(x.r).split('-')[0],tp,1);ups.push(n+(rc?': '+rc.toLowerCase():''));upN.add(n)}}
@@ -2765,7 +3089,7 @@ for(const e of S.log){if(d.id&&e.id===d.id)continue;if(window.__SA&&d.ed&&e.t>=(
 if(pb&&better(nt,pb))prs.push({n,nt:bsx(nt),pb:bsx(pb)})}
 if(d.ed&&d.id)S.log=S.log.filter(e=>e.id!==d.id);
 let nid=d.id;if(!nid||S.log.some(e=>e.id===nid)){do{nid=Date.now().toString(36)+Math.random().toString(36).slice(2,6)}while(S.log.some(e=>e.id===nid))}
-const ent={id:nid,t:d.t||today(),day,s,pr:prs.length};if((FEM||window.__SA)&&d.nt){const nt={};for(const k in d.nt){const v=String(d.nt[k]||'').trim();if(s[k]&&v)nt[k]=v.slice(0,200)}if(Object.keys(nt).length)ent.nt=nt}if(FEM){const ca=cyAt(ent.t);if(ca){ent.cd=ca.day;if(ca.ph)ent.cp=ca.ph}}{const bx=window.__SA?(P[day]&&P[day].x.find(q=>q.id==='b1')):(day===4?P[4].x[0]:null);if(bx)ent.b1=nm(bx)}S.log.unshift(ent);S.log.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0);if(S.log.length>120){const x=S.log.slice(120),gone=x.filter(e=>e.a&&coll);if(gone.length){recFold(gone);S.log=S.log.slice(0,120).concat(x.filter(e=>!(e.a&&coll)))}}arch(ent);delete S.draft[day];
+const ent={id:nid,t:d.t||today(),day,s,pr:prs.length};if(window.__SA&&d.o&&d.o.t===ent.t){const f=d.o.fd||(+d.o.day!==day?logFor(d.o):null);if(f)ent.fd=f}if((FEM||window.__SA)&&d.nt){const nt={};for(const k in d.nt){const v=String(d.nt[k]||'').trim();if(s[k]&&v)nt[k]=v.slice(0,200)}if(Object.keys(nt).length)ent.nt=nt}if(FEM){const ca=cyAt(ent.t);if(ca){ent.cd=ca.day;if(ca.ph)ent.cp=ca.ph}}{const bx=window.__SA?(P[day]&&P[day].x.find(q=>q.id==='b1')):(day===4?P[4].x[0]:null);if(bx){const b=nm(bx);if(!window.__SA||s[b])ent.b1=b;else if(Array.isArray(bx.o)){const o=bx.o.filter(q=>s[q]);if(o.length===1)ent.b1=o[0]}}}S.log.unshift(ent);S.log.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0);if(!window.__SA&&S.log.length>120){const x=S.log.slice(120),gone=x.filter(e=>e.a&&coll);if(gone.length){recFold(gone);S.log=S.log.slice(0,120).concat(x.filter(e=>!(e.a&&coll)))}}arch(ent);delete S.draft[day];
 const wasEd=!!(window.__SA&&d.ed);if(window.__SA)wTouch.clear();
 wkAlert=wasEd?'':(()=>{const k=logWk(ent),w=weeks().find(x=>x.k===k);return w&&w.n>=ORDER.length?recapHtml(k,'Week complete'):''})();prAlert=wasEd?[]:prs;upAlert=wasEd?[]:ups;dnAlert=wasEd?[]:downs;if(window.__SA)S.fa=wasEd||!(prs.length||ups.length||downs.length||wkAlert)?null:{t:today(),id:ent.id,d:ent.day,pr:prs,up:ups,dn:downs,wk:wkAlert?logWk(ent):null};save();render();window.scrollTo(0,0);say(wasEd?'Changes saved':prs.length?'Workout saved. New best!':'Workout saved')}
 app.addEventListener('click',e=>ancSet(e.target),true);
@@ -2780,6 +3104,7 @@ if(a!=='bmundo'&&a!=='bmnow'&&a!=='bmadd')bmUndo=null;
 if(a!=='wt')wtArm=null;
 if(a!=='ws')wsArm=null;
 if(a!=='fin'&&!window.__SA){prAlert=[];upAlert=[];dnAlert=[];wkAlert=''}
+if(a==='feopen'){try{sessionStorage.removeItem('gym-sa-rl')}catch(x){}feGo();return}
 if(a==='fagot'){if(S.fa){const k=b.dataset.k;if(k==='wk')S.fa.wk=null;else S.fa[k]=[];if(!(S.fa.pr||[]).length&&!(S.fa.up||[]).length&&!(S.fa.dn||[]).length&&!S.fa.wk)S.fa=null;save()}render();return}
 if(a==='rm'){rmLog(+b.dataset.i);return}
 if(a==='dl'){S.dl=today();save();render();return}
@@ -2802,7 +3127,7 @@ if(a==='pged'){pgSnap=J((S.prog||{})[day]||null);pgEd=day;pgPick=null;pgOpen=nul
 if(a==='pgdone'){const ch=pgSnap!==J((S.prog||{})[pgEd]||null);pgEd=null;pgPick=null;pgOpen=null;render();window.scrollTo(0,0);say(ch?'Program saved':'No changes');return}
 if(a==='pgopen'){const i=+b.dataset.i;pgOpen=pgOpen===i?null:i;render();return}
 if(a==='pgup'||a==='pgdn'){const i=+b.dataset.i,j=a==='pgup'?i-1:i+1;pgSet(x=>{if(j<0||j>=x.length)return;const t=x[i];x[i]=x[j];x[j]=t});if(pgOpen===i)pgOpen=j;return}
-if(a==='pgrm'){const i=+b.dataset.i,k='pgrm'+i;if(armed!==k){armed=k;render();return}armed=null;if(P[pgEd].x.length<=1){say('Keep at least one exercise');render();return}const n=pgName(P[pgEd].x[i]);pgOpen=null;pgSet(x=>{const rm=x.splice(i,1)[0];if(rm&&rm.id==='b1'&&Array.isArray(rm.o))for(const y of x)if(y.o==='rest')y.o=rm.o.slice()});say('Removed '+n);return}
+if(a==='pgrm'){const i=+b.dataset.i,k='pgrm'+i;if(armed!==k){armed=k;render();return}armed=null;if(P[pgEd].x.length<=1){say('Keep at least one exercise');render();return}const n=pgName(P[pgEd].x[i]),n1=window.__SA&&pgEd===day?nm(P[pgEd].x[i]):null;pgOpen=null;pgSet(x=>{const rm=x.splice(i,1)[0];if(rm&&rm.id==='b1'&&Array.isArray(rm.o))for(const y of x)if(y.o==='rest')y.o=rm.o.slice()});say('Removed '+n+(pgTyped(n1)?'. The sets you typed for it today won’t be saved unless you add it back.':''));return}
 if(a==='pgk'){const i=+b.dataset.i,v=+b.dataset.v;pgSet(x=>{if(v===3)delete x[i].k;else x[i].k=v});return}
 if(a==='pgr'){const i=+b.dataset.i,v=b.dataset.v;if(PRR.includes(v))pgSet(x=>{x[i].r=v});return}
 if(a==='pgrs'){const i=+b.dataset.i,v=b.dataset.v;if(PRS.includes(v))pgSet(x=>{x[i].rs=v});return}
@@ -2839,8 +3164,8 @@ if(a==='lbok'){const x=lbPend;if(!x)return;S.labs=(S.labs||[]).filter(y=>y.t!==x
 if(a==='lbno'){lbPend=null;lbErr='';render();return}
 if(a==='thset'){const v=b.dataset.v||'';S.prof=Object.assign({},S.prof||{});if(v)S.prof.th=v;else delete S.prof.th;save();acApply();render();return}
 if(a==='acset'){const v=b.dataset.v||'';S.prof=Object.assign({},S.prof||{});if(v)S.prof.ac=v;else delete S.prof.ac;save();acApply();render();return}
-if(a==='dxok'){const x=dxPend;if(!x)return;S.scans=(S.scans||[]).filter(y=>y.t!==x.t).concat(x).sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0);if(dxPf&&S.scans[S.scans.length-1].t===x.t)S.prof=Object.assign({},S.prof||{},dxPf);dxPf=null;dxPend=null;save();render();say('DEXA scan added');return}
-if(a==='dxno'){dxPend=null;dxErr='';render();return}
+if(a==='dxok'){const x=dxPend;if(!x)return;S.scans=(S.scans||[]).filter(y=>y.t!==x.t).concat(x).sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0);if(dxPf&&(!window.__SA||dxPfOk)&&S.scans[S.scans.length-1].t===x.t)S.prof=Object.assign({},S.prof||{},dxPf);dxPf=null;dxPfOk=false;dxPend=null;save();render();say('DEXA scan added');return}
+if(a==='dxno'){dxPend=null;dxErr='';dxPfOk=false;render();return}if(a==='dxpf'){dxPfOk=!dxPfOk;render();return}
 if(a==='upchk'){updCheck(false);return}
 if(a==='upgo'){updGo();return}
 if(a==='gfm'){const v=b.dataset.v;S.prof=Object.assign({},S.prof||{});if(GFK.includes(v)&&v!=='2w')S.prof.gm=v;else delete S.prof.gm;save();render();return}
@@ -2902,12 +3227,14 @@ if(a==='fdv'){fdSel=b.dataset.t;render();window.scrollTo(0,0);return}
 if(a==='fdall'){fdAll=!fdAll;render();return}
 if(a==='fddel'){fdDel(b.dataset.t);return}
 if(a==='fdprev'||a==='fdnext'){const all=fdList(),e=all.find(x=>x.t===fdSel)||all[all.length-1],n=all[all.indexOf(e)+(a==='fdnext'?1:-1)];if(n){fdSel=n.t;render()}return}
+if(a==='sdel'&&b.dataset.l){const t=b.dataset.l;if(armed!=='l'+t){armed='l'+t;render();return}armed=null;S.labs=(S.labs||[]).filter(x=>x.t!==t);save();render();say('Blood work from '+dsh({t})+' removed');return}
+if(a==='sdel'&&b.dataset.t){const t=b.dataset.t;if(armed!=='s'+t){armed='s'+t;render();return}armed=null;S.scans=(S.scans||[]).filter(x=>x.t!==t);save();render();say('Scan from '+dsh({t})+' removed');return}
 if(a==='sdel'){const i=+b.dataset.i;if(armed!=='s'+i){armed='s'+i;render();return}armed=null;const a2=scans();a2.splice(i,1);S.scans=a2;save();render();say('Scan deleted');return}
 if(a==='fin'){finish();return}
 if(a==='edit'){editLog(+b.dataset.i);return}
 const pe=lastEx;
 if(a==='tab'){pgEd=null;pgPick=null;pgOpen=null;const d=b.dataset.d;day=d==='gym'?(inGym(day)?day:gymLast):d==='h'?(inHl(day)?day:(window.__SA?(hkMorn()?(hlLast||'w'):'hk'):(hlLast||(new Date().getHours()<15?'sl':'st')))):['p','w','f','g','pl','sl','st','set'].includes(d)||inHl(d)?d:+d;if(inGym(day))gymLast=day;if(inHl(d))hlLast=d;wtDate=null;window.scrollTo(0,0)}
-else if(a==='v')D().v[b.dataset.x]=b.dataset.o;
+else if(a==='v'){if(window.__SA)vSwitch(b.dataset.x,b.dataset.o);else D().v[b.dataset.x]=b.dataset.o}
 else if(a==='add'){rows(b.dataset.n).push(['','']);lastEx=b.dataset.n;openEx=null}
 else if(a==='fill')fillGoal(b.dataset.n);
 else if(a==='exopen'){openEx=b.dataset.n;lastEx=b.dataset.n}
@@ -2934,7 +3261,8 @@ rows(n)[+t.dataset.i][+t.dataset.j]=t.value;liveIx[n]=+t.dataset.i;if(lastEx!==n
 app.onchange=e=>{const t=e.target;if(t.id==='stp'){const p2=Object.assign({},S.prof||{},{st:+t.value});delete p2.steps;S.prof=p2;save();render();return}if(t.id==='suby'||t.id==='suht'){su[t.id==='suby'?'by':'ht']=t.value?+t.value:undefined;return}if(t.id==='pby'||t.id==='pht'){const k=t.id==='pby'?'by':'ht',p2=Object.assign({},S.prof||{});if(t.value)p2[k]=+t.value;else delete p2[k];S.prof=p2;save();render();return}if(t.id==='wkd'){const v=t.value,td=today();if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>td||v<'2020-01-01'){t.value=(S.draft[day]&&S.draft[day].t)||td;say('Pick a day up to today');return}const d=D();if(v===td)delete d.t;else d.t=v;save();render();return}if(t.id==='gwr'){setGoal('gw',+t.value);return}if(t.id==='cylen'){cySet({len:+t.value});return}if(t.id==='wtd'){setWtDate(t);return}if(t.id==='imf'){const f=t.files&&t.files[0];t.value='';if(f)imRead(f);return}if(t.id==='cyd'){const td=today();let v=t.value;if(!v||v>td||v<'2020-01-01'){v=td;say('Pick a date from 2020 up to today')}wtDate=v===td?null:v;armed=null;render();return}if(t.id==='wsd'){setWsDate(t);return}if(t.id==='lbf'){const f=t.files&&t.files[0];t.value='';if(f)lbRead(f);return}if(t.id==='dxf'){const f=t.files&&t.files[0];t.value='';if(f)dxRead(f);return}if(t.id==='fdf'){const f=[...(t.files||[])];t.value='';fdRead(f);return}if(t.id==='hlf'){const f=[...(t.files||[])];t.value='';hlRead(f);return}if(t.dataset&&t.dataset.hd!==undefined){const d=hlPend&&hlPend.days[+t.dataset.hd];if(d){const v=t.value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>today()||v<'2020-01-01'){t.value=d.t;say('Pick a day up to today');return}d.t=v;d.df=true;render()}return}if(t.id==='fdd'){if(fdPend){const v=t.value,td=today();if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||v>td||v<'2020-01-01'){t.value=fdPend.t;say('Pick a day up to today');return}fdPend.t=v;render()}return}if(t.dataset&&t.dataset.sel!==undefined){pSel=t.value;render()}};
 app.addEventListener('paste',e=>{const t=e.target;if(t&&t.id==='cltx'){e.preventDefault();clTake((e.clipboardData||window.clipboardData).getData('text'),t.dataset.k);return}if(t&&t.id==='hkta'){e.preventDefault();hkTake((e.clipboardData||window.clipboardData).getData('text'))}});
 app.addEventListener('toggle',e=>{const t=e.target;if(t.classList&&t.classList.contains('prog')){t.open?OPEN.add(t.dataset.n):OPEN.delete(t.dataset.n)}},true);
-try{const j=JSON.parse(localStorage.getItem(LK));if(j&&Array.isArray(j.log))S=pick(j)}catch(e){}
+try{const j=JSON.parse(localStorage.getItem(LK));if(j&&Array.isArray(j.log)){S=pick(window.__SA?dsFix(j):j);lkOK=true}}catch(e){}
+if(window.__SA)m0=lsGet(LKM);
 applyProg();
 // opening day: the next workout this week (today or later, weeks as above) not logged yet; if none, next week's first
 function nextGymDay(){if(!ORDER.length)return null;const td=today(),wk=wkKey(td),w0=wkDow(),mi=d=>(d-w0+7)%7,ti=mi(new Date(td+'T12:00:00').getDay()),done=new Set(S.log.filter(e=>e&&e.t&&logWk(e)===wk).map(e=>+e.day)),ds=ORDER.slice().sort((a,b)=>mi(a)-mi(b)),up=ds.find(d=>mi(d)>=ti&&!done.has(d));if(up!=null)return up;const nx=new Set(S.log.filter(e=>e&&e.t&&logWk(e)===addD(wk,7)).map(e=>+e.day)),n2=ds.find(d=>!nx.has(d));return n2!=null?n2:ds[0]}
@@ -2946,8 +3274,10 @@ if(FEM)document.documentElement.classList.add('fem');
 cleanDrafts();
 const boot0=JSON.parse(J(pick(S)));
 STP('first screen');render();if(pgBack&&pgBack.y>0)window.scrollTo(0,pgBack.y);
+try{if(window.__SA){const m=sessionStorage.getItem('gym-sa-said');if(m){sessionStorage.removeItem('gym-sa-said');setTimeout(()=>say(m),50)}}}catch(e){}
 try{if(window.__SA&&sessionStorage.getItem('gym-sa-hi')){sessionStorage.removeItem('gym-sa-hi');setTimeout(()=>say('All set. Log today’s weight to get started.'),50)}}catch(e){}
 async function dbLoad(){
+if(window.__SA&&docRef&&docRef.getRev)return dbLoadSA();
 clearTimeout(ldT);
 if(!docRef||dbReady||ldBusy)return;
 ldBusy=true;
