@@ -476,7 +476,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='eebc8559d4',SFB=+'1793554426'||0,sfT0=Date.now();
+const SFV='609336a5f8',SFB=+'1793563062'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -2930,8 +2930,14 @@ return `<div class="set slk"><button class="slb" data-a="sopen" data-n="${E(n)}"
 function tgHtml(n,i,q){const u=q.j?' reps':AS.has(n)?' lb of assistance':' lb',u2=q.j?' reps':' lb';
 return `<div class="tgq" data-i="${i}"><p><b>Set ${i+1}: ${E(q.v)}${u}${q.j||!window.__SA?'':E(p3SwSfx(...swB(n),1))} on ${E(n)}.</b> ${E(q.ref)}. ${q.sug!=null?'Did you mean '+E(q.sug)+'?':'If it’s a typo, fix it in the set above.'}</p><p class="tgb">${q.sug!=null?`<button class="add" data-a="tgfix" data-n="${E(n)}" data-i="${i}" data-j="${q.j}" data-v="${E(q.sug)}">${E(q.sug)}${u2}</button>`:''}<button class="add" data-a="tgok" data-n="${E(n)}" data-i="${i}" data-j="${q.j}" data-v="${E(q.v)}">${E(q.v)} is right</button></p></div>`}
 // under the sets: each set's problem (Finish's words) and typo question; not the question of the set you're typing in (skip)
-function sqHtml(n,skip){if(!window.__SA)return '';const o=[];sRows(n).forEach((a,i)=>{const m=sProb(n,i);if(m){o.push(`<p class="hint dn">${E(m)}.</p>`);return}if(i===skip)return;const q=tgOf(n,i);if(q)o.push(tgHtml(n,i,q))});return o.join('')}
-const sqAny=n=>sRows(n).some((a,i)=>!!sProb(n,i)||!!tgOf(n,i));
+function sqHtml(n,skip){if(!window.__SA)return '';const o=[];sRows(n).forEach((a,i)=>{const m=sProb(n,i);if(m){o.push(`<p class="hint dn">${E(m)}.</p>`);return}if(i===skip)return;const q=tgOf(n,i);if(q)o.push(tgHtml(n,i,q));else{const w=wqOf(n,i);if(w)o.push(wqHtml(n,i,w))}});return o.join('')}
+const sqAny=n=>sRows(n).some((a,i)=>!!sProb(n,i)||!!tgOf(n,i)||!!wqOf(n,i));
+// p137f: a set marked W as heavy as the working sets (the lighter of this workout's lightest working set and last time's)
+const wqOk=n=>{const l=dMap('wq',n);return Array.isArray(l)?l:[]};
+function wqOf(n,i){if(!window.__SA||AS.has(n))return null;const R=sRows(n),a=R[i];if(!Array.isArray(a)||a[2]!=='w')return null;const F=v=>parseFloat(v)||0,rp=String(a[1]==null?'':a[1]).trim(),wv=F(a[0]);if(!(wv>0)||!/^\d{1,3}$/.test(rp)||!(+rp>0))return null;
+if(wqOk(n).includes('w'+tgNum(wv)))return null;const now=R.filter(b=>Array.isArray(b)&&b[2]!=='w'&&F(b[0])>0&&F(b[1])>0).map(b=>F(b[0])),H=tgHist(n),lt=H.length?H[0].map(b=>F(b[0])).filter(v=>v>0):[],c=now.concat(lt.length?[Math.min(...lt)]:[]);
+if(!c.length)return null;const ref=now.length&&lt.length?Math.min(Math.min(...now),Math.min(...lt)):Math.min(...c);return wv>=ref?{v:tgNum(wv),ref:tgNum(ref)}:null}
+function wqHtml(n,i,q){return `<div class="tgq wq" data-i="${i}"><p><b>Set ${i+1}: ${E(q.v)} lb${E(p3SwSfx(...swB(n),1))} on ${E(n)} is marked W (warm-up)</b>, but it’s as heavy as your working sets (${E(q.ref)} lb). Warm-up or working set?</p><p class="tgb"><button class="add" data-a="wqs" data-n="${E(n)}" data-i="${i}">Working set</button><button class="add" data-a="wqw" data-n="${E(n)}" data-i="${i}" data-v="${E(q.v)}">Warm-up</button></p></div>`}
 // effort: reps left on the last working set (0 = 0-1, 1 = 2-3, 2 = 4+)
 const EFL=['0–1','2–3','4+'],efV=v=>v===0||v===1||v===2,efOf=n=>{const v=dMap('ef',n);return efV(v)?v:null};
 function efHtml(n){if(!window.__SA)return '';const wk=sRows(n).filter(a=>Array.isArray(a)&&a[2]!=='w'),l=wk[wk.length-1],v=efOf(n),rp=l?String(l[1]==null?'':l[1]).trim():'';if(v==null&&!(/^\d+$/.test(rp)&&+rp>0))return '';
@@ -3310,7 +3316,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'eebc8559d4',d:'Nov 1, 2026 at 12:33 PM',b:+'1793554426'||0};
+const APP_V={h:'609336a5f8',d:'Nov 1, 2026 at 2:57 PM',b:+'1793563062'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
@@ -3848,11 +3854,11 @@ function pgDraft(d){const dd=S.draft[d];if(dd&&dd.s)for(const n in dd.s){const r
 function dFollow(dd,B,A){if(!dd||!dd.s)return;const own=(o,k)=>!!o&&Object.prototype.hasOwnProperty.call(o,k),sh=new Set(B.values()),ty=n=>own(dd.s,n)&&Array.isArray(dd.s[n])&&dd.s[n].some(a=>!rowEmpty(a)||a[2]==='w'),mp=new Map();
 for(const[k,n]of A){const b=B.get(k);if(b!=null&&b!==n&&!(ty(n)&&!sh.has(n)))mp.set(b,n)}if(!mp.size)return;
 const mv=o=>{const r=Object.assign({},o);for(const k of mp.keys())delete r[k];for(const[k,v]of mp){if(own(o,k))r[v]=o[k];else delete r[v]}return r};
-dd.s=mv(dd.s);if(dd.nt)dd.nt=mv(dd.nt);for(const k of ['lk','tg','ef','sw'])if(dd[k]&&typeof dd[k]==='object'&&!Array.isArray(dd[k]))dd[k]=mv(dd[k]);if(Array.isArray(dd.lf))dd.lf=[...new Set(dd.lf.map(n=>mp.has(n)?mp.get(n):n))];
+dd.s=mv(dd.s);if(dd.nt)dd.nt=mv(dd.nt);for(const k of ['lk','tg','ef','sw','wq'])if(dd[k]&&typeof dd[k]==='object'&&!Array.isArray(dd[k]))dd[k]=mv(dd[k]);if(Array.isArray(dd.lf))dd.lf=[...new Set(dd.lf.map(n=>mp.has(n)?mp.get(n):n))];
 if(mp.has(lastEx))lastEx=mp.get(lastEx);if(mp.has(openEx))openEx=mp.get(openEx);
 for(const k of [...wTouch]){const i=k.lastIndexOf('|'),n=k.slice(0,i);if(mp.has(n)){wTouch.delete(k);wTouch.add(mp.get(n)+k.slice(i))}}}
 // an option chip: which variation you did, so the card's sets go with it (and the other bench's with the other bench)
-function vSwitch(id,o){const d=D(),xs=(P[day]&&P[day].x)||[],B=new Map(xs.map(x=>[x.id,nm(x)]));d.v[id]=o;dFollow(d,B,new Map(xs.map(x=>[x.id,nm(x)])))}
+function vSwitch(id,o){const d=D(),xs=(P[day]&&P[day].x)||[],B=new Map(xs.map(x=>[x.id,nm(x)]));{const b=B.get(id);if(window.__SA&&!d.id&&b&&b!==o&&d.s&&Array.isArray(d.s[b])&&d.s[b].every(rowEmpty))delete d.s[b]}d.v[id]=o;dFollow(d,B,new Map(xs.map(x=>[x.id,nm(x)])))}
 // after a program edit: the second bench keeps showing what it showed; a swap's typed sets go to the replacement
 // (not in an edited saved workout, which keeps what you did)
 function pgFollow(d,B,sw){const dd=S.draft[d];if(!dd||!P[d])return;const A=new Map();
@@ -4641,7 +4647,7 @@ for(const x of (P[e.day]?P[e.day].x:[]))if(Array.isArray(x.o)){const f=(x.id==='
 if(!window.__SA)S.log.splice(i,1);
 S.draft[e.day]={v,s:JSON.parse(JSON.stringify(e.s)),t:e.t,id:e.id};if(window.__SA)S.draft[e.day].ed=today();if((FEM||window.__SA)){S.draft[e.day].o=JSON.parse(JSON.stringify(e));if(e.nt)S.draft[e.day].nt=Object.assign({},e.nt);if(window.__SA){const dd=S.draft[e.day];if(e.ef&&typeof e.ef==='object')dd.ef=Object.assign({},e.ef);
 // what was saved counts as answered: only a changed number can ask again
-const tg={};for(const n in e.s)if(Array.isArray(e.s[n]))for(const a of e.s[n]){if(!Array.isArray(a)||a[2]==='w')continue;const k=[],w=parseFloat(a[0]),r=parseFloat(a[1]);if(w>0)k.push('w'+tgNum(w));if(r>0)k.push('r'+r);if(k.length)tg[n]=[...new Set((tg[n]||[]).concat(k))]}if(Object.keys(tg).length)dd.tg=tg}}lastEx=null;openEx=null;
+const tg={};for(const n in e.s)if(Array.isArray(e.s[n]))for(const a of e.s[n]){if(!Array.isArray(a)||a[2]==='w')continue;const k=[],w=parseFloat(a[0]),r=parseFloat(a[1]);if(w>0)k.push('w'+tgNum(w));if(r>0)k.push('r'+r);if(k.length)tg[n]=[...new Set((tg[n]||[]).concat(k))]}if(Object.keys(tg).length)dd.tg=tg;const wq={};for(const n in e.s)if(Array.isArray(e.s[n]))for(const a of e.s[n]){if(!Array.isArray(a)||a[2]!=='w')continue;const w=parseFloat(a[0]);if(w>0)wq[n]=[...new Set((wq[n]||[]).concat('w'+tgNum(w)))]}if(Object.keys(wq).length)dd.wq=wq}}lastEx=null;openEx=null;
 day=e.day;save();render();window.scrollTo(0,0);say('Editing saved workout. Tap Finish when done')}
 function finish(){
 const d=D(),s={};let c=0;
@@ -4655,7 +4661,10 @@ if(!c){say('Add reps for at least one set first');return}
 // p106: typo guard: a set far from that exercise's last workouts waits for an answer on its card
 if(window.__SA){let q=null;const on=new Set((P[day]?P[day].x:[]).map(nm));for(const[n,r]of dE){if(q)break;if(on.has(n))(Array.isArray(r)?r:[]).forEach((a,i)=>{if(!q){const t=tgOf(n,i);if(t)q={n,i,t}}})}
 if(q){lastEx=q.n;openEx=q.n;render();const c2=[...app.querySelectorAll('section.ex[data-ex]')].find(x=>x.dataset.ex===q.n),g=c2&&c2.querySelector('.tgq[data-i="'+q.i+'"]');if(g&&g.scrollIntoView)g.scrollIntoView({block:'center'});
-say('Check '+q.n+', set '+(q.i+1)+': is '+q.t.v+(q.t.j?' reps':' lb')+' right? It’s far from your last workouts, so answer the question on its card, then tap Finish again.');return}}
+say('Check '+q.n+', set '+(q.i+1)+': is '+q.t.v+(q.t.j?' reps':' lb')+' right? It’s far from your last workouts, so answer the question on its card, then tap Finish again.');return}
+let w=null;for(const[n,r]of dE){if(w)break;if(on.has(n))(Array.isArray(r)?r:[]).forEach((a,i)=>{if(!w&&wqOf(n,i))w={n,i}})}
+if(w){lastEx=w.n;openEx=w.n;render();const c3=[...app.querySelectorAll('section.ex[data-ex]')].find(x=>x.dataset.ex===w.n),g3=c3&&c3.querySelector('.wq[data-i="'+w.i+'"]');if(g3&&g3.scrollIntoView)g3.scrollIntoView({block:'center'});
+say('Check '+w.n+', set '+(w.i+1)+': it’s marked as a warm-up but it’s as heavy as your working sets. Answer on its card (warm-up or working set), then tap Finish again.');return}}
 const ups=[],upN=new Set();
 for(const x of P[day].x){const n=nm(x),f=(s[n]||[]).filter(a=>a[2]!=='w');if(!x.r||x.nn||!f.length||(window.__SA?f.length:(s[n]||[]).length)<3)continue;const tp=+String(x.r).split('-').pop(),asx=AS.has(n),ws=f.map(a=>parseFloat(a[0])||0),mw=asx?Math.min(...ws):Math.max(...ws);if(f.filter(a=>(parseFloat(a[0])||0)===mw).every(a=>(parseFloat(a[1])||0)>=tp)){const rc=rec(x,n,mw,tp,+String(x.r).split('-')[0],tp,1),q=window.__SA?upTx9(x,n,mw,Math.min(...f.filter(a=>(parseFloat(a[0])||0)===mw).map(a=>parseFloat(a[1])||0)),+String(x.r).split('-')[0],tp):null;ups.push(n+(q?': '+q.s:rc?': '+rc.toLowerCase():''));upN.add(n)}}
 const downs=[];
@@ -4840,6 +4849,8 @@ if(a==='edit'){editLog(+b.dataset.i);return}
 if(window.__SA&&a==='sopen'){const n=b.dataset.n,i=+b.dataset.i,p0=lastEx;lkSet(n,i,false);lastEx=n;openEx=null;if(p0!==n)exLeave(p0,n);save();render();const c=[...app.querySelectorAll('section.ex[data-ex]')].find(x=>x.dataset.ex===n),f=c&&c.querySelector('input[data-i="'+i+'"][data-j="1"]');if(f){try{f.focus({preventScroll:true})}catch(x){f.focus()}}return}
 if(window.__SA&&(a==='tgfix'||a==='tgok')){const n=b.dataset.n,i=+b.dataset.i,j=+b.dataset.j===1?1:0,v=String(b.dataset.v||''),p0=lastEx,r=sRows(n)[i];if(r){if(a==='tgfix'){r[j]=v;if(!j)wTouch.add(n+'|'+i)}else{const d=D();if(!d.tg||typeof d.tg!=='object'||Array.isArray(d.tg))d.tg={};d.tg[n]=[...new Set(tgOk(n).concat((j?'r':'w')+tgNum(parseFloat(v)||0)))]}if(sDone(n,i))lkSet(n,i,true)}
 lastEx=n;openEx=null;if(p0!==n)exLeave(p0,n);save();render();say(a==='tgfix'?'Set '+(i+1)+' changed to '+v+(j?' reps.':' lb.'):'Kept '+v+(j?' reps':' lb')+' for set '+(i+1)+'.');return}
+if(window.__SA&&(a==='wqs'||a==='wqw')){const n=b.dataset.n,i=+b.dataset.i,r=sRows(n)[i],p0=lastEx;if(r){if(a==='wqs')r[2]='';else{const d=D();if(!d.wq||typeof d.wq!=='object'||Array.isArray(d.wq))d.wq={};d.wq[n]=[...new Set(wqOk(n).concat('w'+tgNum(parseFloat(b.dataset.v)||0)))]}if(sDone(n,i))lkSet(n,i,true)}
+lastEx=n;openEx=null;if(p0!==n)exLeave(p0,n);save();render();say(a==='wqs'?'Set '+(i+1)+' is a working set now.':'Kept set '+(i+1)+' as a warm-up.');return}
 if(window.__SA&&lkJust&&(a==='wu'||a==='del')&&lkJust.d===day&&b.dataset.n===lkJust.n&&+b.dataset.i===lkJust.i&&Date.now()-lkJust.t<1500)lkSet(lkJust.n,lkJust.i,false);
 const pe=lastEx;
 if(a==='tab'){pgEd=null;pgPick=null;pgOpen=null;const d=b.dataset.d;day=d==='gym'?(inGym(day)?day:gymLast):d==='h'?(inHl(day)?day:(window.__SA?(hkMorn()?(hlLast||'w'):'hk'):(hlLast||(new Date().getHours()<15?'sl':'st')))):['p','w','f','g','pl','sl','st','set'].includes(d)||inHl(d)?d:+d;if(inGym(day))gymLast=day;if(inHl(d))hlLast=d;wtDate=null;window.scrollTo(0,0)}
