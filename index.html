@@ -419,14 +419,23 @@ details.why>.hint:first-of-type,details.why>p:first-of-type{margin-top:.1rem}
 .p125 .p6hr>select{flex:0 1 auto;width:auto;min-width:min(max(9.5rem,var(--p6sw,0px)),100%)}
 .p125 .pgset.p6g .p6r:first-child{margin-top:.5rem}
 
-/* p136f: Weight › Trend: 6 tiles, the other 9 under More numbers */
-.p125 .p6wt>.wk{margin:.2rem 0 .4rem}
-.p125 .p6wtk{margin:0 0 .6rem}
-
 /* p136h: the setup box's seat field, labelled like the two picker rows under it */
 .p125 .p6sl{display:block;margin:.1rem 0 0}
 .p125 .p6sl>span{display:block;color:var(--ink);margin:0 0 .3rem}
 .p125 .seatadd{text-align:left}
+
+/* p140a: the Today line bold as the old goal line was (.hint.goal: 600, ink), label included; what left it, in More */
+.p125 .p6c .p6tl,.p125 .p6c .p6tl>b{font-weight:600}
+/* p140a: what left the Today line, at the top of More */
+.p125 .p6c details.p6mo>.p40am{color:var(--ink)}
+
+/* p140b: Read / Close under the folded card's title, styled like Why? and More; the title row stays the tap target */
+.p125 .p6f .p6ft h2::after,.p125 .p6f details[open] .p6ft h2::after{content:none}
+.p125 .p6f>details.p6fd>summary{flex-wrap:wrap}
+.p125 .p6f .p40bk{display:flex;align-items:center;flex:1 0 100%;min-height:2.75rem;margin:0 0 -.55rem;color:var(--acc);font-weight:600;font-size:.85rem;line-height:1}
+.p125 .p6f .p40bk .p40bc,.p125 .p6f details[open]>summary .p40bk .p40bo{display:none}
+.p125 .p6f details[open]>summary .p40bk .p40bc{display:inline}
+.p125 .p6f>details.p6fd[open]>summary .p40bk{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -543,7 +552,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='82f5d05159',SFB=+'1793590209'||0,sfT0=Date.now();
+const SFV='5a7ba682c5',SFB=+'1794026859'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1367,13 +1376,13 @@ return o.slice(-52)}
 function mtChart(){if(!window.__SA)return '';const P=mtSeries(),h='<section class="ex" id="mtch"><h2>Maintenance over time</h2>';
 if(!P.length){const m=fdMaint();return h+`<p class="hint">Shows after ${MT_N} logged food days${m&&m.n?` (${m.n} so far in your current weight-pace window)`:''}. Then it charts your estimated maintenance week by week.</p></section>`}
 const vs=P.flatMap(x=>[x.lo,x.hi].concat(x.pc!=null?[x.pc]:[]));let lo=Math.min(...vs),hi=Math.max(...vs);const pad=Math.max(50,(hi-lo)*.08);lo-=pad;hi+=pad;
-const L0=36,R0=292,T0=8,B0=100,one=P.length===1,t0=wtD(P[0].t),tr=(wtD(P[P.length-1].t)-t0)||1,X=t=>one?(L0+R0)/2:L0+(wtD(t)-t0)/tr*(R0-L0),Y=v=>B0-(v-lo)/(hi-lo)*(B0-T0),tk=niceTicks(lo,hi),q=(t,v)=>X(t).toFixed(1)+' '+Y(v).toFixed(1);
+const L0=36,R0=window.__SA&&P.length>1&&P.some(x=>x.pc!=null)?262:292,T0=8,B0=100,one=P.length===1,t0=wtD(P[0].t),tr=(wtD(P[P.length-1].t)-t0)||1,X=t=>one?(L0+R0)/2:L0+(wtD(t)-t0)/tr*(R0-L0),Y=v=>B0-(v-lo)/(hi-lo)*(B0-T0),tk=niceTicks(lo,hi),q=(t,v)=>X(t).toFixed(1)+' '+Y(v).toFixed(1);
 const grid=tk.t.map(v=>{const y=Y(v).toFixed(1);return `<line x1="${L0}" x2="${R0}" y1="${y}" y2="${y}" style="stroke:var(--line);stroke-width:.6"></line><text x="${L0-4}" y="${(+y+3).toFixed(1)}" text-anchor="end">${fmt(v)}</text>`}).join('');
 const band=one?`<rect x="${(X(P[0].t)-5).toFixed(1)}" y="${Y(P[0].hi).toFixed(1)}" width="10" height="${Math.max(1,Y(P[0].lo)-Y(P[0].hi)).toFixed(1)}" style="fill:var(--acc);opacity:.18"></rect>`:`<path d="M${P.map(x=>q(x.t,x.hi)).join(' L')} L${P.slice().reverse().map(x=>q(x.t,x.lo)).join(' L')} Z" style="fill:var(--acc);opacity:.18;stroke:none"></path>`;
 const pl=P.filter(x=>x.pc!=null),pp=!pl.length?'':pl.length===1?`<path d="M${(X(pl[0].t)-8).toFixed(1)} ${Y(pl[0].pc).toFixed(1)} h16" style="stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3;opacity:.7"></path>`:`<path d="M${pl.map(x=>q(x.t,x.pc)).join(' L')}" style="stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3;opacity:.7"></path>`;
 const ln=one?'':`<path d="M${P.map(x=>q(x.t,x.v)).join(' L')}"></path>`,dots=P.map(x=>`<circle cx="${X(x.t).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="2.5"></circle>`).join('');
 const xl=one?`<text x="${X(P[0].t).toFixed(1)}" y="114" text-anchor="middle">${dsh(P[0])}</text>`:`<text x="${L0}" y="114" text-anchor="start">${dsh(P[0])}</text><text x="${R0}" y="114" text-anchor="end">${dsh(P[P.length-1])}</text>`,z=P[P.length-1];
-return h+`<svg class="ch" viewBox="0 0 300 120" width="100%" role="img" aria-label="Estimated maintenance calories week by week${pl.length?', with your plan’s calories':''}">${grid}${band}${pp}${ln}${dots}${xl}</svg><p class="hint">The line is your estimated maintenance at the end of each weigh-in week, from the same logged days and weigh-in line as Calories vs your weight (up to the last 4 weeks each time, leaving out a phase’s first week and diet-break weeks); the shaded band is its range.${pl.length?' The dashed line is your plan’s calories.':''} Latest: about ${fmt(z.v)} (${fmt(z.lo)} to ${fmt(z.hi)}) cal a day.${one?' More points come in week by week.':''}</p></section>`}
+return h+`<svg class="ch" viewBox="0 0 300 120" width="100%" role="img" aria-label="Estimated maintenance calories week by week${pl.length?', with your plan’s calories'+(window.__SA?', latest '+fmt(pl[pl.length-1].pc):''):''}">${grid}${band}${pp}${ln}${dots}${xl}${window.__SA?p140Pl(pl,X,Y,one):''}</svg><p class="hint">The line is your estimated maintenance at the end of each weigh-in week, from the same logged days and weigh-in line as Calories vs your weight (up to the last 4 weeks each time, leaving out a phase’s first week and diet-break weeks); the shaded band is its range.${pl.length?' The dashed line is your plan’s calories.':''} Latest: about ${fmt(z.v)} (${fmt(z.lo)} to ${fmt(z.hi)}) cal a day.${one?' More points come in week by week.':''}</p></section>`}
 // ---- blood work: each recommended test marked tested (its latest date) or not tested yet. A panel counts when any of
 // its markers is in; a random glucose isn't a fasting one and a standard CRP isn't hs-CRP (said beside them, not counted)
 const TGK={'Lipid panel':['Total cholesterol','LDL','HDL','Triglycerides'],CBC:['Hemoglobin','Hematocrit','Red blood cells','White blood cells','Platelets','MCV']},TGC={'Fasting glucose':['Glucose (random)',t=>`your ${t} glucose was a random one, not fasting`],'hs-CRP':['CRP',t=>`your ${t} CRP was the standard test, not high-sensitivity`]};
@@ -2594,7 +2603,7 @@ const banner=(stat?(B[ph.k][stat.k]||''):'')+wnote+wb+(sdir&&ss?`<p class="hint 
 const guide=cut&&window.__SA&&ph.pc?`Your target is ${ph.pc}% of your weight a week, about ${rS(p135Lb(ph.pc))} lb now; the pounds ease as you lose. Common guidance for lifters is up to about 1% of body weight a week, with 0.5-0.75% gentler on muscle.${ph.pc>1?' Your target is over 1%, the aggressive end.':''}${plFl(planT(),cx?cx.bw:ref)?` Your calorie floor stops the plan short of that, so it works out to about ${R0} lb a week, and that’s what your status is judged against.`:''}`:ph.k==='bulk'&&window.__SA&&ph.pc?`Your target is ${ph.pc}% of your weight a week, about ${rS(p135Lb(ph.pc))} lb now. ${bkGuide()}; gaining faster mostly adds fat.${bkFast(ph,ref)?' Your target is faster than that.':''}`:cut?`Your target of ${ph.r} lb a week is ${f1(tpc)}% of your weight. Common guidance for lifters is up to about 1% of body weight a week, with 0.5-0.75% gentler on muscle.${+tpc.toFixed(1)>1?' Your target is now over 1%, the aggressive end.':''}${Math.abs(Math.abs(er)-ph.r)>=.05?` Your calorie floor stops the plan short of that, so it works out to about ${R0} lb a week, and that’s what your status is judged against.`:''}`:ph.k==='bulk'?`Your target of ${ph.r} lb a week is ${f1(tpc)}% of your weight. ${bkGuide()}; gaining faster mostly adds fat.${bkFast(ph,ref)?' Your target is faster than that.':''}`:ph.k==='recomp'?'A recomp eats at maintenance, so the scale should hold within about 0.3 lb a week either way. Progress shows in your strength, waist and DEXA.':'Maintenance means holding within about 0.3 lb a week either way.';
 const RW=s.gpc?`${s.gpc}% a week (${R0} lb now)`:R0+' lb a week',dt=proj&&projT?` At this pace you reach about ${Math.round(gw)} lb around ${proj}; at ${RW}, around ${projT}.`:projT?` At ${RW} you would reach about ${Math.round(gw)} lb around ${projT}.`:'';
 const hint=pace!=null?`<p class="hint">Pace: the trend through your weekly averages over ${E(wrg)}, the one the weekly check-in uses, so ${sg2(pace)} lb (${sg(pct)}%) a week${s.cse!=null?`, likely between ${sg2(pace-s.cse)} and ${sg2(pace+s.cse)}: day-to-day water swings make a few weeks of weigh-ins only that sure (one standard error). The check-in judges the trend itself`:''}. ${window.__SA?`${lost>=0?'Lost':'Gained'} is on the scale: your first weigh-in (${E(gDsY(st))}, ${f1(st.w)} lb) to your latest (${f1(L.w)} lb).${cut?` To goal is from ${E(gNow(s))}, like the Goal bar.`:''} `:''}${guide}${dt}</p>`:`<p class="hint">Pace: shows once the weekly check-in starts judging your trend, measured the same way. ${window.__SA?`${lost>=0?'Lost':'Gained'} is on the scale: your first weigh-in (${E(gDsY(st))}, ${f1(st.w)} lb) to your latest (${f1(L.w)} lb).${cut?` To goal is from ${E(gNow(s))}, like the Goal bar.`:''} `:''}${guide}${dt}</p>`;
-return `<section class="ex"><h2>Trend</h2>${wtAsOf()?`<p class="hint">${E(wtAsOf())} New weigh-ins come in when you sync with Apple Health. <button class="edit" data-a="${window.__SA?'tgo':'tab'}" data-d="hk" style="padding:0">Sync now</button></p>`:''}${window.__SA?p6Tiles(tiles):tiles}${banner}${window.__SA?why('wtp',hint):hint}${wtChart(s)}</section>${wtWeeks(s)}`}
+return `<section class="ex"><h2>Trend</h2>${wtAsOf()?`<p class="hint">${E(wtAsOf())} New weigh-ins come in when you sync with Apple Health. <button class="edit" data-a="${window.__SA?'tgo':'tab'}" data-d="hk" style="padding:0">Sync now</button></p>`:''}${tiles}${banner}${window.__SA?why('wtp',hint):hint}${wtChart(s)}</section>${wtWeeks(s)}`}
 function wtWeeks(s){
 const n=8,td=today(),rows=s.wk.map(x=>{
 const C=window.__SA?gWkChg(x,s.wk.find(y=>y.i===x.i-1),x.e>=td):null,c=C?(C.wait?'Change shows from 3 weigh-ins':(C.rate?sg2:sg)(C.v)+' lb'+(C.rate?' a week so far':'')+' ('+sg(C.pc)+'%)'):x.ch!=null?sg(x.ch)+' lb ('+sg(x.pc)+'%)':(x.i===0?'First week':'No weigh-ins the week before');
@@ -3393,7 +3402,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'82f5d05159',d:'Nov 1, 2026 at 10:30 PM',b:+'1793590209'||0};
+const APP_V={h:'5a7ba682c5',d:'Nov 6, 2026 at 11:47 PM',b:+'1794026859'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
@@ -3405,7 +3414,7 @@ async function updLatest(){const r=await fetch('sw.js?u='+Date.now(),{cache:'no-
 const b=x.match(/\bBT=(\d+)/);if(window.__SA&&b&&APP_V.b>0&&+b[1]<APP_V.b)return APP_V.h;return m[1]}
 async function updCheck(silent){if(!window.__SA||updBusy||/^__/.test(APP_V.h))return;if(!silent){updMsg='Checking…';render()}
 let v=null;try{v=await updLatest()}catch(e){if(!silent){updMsg='Couldn’t check. Make sure you’re online, then try again.';render()}return}
-const was=updAvail;updAvail=v!==APP_V.h?v:null;if(!silent)updMsg=updAvail?'':'You have the latest version.';if(!silent||was!==updAvail)render()}
+const was=updAvail;updAvail=v!==APP_V.h?v:null;if(!silent)updMsg=updAvail?'':'You have the latest version.';if(!silent||was!==updAvail)p140R()}
 async function updGo(){if(updBusy)return;updBusy=true;updMsg='Updating…';render();
 try{const v=updAvail||await updLatest();const r=await fetch('index.html?u='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const body=await r.text();
 if(!body.includes("h:'"+v+"'")||!/<\/html>\s*$/i.test(body)){updBusy=false;updMsg='The update is still on its way to your phone. Try again in a few minutes.';render();return}
@@ -4127,7 +4136,7 @@ return `<div class="bnr${bnOpen?' on':''}" id="bnr">${(bnOpen?L:L.slice(0,1)).ma
 const tdLab=x=>/Lose It/.test(x.t)?'Lose It':/waist/.test(x.t)?'Waist':/flow/.test(x.t)?'Flow':/next phase/.test(x.t)?'Next phase':/check-in/.test(x.t)?'Check-in':/version/.test(x.t)?'Update':/back up/.test(x.t)?'Back up':/sync|bring/.test(x.t)?'Sync':'To do';
 const tdPri=x=>/back up/.test(x.t)?0:x.k==='hk'?.5:/version/.test(x.t)?2.5:1;
 function todayBar(x){if(!window.__SA)return todayBar0()+msBan()+bkBan()+todoLine();
-const it=[{p:0,l:'Back up',h:bkBan()}].concat(todoList().filter(t=>t.k===String(day)&&t.t).map(t=>({p:tdPri(t),l:tdLab(t),h:`<div class="msb tdl" role="status"><span><b>To do:</b> ${E(t.t.charAt(0).toUpperCase()+t.t.slice(1))}.</span><button class="edit" data-a="todo" data-t="${E(t.sel)}">Show me</button></div>`})));
+const it=[{p:0,l:'Back up',h:bkBan()}].concat(todoList().filter(t=>t.k===String(day)&&t.t&&!(day==='set'&&t.sel==='[data-a="upgo"]')).map(t=>({p:tdPri(t),l:tdLab(t),h:`<div class="msb tdl" role="status"><span><b>To do:</b> ${E(t.t.charAt(0).toUpperCase()+t.t.slice(1))}.</span><button class="edit" data-a="todo" data-t="${E(t.sel)}">Show me</button></div>`})));
 if(['w','f','pl'].includes(day))it.push({p:1,l:'Phase check',h:phaseWarn()});
 return todayBar0()+bnr(it.concat(x||[],[{p:2.15,l:'Renamed',h:p139Ban()},{p:2.2,l:'Milestone',h:msBan()}]))}
 let ciAll=false;
@@ -4260,6 +4269,7 @@ if(window.__SA&&feBad()){app.innerHTML=feHtml();if(dbReady||ldN)setTimeout(feMat
 if(window.__SA&&(dbReady||!docRef)&&(wkLock()|phLock()))save();
 if(window.__SA&&dbReady&&coll&&!p3Mig.on&&p3Mig.done!==p3Key()&&!p3Mig.q&&!(S.mig&&S.mig.p123)){p3Mig.q=1;setTimeout(()=>{p3Mig.q=0;p3Mig()},0)}
 if(window.__SA&&FEM&&p139Go()&&!p139Mig.q){p139Mig.q=1;setTimeout(()=>{p139Mig.q=0;p139Mig()},0)}
+if(window.__SA&&dbReady&&!p140d.ran)p140d();
 if(needSetup()){app.innerHTML=initDone?setupHtml():'';return}
 if(window.__SA)for(const k in S.draft){const x=S.draft[k];if(x&&typeof x.ed==='string'&&x.ed!==today()){delete S.draft[k];save()}}
 GEN++;autoCheck();STP('drawing '+day);
@@ -4283,7 +4293,7 @@ let num=0;
 const cards=p.x.map((x,k)=>{
 if(x.ss!==2)num++;
 const lab=x.ss?num+(x.ss===1?'a':'b'):num;
-const n=nm(x),r=rows(n),l=last(n);
+const n=nm(x),r=rows(n),l=last(n);if(window.__SA)P40A.delete(n);
 const chips=Array.isArray(x.o)&&!(window.__SA&&x.of)?`<div class="chips">${x.o.map(o=>`<button class="chip" aria-pressed="${o===n}" data-a="v" data-x="${x.id}" data-o="${E(o)}">${E(o)}</button>`).join('')}</div>`:'';
 const hint=window.__SA&&(x.o==='rest'||x.of)?p3Hint(x,TD):window.__SA&&x.aw&&p3Aw(x)?p3AwHint(x):x.o==='rest'?'<p class="hint">Opposite of your first bench</p>':x.ss===1?'<p class="hint">Superset: go straight to the next exercise, then rest</p>':x.ss===2?'<p class="hint">Superset: rest after this set</p>':'';
 const lnt=FEM?(()=>{for(const e of S.log){if(e.s[n]&&e.s[n].length)return e.nt&&e.nt[n]||'';if(window.__SA&&e.nt&&e.nt[n])return 'Note ('+dsh({t:e.t})+', no sets): '+e.nt[n]}return ''})():'';
@@ -4302,7 +4312,7 @@ const gl=(()=>{
 if((up&&!window.__SA)||dn||!x.r||!lw||!lw.length)return '';
 const gR=window.__SA?goalRows(x,n)||[]:[],gW=gR.filter(a=>a[2]!=='w'),gs=gW.length===lw.length?gW.map(a=>[parseFloat(a[0])||0,parseFloat(a[1])||0]):lw.map(a=>[parseFloat(a[0])||0,Math.min(tp,(parseFloat(a[1])||0)+1)]),ws=[...new Set(gs.map(g=>g[0]))];
 const lgt=gW.length===lw.length&&!up?gs.map((g,i)=>g[0]!==(parseFloat(lw[i][0])||0)?gR.length-gW.length+i+1:0).filter(Boolean):[],lgw=lgt.length?` (set${lgt.length>1?'s':''} ${lgt.join(' and ')} ${AS.has(n)?'with more assistance':'lighter'}: under ${lo} reps in each of your last two workouts)`:'';
-if(window.__SA)return p6Today(n,l,gR,gs,lgw);
+if(window.__SA)return p40aGoal(n,l,gR,gs,lgw);
 return `<p class="hint goal">Goal ${TD}: ${E(window.__SA&&gR.length>gW.length?p7GlW(n,gR,gs,ws):ws.length===1?gs.map(g=>g[1]).join(', ')+' reps'+(ws[0]>0?' at '+ws[0]+(AS.has(n)?' lb of assistance':' lb'+(window.__SA?p3Bk(n,ws[0]):'')):''):gs.map(g=>(g[0]?g[0]+(AS.has(n)?' assist':''):'BW')+'×'+g[1]).join(', ')+(window.__SA&&!AS.has(n)&&ws.some(v=>v>0)?p3SwSfx(...swB(n)):''))}${E(lgw)}</p>`})();
 const gq=window.__SA?goalRows(x,n):null,lq=gq||l,lWk=lq?lq.filter(a=>a[2]!=='w'):[],lWu=lq?lq.filter(a=>a[2]==='w'):[];
 const sets=r.map((a,i)=>{
@@ -4421,7 +4431,7 @@ if(r.refused&&window.__saErr)window.__saErr('save kept the saved entries: '+r.re
 if(saveFail)say('Saved. The phone’s storage is working again.');saveFail=0}
 catch(e){saveFail++;if(saveFail===1)dsSay(e);rtT=setTimeout(flush,Math.min(120000,15000*saveFail))}
 busy=false;
-if(changed){dsLk();if(!dsTyping())render()}
+if(changed){dsLk();if(!dsTyping())p140R()}
 if(again){again=false;flush()}}
 // only archived food days lose detail (their full copy stays in the food archive and in backups), and only while the
 // food list is large: item lists first, then meals, then the extra numbers of days over 6 months old. Nothing else.
@@ -4462,7 +4472,7 @@ if(feBad()){if(need)await saFlush();else dsLk();if(feMatch())return}
 else try{sessionStorage.removeItem('gym-sa-rl');const w=feWho();if(w!==null)sessionStorage.setItem('gym-sa-fem',w?'f':'m')}catch(e){}
 const typing=dsTyping()&&J(S)===before;
 initDone=true;
-STP('screen with saved data');if(typing)autoCheck();else render();
+STP('screen with saved data');if(typing)autoCheck();else p140R();
 if(need)flush();else dsLk();
 {const ids=new Set();for(const e of S.log.slice().reverse()){if(!e.id)e.id=e.t+'-'+e.day;if(ids.has(e.id)){let k=2;while(ids.has(e.id+'-'+k))k++;e.id=e.id+'-'+k;e.a=0}ids.add(e.id)}}
 STP('archiving');for(const e of S.log){if(!e.a)await arch(e)}
@@ -4682,7 +4692,7 @@ if(S.fa&&S.fa.id===e.id&&Array.isArray(S.fa.pr)){const m=new Map(q.mv);S.fa=Obje
 for(const q of dr){const dd=S.draft[q.k];if(!dd)continue;dc[q.k]=JSON.parse(J(dd));for(const[a,b]of q.mv)fr.add(a+'\n'+b);p3Apply(dd,q.mv);if(dd.o&&typeof dd.o==='object')p3Apply(dd.o,q.mv);if(q.k==day){const m=new Map(q.mv);if(m.has(lastEx))lastEx=m.get(lastEx);if(m.has(openEx))openEx=m.get(openEx)}}
 // 3. a seat setting, weight steps, kind, starting weight or restart under the old name is copied to the new one
 for(const p of fr){const[a,b]=p.split('\n');for(const f of ['setup','steps','exk','sw','lres'])if(S[f]&&typeof S[f]==='object'&&S[f][a]!=null&&S[f][b]==null)S[f]=Object.assign({},S[f],{[b]:S[f][a]})}
-if(ns||Object.keys(dc).length){const m={t:td,n:ns,k,v:Math.round(v),to:[...new Set([...fr].map(p=>p.split('\n')[1]))]};if(Object.keys(dc).length)m.dr=dc;if(all)S.mig=Object.assign({},S.mig||{},{p123:m});save();render();
+if(ns||Object.keys(dc).length){const m={t:td,n:ns,k,v:Math.round(v),to:[...new Set([...fr].map(p=>p.split('\n')[1]))]};if(Object.keys(dc).length)m.dr=dc;if(all)S.mig=Object.assign({},S.mig||{},{p123:m});save();p140R();
 if(ns)say('Your second press now keeps its own history: sets from '+ns+' earlier workout'+(ns===1?'':'s')+' moved to its own names ('+[...fr].map(p=>p.split('\n')[1]).join(', ')+').')}
 if(all)p3Mig.done=p3Key()}catch(x){}finally{p3Mig.on=0}}
 // the archive record keeps a workout's starting weights, and the untouched copy from the split (pre123) through later writes
@@ -4716,7 +4726,7 @@ if(w>0&&c&&+c.w===w&&q&&q!==(c.k||'bar')){p3SwKind(n,q);return}p3SwSet(n,w,q)}
 function p6Fd(id,k,t,sub,ask,h,f){const kk=k==='p6rv'?'rv':'pl',o=f||WHY.has(k)||clTa===kk||(clErr&&clK===kk);if(o)WHY.add(k);
 const a=String(ask).replace(/^<(a|button) class="fin"/,'<$1 class="fin p6ask" data-p6o="'+k+'"').replace(/ style="margin:\.6rem 0 \.2rem"/,'');
 const ss=(String(h).match(/<p class="hint clsg">Since it was written: ([^<]*?)\. Ask Claude again/)||[])[1];
-return `<section class="ex p6f" id="${id}"><details class="why p6fd" data-w="${k}"${o?' open':''}><summary><span class="p6ft"><h2>${E(t)}</h2>${sub?`<small>${E(sub)}${ss?' · since then: '+ss:''}</small>`:''}</span></summary>${h}</details><span class="p6fa">${a}</span></section>`}
+return `<section class="ex p6f" id="${id}"><details class="why p6fd" data-w="${k}"${o?' open':''}><summary><span class="p6ft"><h2>${E(t)}</h2>${sub?`<small>${E(sub)}${ss?' · since then: '+ss:''}</small>`:''}</span>${window.__SA?'<span class="p40bk"><span class="p40bo">Read ▾</span><span class="p40bc">Close ▴</span></span>':''}</summary>${h}</details><span class="p6fa">${a}</span></section>`}
 // Ask Claude in the header also opens the card, so Paste ... from Claude is right there when you come back
 if(window.__SA)app.addEventListener('click',e=>{const g=e.target&&e.target.closest&&e.target.closest('[data-p6o]');if(!g||g.disabled)return;const k=g.dataset.p6o;WHY.add(k);const d=app.querySelector('details.p6fd[data-w="'+k+'"]');if(d&&!d.open)d.open=true},true);
 // ===== p136b (standalone, both apps; display only): the exercise card, decluttered
@@ -4745,11 +4755,12 @@ const top=`<div class="p6top"><span>${x.r?E((x.k||3)+' × '+x.r+p6HoldT(x,n)+rs)
 let td=lt;if(gl&&lt){const nt=(lt.match(/<span class="lnt">([\s\S]*?)<\/span>/)||[])[1]||'',l2=lt.replace(/<br><span class="lnt">[\s\S]*?<\/span>/,''),k='p6lt|'+n;
 td=`<details class="why p6lt" data-w="${E(k)}"${WHY.has(k)?' open':''}><summary><span class="p6tl goal"><b>${TD==='today'?'Today':'Next time'}:</b> ${gl}</span><span class="p6lk">Last time</span></summary>${l2}</details>${nt?`<p class="hint lnt p6nt">${nt}</p>`:''}`}
 else if(gl)td=`<p class="hint p6tl goal"><b>${TD==='today'?'Today':'Next time'}:</b> ${gl}</p>`;
-return `<header><span class="no">${lab}</span><h2>${E(n)}</h2>${p6Tag(n,tr,ph)}</header>${chips}${top}${seatEd===n?seatLine(n):''}${hint}${td}${up}${dn}`}
+return `<header><span class="no">${lab}</span><h2>${E(n)}</h2>${p6Tag(n,tr,ph)}</header>${chips}${top}${seatEd===n?seatLine(n):''}${hint}${td}${p40aKeep(n,up,dn)}`}
 // the saved setup line (Kind, Seat, Goes up by, Starts at, Change) as seatLine draws it; none while its box is open
 // More: the history fold's contents (the comparison sentence first), keeping its open / shut memory (OPEN, by exercise)
 function p6SeatSum(n){if(seatEd===n)return '';const h=seatLine(n);return /^<p class="hint seat">/.test(h)?h:''}
-function p6More(n,ph){const m=String(ph||'').match(/^<details class="prog" data-n="[^"]*"(?: open)?><summary>([\s\S]*?)<\/summary>([\s\S]*)<\/details>$/);if(!m)return '';
+function p6More(n,ph){return p40aMore(n,p40aMore0(n,ph))}
+function p40aMore0(n,ph){const m=String(ph||'').match(/^<details class="prog" data-n="[^"]*"(?: open)?><summary>([\s\S]*?)<\/summary>([\s\S]*)<\/details>$/);if(!m)return '';
 const lr=m&&(m[2].match(/data-a="lres"[^>]*>(Went lighter on purpose[^<]*)<\/button>/)||[])[1];
 return `<details class="prog p6mo" data-n="${E(n)}"${OPEN.has(n)?' open':''}><summary>More${lr?`<span class="p6lr"> · ${lr}</span>`:''}</summary><p class="hint p6st">${m[1]}</p>${m[2]}</details>`}
 function p6SeatClose(n,box){const sec=box.closest('section.ex[data-ex]');box.remove();if(!sec)return;const h=p6SeatSum(n),top=sec.querySelector(':scope>.p6top'),cur=top&&top.querySelector(':scope>.seat');
@@ -4780,11 +4791,6 @@ if(window.__SA)app.addEventListener('toggle',()=>{try{p6Fit()}catch(x){}},true);
 // ===== p136e (standalone, both apps): "Pick on the day between…" in the program editor's Each week choices
 // a slot that picks on the day: two or more exercises, not alternating weekly, not following another
 function p6Day(x){return !!x&&Array.isArray(x.o)&&x.o.length>1&&!x.of&&!p3Aw(x)}
-// ===== p136f (standalone, both apps; display only): Weight › Trend keeps 6 tiles on top, the rest under More numbers
-const P6TK=/^(Latest \(lb\)|(Lost|Gained) since |7-day avg \(lb\)|Change in avg \(lb\)|Pace \(lb\/wk\)|Status vs target)/;
-function p6Tiles(h){const m=String(h).match(/^<div class="wk">([\s\S]*)<\/div>$/);if(!m)return h;const all=m[1].match(/<div><b[^>]*>[\s\S]*?<\/b><small>[\s\S]*?<\/small><\/div>/g)||[];if(all.join('')!==m[1])return h;
-const lab=t=>(t.match(/<small>([\s\S]*?)<\/small>/)||[])[1]||'',top=all.filter(t=>P6TK.test(lab(t))),more=all.filter(t=>!P6TK.test(lab(t)));if(!more.length||top.length<3)return h;
-return `<div class="wk p6wtk">${top.join('')}</div>${why('p6wt','<div class="p6wt"><div class="wk">'+more.join('')+'</div></div>','More numbers ('+more.length+')')}`}
 // ===== p136g (standalone, both apps; display only): the cut's "slipping is the warning" line once on the Lifts page
 // (the Strength check says it whenever it has a lift to show, judged or not yet)
 function p6Said(){try{const c=checkRows();return (c.rows||[]).length+(c.few||[]).length>0}catch(e){return false}}
@@ -4907,11 +4913,67 @@ if(Array.isArray(S.pex)&&S.pex.some(x=>x&&x.b&&Array.isArray(x.b.l)&&x.b.l.some(
 {const r1=n=>n===P139A?tDay:n;lastEx=r1(lastEx);openEx=r1(openEx);seatEd=r1(seatEd);seatKeep=r1(seatKeep);pSel=pSel===P139A?P139B:pSel;if(OPEN.has(P139A)){OPEN.delete(P139A);OPEN.add(tDay)}
 for(const t of [...wTouch]){const i=t.lastIndexOf('|');if(t.slice(0,i)===P139A){wTouch.delete(t);wTouch.add(tDay+t.slice(i))}}}
 const m={t:td,ms:Date.now(),n:pl.length,k,v:Math.round(v),a:na};if(pd.length)m.pg=pd;if(Object.keys(dc).length)m.dr=dc;if(se.size)m.se=[...se].sort();if(sd.length)m.sd=sd;if(nm.length)m.nm=nm;
-S.mig=Object.assign({},S.mig||{},{p139:m});applyProg();save();render();done=true
+S.mig=Object.assign({},S.mig||{},{p139:m});applyProg();save();p140R();done=true
 }catch(x){}finally{p139Mig.on=0;if(done)p139Mig.done=p139Key();else if(again){p139Mig.n=(p139Mig.n||0)+1;if(p139Mig.n<20)setTimeout(p139Mig,1500)}}}
 // the one-time line: until Got it, or a day after the rename (with the dates that went to Seated, from the data)
 function p139Ban(){const m=window.__SA&&FEM&&S.mig&&S.mig.p139;if(!m||m.ok||!(+m.ms>0)||Date.now()-m.ms>=864e5)return '';const se=(Array.isArray(m.se)?m.se:[]).filter(t=>typeof t==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(t));
 return `<div class="msb" role="status"><span>${E(P139A)} is now called ${E(P139B)} (all its history moved with it)${se.length?`; your ${E(andL(se.map(t=>dsh({t}))))} calf raises were seated, so they moved to ${E(P139S)}`:''}.</span><button class="edit" data-a="p139ok">Got it</button></div>`}
+// ===== p140c (standalone, both apps): a redraw nobody tapped for keeps what's on screen in place
+var p140Dn=-1e9,p140Up=-1e9,p140Q=0;const p140T=()=>(window.performance&&performance.now)?performance.now():Date.now(); // a monotonic clock: the page's own, not the date
+if(window.__SA){const dn=()=>{p140Dn=p140T()},up=()=>{p140Up=p140T()};for(const t of ['pointerdown','touchstart','mousedown'])addEventListener(t,dn,{capture:true,passive:true});for(const t of ['pointerup','pointercancel','touchend','touchcancel','mouseup','dragend'])addEventListener(t,up,{capture:true,passive:true})}
+// a finger down (or just lifted: its click is still to come), or typing / a picker open in the page
+function p140Busy(){const n=p140T();if((p140Dn>p140Up&&n-p140Dn<1e4)||n-p140Up<400)return true;const a=document.activeElement;if(!a||!app||!app.contains(a))return false;
+if(a.isContentEditable||a.tagName==='TEXTAREA'||a.tagName==='SELECT')return true;return a.tagName==='INPUT'&&!/^(button|checkbox|radio|file|range|submit|reset|image|color)$/i.test(a.type||'')}
+// the view's top edge: under the tab bar while it's stuck at the top
+function p140Vt(){const t=app&&app.querySelector('.tabw');if(!t)return 0;const r=t.getBoundingClientRect();return r.top<=1&&r.bottom>0?r.bottom:0}
+// what finds the same element after the redraw: its id, its card's name, or (a section without either) its heading,
+// counted among sections with the same heading
+function p140Key(el){if(el.id)return {q:'#'+CSS.escape(el.id)};if(el.dataset&&el.dataset.ex!=null)return {q:'[data-ex="'+CSS.escape(el.dataset.ex)+'"]'};const h=el.tagName==='SECTION'&&el.querySelector('h2');if(!h)return null;const t=h.textContent;return {h:t,i:p140Secs(t).indexOf(el)}}
+function p140Secs(t){return [...app.querySelectorAll('section')].filter(s=>{const h=s.querySelector('h2');return h&&h.textContent===t})}
+function p140Find(k){return k.q?app.querySelector(k.q):p140Secs(k.h)[k.i]||null}
+// the element at the top of the view: the first section, card or element with an id starting at or under the view's top,
+// else the innermost one spanning it
+function p140Anchor(){const vt=p140Vt(),H=innerHeight;let best=null,bt=1/0,span=null;for(const el of app.querySelectorAll('[id],[data-ex],section')){if(el.closest('.tabw,#bnr'))continue;const r=el.getBoundingClientRect();if(!r.width&&!r.height)continue;
+if(r.top>=vt-.5&&r.top<H){if(r.top<bt&&p140Key(el)){bt=r.top;best=el}}else if(r.top<vt&&r.bottom>vt&&p140Key(el))span=el}const el=best||span,k=el&&p140Key(el);return k?{k,y:el.getBoundingClientRect().top}:null}
+function p140R(){if(!window.__SA||!app)return render();if(p140Busy()){if(!p140Q){p140Q=1;const w=()=>{if(p140Busy()){setTimeout(w,300);return}p140Q=0;p140R()};setTimeout(w,300)}return}
+let a=null;try{if(scrollY>0)a=p140Anchor()}catch(e){a=null}
+render();
+if(a)try{const el=p140Find(a.k);if(el){const d=el.getBoundingClientRect().top-a.y;if(Math.abs(d)>=.5)window.scrollBy(0,d)}}catch(e){}}
+// ===== p140d (standalone, both apps): a one-time repair of empty drafts made before p137c (S.mig.p140d)
+// each saved, not-an-edit draft's exercise with rows all empty and never marked, nothing kept per row, and warm-ups last
+// time: its rows as rows() makes them now (its day's set count and versions, so worked out with that day in view)
+function p140dPlan(){const o=[],d0=day;try{for(const k of Object.keys(S.draft||{})){const dd=S.draft[k];if(!dd||typeof dd!=='object'||dd.id||!dd.s||typeof dd.s!=='object'||Array.isArray(dd.s))continue;const kd=/^\d+$/.test(k)?+k:k;if(!P[kd])continue;day=kd;
+for(const n of Object.keys(dd.s)){const r=dd.s[n];if(!Array.isArray(r)||!r.length||!r.every(a=>Array.isArray(a)&&a.length<=2&&rowEmpty(a)))continue;
+if(['lk','tg','wq'].some(q=>dd[q]&&typeof dd[q]==='object'&&dd[q][n]!=null))continue;
+const W=(last(n)||[]).filter(a=>Array.isArray(a)&&a[2]==='w');if(!W.length)continue;
+o.push({k,n,rows:W.map(()=>['','','w']).concat(Array.from({length:setN(n)||SETN[n]||3},()=>['','']))})}}}finally{day=d0}return o}
+function p140d(){if(!window.__SA||needSetup())return;p140d.ran=1;if(S.mig&&S.mig.p140d)return;try{if(localStorage.getItem('gym-sa-p140d'))return}catch(e){}
+const pl=p140dPlan();if(pl.length){for(const q of pl)S.draft[q.k].s[q.n]=q.rows;S.mig=Object.assign({},S.mig||{},{p140d:{t:today(),n:pl.length,d:[...new Set(pl.map(q=>q.k))]}});save()}
+try{localStorage.setItem('gym-sa-p140d','1')}catch(e){}}
+// ===== p140e (standalone, both apps): Maintenance over time labels the plan's dashed line with its value where it ends
+// (pl: the points with a plan value; X, Y: the chart's scales; one: a single point, drawn as a short dash)
+function p140Pl(pl,X,Y,one){if(!pl||!pl.length)return '';const e=pl[pl.length-1],v=fmt(e.pc),y=Y(e.pc),st='style="fill:var(--ink);opacity:.85"';
+if(one)return `<text class="plb" x="${(X(e.t)+12).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="start" ${st}>plan ${E(v)}</text>`;
+const x=(X(e.t)+(pl.length===1?8:0)+4).toFixed(1);return `<text class="plb" x="${x}" y="${(y-2).toFixed(1)}" text-anchor="start" ${st}>plan</text><text class="plb" x="${x}" y="${(y+8).toFixed(1)}" text-anchor="start" ${st}>${E(v)}</text>`}
+// ===== p140a (standalone, both apps; display only): the Today line is just the goal; the rest goes to the top of More
+var P40A=new Map();
+// the goal in the old goal line's words (its own expression, after "Goal today: "): one weight and no warm-ups
+// "16, 16, 17 reps at 80 lb (35 + 45 bar)", else the sets; no change marks, no lighter-sets reason. Those (worked out
+// as p136b marked them) are kept, by exercise, for More
+function p40aGoal(n,l,gR,gs,lgw){const as=AS.has(n),F=a=>parseFloat(a)||0,lw=l.filter(a=>a[2]!=='w'),wu=gR.filter(a=>a[2]==='w'),sg=v=>(v>0?'+':'−')+tgNum(Math.abs(Math.round(v*100)/100));
+const mk=gs.map((g,i)=>{const p=lw[i];if(!p)return '';const dw=g[0]-F(p[0]),dr=g[1]-F(p[1]);return Math.abs(dw)>1e-9?sg(dw)+' lb':dr?sg(dr)+(Math.abs(dr)===1?' rep':' reps'):''});
+const G=[];mk.forEach((m,i)=>{if(!m)return;let g=G.find(z=>z.m===m);if(!g)G.push(g={m,ns:[]});g.ns.push(wu.length+i+1)});
+const sl=a=>a.length>1?'sets '+a.slice(0,-1).join(', ')+' and '+a[a.length-1]:'set '+a[0],ch=G.length?'Changes from last time: '+G.map(g=>sl(g.ns)+' '+g.m).join('; ')+'.':'';
+const r=String(lgw||'').match(/^ \((sets? [^:]*): ([^)]*)\)$/),why=r?r[1].charAt(0).toUpperCase()+r[1].slice(1)+': '+r[2]+'.':'';
+const k=P40A.get(n)||{};k.ch=ch;k.why=why;P40A.set(n,k);
+const ws=[...new Set(gs.map(g=>g[0]))];
+return E(wu.length?p7GlW(n,gR,gs,ws):ws.length===1?gs.map(g=>g[1]).join(', ')+' reps'+(ws[0]>0?' at '+ws[0]+(as?' lb of assistance':' lb'+p3Bk(n,ws[0])):''):gs.map(g=>(g[0]?g[0]+(as?' assist':''):'BW')+'×'+g[1]).join(', ')+(!as&&ws.some(v=>v>0)?p3SwSfx(...swB(n)):''))}
+// the card's Go heavier / add reps first / Ease off lines, as drawn, kept for More (nothing stays under the Today line)
+function p40aKeep(n,up,dn){if(!window.__SA)return (up||'')+(dn||'');const k=P40A.get(n)||{};k.up=up||'';k.dn=dn||'';P40A.set(n,k);return ''}
+// More's first lines: the changes, the lighter-sets reason, then Go heavier / Ease off word for word
+function p40aTop(n){const k=P40A.get(n)||{};return (k.ch?`<p class="hint p40am p40ach">${E(k.ch)}</p>`:'')+(k.why?`<p class="hint p40am p40awhy">${E(k.why)}</p>`:'')+(k.up||'')+(k.dn||'')}
+function p40aMore(n,h){const t=p40aTop(n);if(!t)return h;if(!h)return `<details class="prog p6mo" data-n="${E(n)}"${OPEN.has(n)?' open':''}><summary>More</summary>${t}</details>`;
+const i=h.indexOf('</summary>');return i<0?h:h.slice(0,i+10)+t+h.slice(i+10)}
 function rmLog(i){
 const e=S.log[i];if(!e)return;
 if(armed!==e){armed=e;render();return}
@@ -5204,7 +5266,7 @@ dbReady=true;ldN=0;
 if(window.__SA&&!!(S.prof&&S.prof.sex==='f')!==FEM){lsSet(LK,S);if(need){try{await docRef.set(JSON.parse(J(S)))}catch(e){}}if(feMatch())return}
 const ae=document.activeElement,typing=ae&&ae.tagName==='INPUT'&&app.contains(ae)&&J(S)===before;
 initDone=true;
-STP('screen with saved data');if(typing)autoCheck();else render();
+STP('screen with saved data');if(typing)autoCheck();else p140R();
 if(need)flush();else lsSet(LK,S);
 {const ids=new Set();for(const e of S.log.slice().reverse()){if(!e.id)e.id=e.t+'-'+e.day;if(ids.has(e.id)){let k=2;while(ids.has(e.id+'-'+k))k++;e.id=e.id+'-'+k;e.a=0}ids.add(e.id)}}
 STP('archiving');for(const e of S.log){if(!e.a)await arch(e)}
