@@ -524,6 +524,7 @@ details.why>.hint:first-of-type,details.why>p:first-of-type{margin-top:.1rem}
 .p125 .hint b.p43vok{color:var(--good)}
 .p125 .cmp b.p43so{white-space:normal;font-size:.8rem;overflow-wrap:normal;word-break:normal}
 .p125 #dlcal .p45dlb{display:flex;flex-wrap:wrap;gap:0 1.1rem;margin-top:.15rem}.p125 #dlcal .p45dlb .edit{padding-left:0}
+.p146 .syr{align-items:flex-start}.p146 .syr .edit{min-height:44px;white-space:nowrap}.p146 ul{margin:.5rem 0 0;padding-left:1.1rem}.p146 li{margin:.25rem 0}
 </style>
 </head>
 <body>
@@ -640,7 +641,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='1bd6c6ce43',SFB=+'1794161378'||0,sfT0=Date.now();
+const SFV='828bbcd79c',SFB=+'1794171635'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1178,7 +1179,7 @@ if(k===i){const g=gym(cs,ce),nw=wtList().filter(x=>x.t>=cs&&x.t<=ce).length,nf=f
 out.push(`<p class="p44st">${E(wkRange(cs,ce))} · so far, day ${el} of 7</p>`+(el===1&&!g.n&&nw<=1&&!nf?'<p>It started today. It fills in as the days come in; today’s steps arrive with the evening sync, and today’s food after 10 pm or with the next morning’s sync.</p>':wkLines(cs,ce,true)));
 if(i<1)out.push(`<p class="hint">Your first full week ends ${E(wtLong(ce))}. Its recap shows here from ${E(wtLong(addD(ce,1)))}.</p>`);
 const wn=wtRecap(),rn=(wn.length?[wn[wn.length-1]]:[]).concat(rcWn(),FEM?cyRecap():[]);if(rn.length)out.push(`<p class="rch"><b>Right now</b></p>`+rn.join(''))}
-else{const[ls,le]=rng(k),wt=k===i-1&&ciWaitW();out.push((wt?`<p class="hint">Not complete yet: ${E(FN[dowOf(le)])}’s food and steps come in with this morning’s sync.</p>`:`<p class="rch p44st">${k===i-1?E(wkRange(ls,le))+' ·':''}${rcDone(le)}</p>`)+wkLines(ls,le,false))}
+else{const[ls,le]=rng(k),wt=k===i-1&&ciWaitW();out.push((wt?`<p class="rch p44st">${E(wkRange(ls,le))}</p><p class="hint">Not complete yet: ${E(FN[dowOf(le)])}’s food and steps come in with this morning’s sync.</p>`:`<p class="rch p44st">${k===i-1?E(wkRange(ls,le))+' ·':''}${rcDone(le)}</p>`)+wkLines(ls,le,false))}
 return `<section class="ex"><h2>Weekly recap</h2>${out.join('')}</section>`}
 function recapSec(){if(window.__SA){const r=recapSA();if(r)return r}
 const W=weeks(),ck=wkKey(today()),cur=W.find(w=>w.k===ck),prev=W.find(w=>w.k<ck);
@@ -3586,7 +3587,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'1bd6c6ce43',d:'Nov 8, 2026 at 1:09 PM',b:+'1794161378'||0};
+const APP_V={h:'828bbcd79c',d:'Nov 8, 2026 at 4:00 PM',b:+'1794171635'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
@@ -3618,7 +3619,7 @@ const hkGuide=()=>`<details class="mf"><summary>Setup steps</summary><ol class="
 <li>Open the Shortcuts app, tap <b>+</b> and name the new shortcut <b>Gym Health</b>.</li>
 <li>Add the action <b>Find Health Samples</b>. Set <b>Type</b> to <b>Steps</b>. Tap <b>Add Filter</b> for <b>Start Date is in the last 3 days</b>, and again for <b>Source is</b> the app that records your steps, such as <b>Garmin Connect</b> (choose <b>Source</b> from the list, not Name or Value, then pick the app from the list; Garmin may be listed as <b>Connect</b>). Set <b>Group By</b> to <b>Day</b>.</li>
 <li>Add the action <b>Add to Variable</b> and name the variable <b>Samples</b>.</li>
-<li>Do steps 2 and 3 again for each of these, always adding to <b>Samples</b>. You can duplicate a Find step to save time, but add a new <b>Add to Variable</b> after each one: a duplicated one still points at the step it was copied from.<br>· <b>Weight</b> (Body Mass), source your scale’s app (such as Garmin Connect), no grouping<br>· <b>Dietary Energy</b>, source Lose It, group by Day<br>· <b>Protein</b>, source Lose It, group by Day<br>· <b>Carbohydrates</b>, source Lose It, group by Day<br>· <b>Total Fat</b>, source Lose It, group by Day<br>· <b>Fiber</b> (Dietary Fiber), source Lose It, group by Day<br>· <b>Saturated Fat</b>, source Lose It, group by Day<br>· <b>Dietary Sugar</b>, source Lose It, group by Day<br>· <b>Sodium</b>, source Lose It, group by Day (it comes in mg)<br>· <b>Sleep</b>, with <b>Start Date is in the last 1 day</b> and no source filter (a Source filter on sleep can come back empty)<br>· <b>Heart Rate</b>, source your ring or watch app (such as Oura), with <b>Start Date is today</b> instead of the last 3 days (the last 1 day reaches back to the night before), <b>Sort by Value</b> (lowest first) and <b>Limit</b> on at <b>1</b>. The app only needs last night’s lowest reading, and this keeps the shortcut fast.</li>
+<li>Do steps 2 and 3 again for each of these, always adding to <b>Samples</b>. You can duplicate a Find step to save time, but add a new <b>Add to Variable</b> after each one: a duplicated one still points at the step it was copied from.<br>· <b>Weight</b> (Body Mass), source your scale’s app (such as Garmin Connect), no grouping<br>· <b>Dietary Energy</b>, source Lose It, group by Day<br>· <b>Protein</b>, source Lose It, group by Day<br>· <b>Carbohydrates</b>, source Lose It, group by Day<br>· <b>Total Fat</b>, source Lose It, group by Day<br>· <b>Fiber</b> (Dietary Fiber), source Lose It, group by Day<br>· <b>Saturated Fat</b>, source Lose It, group by Day<br>· <b>Dietary Sugar</b>, source Lose It, group by Day<br>· <b>Sodium</b>, source Lose It, group by Day (it comes in mg)<br>· <b>Sleep</b>, with <b>Start Date is in the last 1 day</b> and no source filter (a Source filter on sleep can come back empty)<br>· <b>Heart Rate</b>, source your ring or watch app (such as Oura), with <b>Start Date is in the last 1 day</b> instead of the last 3 days, <b>Sort by Value</b> (lowest first) and <b>Limit</b> on at <b>300</b>. The last 1 day reaches back to midnight yesterday, so an early bedtime is covered, and 300 readings cover a whole night even when the night before was calmer. The app takes last night’s lowest reading from the time you were in bed.</li>
 <li>Add <b>Repeat with Each</b> and pick <b>Samples</b>.</li>
 <li>Inside the repeat, add a <b>Text</b> action. Fill it with five details of <b>Repeat Item</b>, with a <b>|</b> between each: <b>Type</b> | <b>Start Date</b> | <b>End Date</b> | <b>Value</b> | <b>Unit</b>. Tap each date and set its format to <b>Custom</b>: <b>yyyy-MM-dd HH:mm</b>.</li>
 <li>Still inside the repeat, add <b>Add to Variable</b> and name it <b>Lines</b>.</li>
@@ -3935,6 +3936,8 @@ if((m=x.match(/([A-Za-z]{3})[a-z]*\.? (\d{1,2}),? (\d{4})(?:,? (?:at )?(\d{1,2})
 if((m=x.match(/(\d{1,2}) ([A-Za-z]{3})[a-z]*\.? (\d{4})(?:,? (?:at )?(\d{1,2}):(\d{2})\s*([AaPp]\.?[Mm]\.?)?)?/))){const mo=MON.indexOf(m[2].toLowerCase());if(mo>=0&&mo%3===0){const[h,mi]=hm(m[4],m[5],m[6]);return new Date(+m[3],mo/3,+m[1],h,mi)}}
 return null}
 const hkDay=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+// p146a: a nutrient at 0 on a day with 800+ calories is one Lose It didn't write (the shortcut's Fill Missing sends 0)
+function p146Z(x,k){return !!window.__SA&&x.c>=800&&Math.round(+x[k]||0)===0}
 function hkParse(txt){
 let lines=String(txt||'').replace(/\uFEFF/g,'').split(/\r\n|\r|\n/).map(x=>x.trim()).filter(Boolean);
 const h0=lines.findIndex(x=>/^["'“”]?GYM-HEALTH/i.test(x));
@@ -3949,7 +3952,7 @@ if(!rows.length)return{err:badDate?'The dates from the shortcut aren’t in a fo
 const td=today(),late=new Date().getHours()>=evH(),D={},day=t=>D[t]||(D[t]={t}),WT={};
 for(const r of rows){
 if(['st','c','p','cb','f','fb','na','sf','su'].includes(r.k)){let n=r.k==='st'&&/^\d{1,3}(\.\d{3})+$/.test(String(r.v).replace(/[\s\u00a0\u202f]/g,''))?+String(r.v).replace(/\D/g,''):hkNum(r.v);if(n==null||n<0)continue;if(r.k==='c'&&/kj/i.test(r.u)&&!/kcal/i.test(r.u))n/=4.184;if(r.k==='na'&&!/mg/i.test(r.u)&&/(^|[\s\d])g\b/i.test(r.u))n*=1000;if((r.k==='sf'||r.k==='su')&&/mg/i.test(r.u))n/=1000;const t=hkDay(r.s);day(t)[r.k]=(day(t)[r.k]||0)+n}
-else if(r.k==='wt'){let n=hkNum(r.v);if(n==null||n<=0)continue;if(/kg/i.test(r.u))n*=2.20462;if(n<66||n>600)continue;const t=hkDay(r.s);if(!WT[t]||r.s<WT[t].s)WT[t]={s:r.s,w:n}}}
+else if(r.k==='wt'){let n=hkNum(r.v);if(n==null||n<=0)continue;if(/kg/i.test(r.u))n*=2.20462;if(n<66||n>600)continue;const t=hkDay(r.s);{const am=!window.__SA||r.s.getHours()>=4,c=WT[t];if(!c||(am&&!c.am)||(am===c.am&&r.s<c.s))WT[t]={s:r.s,w:n,am}}}}
 for(const t in WT)day(t).wt=WT[t].w;
 // sleep: asleep segments grouped into nights (a gap over 3 hours starts a new one); a night belongs to the morning it ended
 const seg=rows.filter(r=>r.k==='sl'&&!/awake|in ?bed/i.test(r.v)).sort((a,b)=>a.s-b.s),nights=[];
@@ -3965,7 +3968,7 @@ const t0=Math.floor(+n.s/6e4)*6e4,aw=awk.filter(r=>+r.s<+n.e&&+r.e>+n.s);let m=0
 for(let t=t0;t<+n.e;t+=6e4){let a=0,w=0;for(const[x,y]of n.iv)if(+x<=t&&t<+y)a++;if(!a)continue;for(const r of aw)if(+r.s<=t&&t<+r.e)w++;if(a>w)m++}
 n.min=m;const t=hkDay(n.e);if(!best[t]||n.min>best[t].min)best[t]=n}
 const hrs=rows.filter(r=>r.k==='hr').map(r=>({t:+r.s,v:hkNum(r.v)})).filter(x=>x.v!=null&&x.v>=30&&x.v<=130);
-for(const t in best){const n=best[t];day(t).sl=n.min;const h=hrs.filter(x=>x.t>=+n.s&&x.t<=+n.e);if(h.length)day(t).hr=Math.min(...h.map(x=>x.v))}
+for(const t in best){const n=best[t];day(t).sl=n.min;const bw=window.__SA?bed.filter(b=>+b.s<=+n.e&&+b.e>=+n.s):[],s0=bw.length?Math.min(+n.s,...bw.map(b=>+b.s)):+n.s,e0=bw.length?Math.max(+n.e,...bw.map(b=>+b.e)):+n.e;const h=hrs.filter(x=>x.t>=s0&&x.t<=e0);if(h.length)day(t).hr=Math.min(...h.map(x=>x.v))}
 // sanity ranges; today's steps only once the day is mostly done (after the evening sync time); standalone: today's food after 10 pm
 const out=[];let skipT=false,skS=false,skF=false;
 // the oldest day of a 3-day look-back is only partly covered, so only today and the two days before it count
@@ -3979,11 +3982,41 @@ if(okD('sl',t)&&x.sl!=null&&x.sl>=30&&x.sl<=960)o.sl=Math.round(x.sl);
 if(o.sl!=null&&x.hr!=null)o.hr=Math.round(x.hr);
 const day0=t===td&&!late,dayF=window.__SA?t===td&&!fdLate():day0;
 if(okD('st',t)&&x.st!=null&&x.st>0&&x.st<=100000){if(day0){skipT=true;skS=true}else o.st=Math.round(x.st)}
-if(okD('c',t)&&x.c!=null&&x.c>0&&x.c<15000){if(dayF){skipT=true;skF=true}else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(okD(k,t)&&x[k]!=null&&x[k]<2000)o[k]=Math.round(x[k]);if(seen.fb&&okD('fb',t)&&(x.fb!=null||!window.__SA)){const fb=x.fb||0;if(fb<500)o.fb=Math.round(fb)}for(const[k,mx]of[['na',20000],['sf',400],['su',1000]])if(okD(k,t)&&x[k]!=null&&x[k]<mx)o[k]=Math.round(x[k]);if(window.__SA)o.mx=['p','cb','f','na','sf','su'].filter(k=>o[k]==null&&okD(k,t))}}
+if(okD('c',t)&&x.c!=null&&x.c>0&&x.c<15000){if(dayF){skipT=true;skF=true}else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(okD(k,t)&&x[k]!=null&&x[k]<2000&&!p146Z(x,k))o[k]=Math.round(x[k]);if(seen.fb&&okD('fb',t)&&(x.fb!=null||!window.__SA)){const fb=x.fb||0;if(fb<500&&!p146Z(x,'fb'))o.fb=Math.round(fb)}for(const[k,mx]of[['na',20000],['sf',400],['su',1000]])if(okD(k,t)&&x[k]!=null&&x[k]<mx&&!p146Z(x,k))o[k]=Math.round(x[k]);if(window.__SA)o.mx=['p','cb','f','na','sf','su'].filter(k=>o[k]==null&&okD(k,t))}}
 if(window.__SA){const z=hkxO()[t];if(z&&typeof z==='object'){if(o.sl!=null&&z.sl!=null&&Math.abs(z.sl-o.sl)<1){delete o.sl;delete o.hr}if(o.st!=null&&z.st!=null&&z.st===o.st)delete o.st;if(o.c!=null&&z.c!=null&&z.c===o.c)for(const k of['c','p','cb','f','fb','na','sf','su','mx'])delete o[k]}}
 if(Object.keys(o).length>1)out.push(o)}
 if(!out.length)return{err:skipT?(window.__SA?hkSkipTxt(skS,skF,1):'Only today’s food and steps were found. They come in after '+evT()+', or with tomorrow morning’s sync.'):'Nothing from the last 3 days to add yet.'};
 return{days:out,cut:(()=>{const r=rows[rows.length-1];return r&&r.l===lines[lines.length-1]&&(r.k==='st'||r.k==='c')?{k:r.k,t:hkDay(r.s)}:null})(),seen,skipT,skS,skF,badDate,hro:(()=>{if(!hrs.length)return null;const lt=hkDay(new Date(Math.max(...hrs.map(x=>x.t))));return lt<td&&D[td]&&D[td].sl!=null&&D[td].hr==null?lt:null})()}}
+// ===== p146b (standalone, both apps): the Missing days log =====
+const P146L={wt:'weigh-in',st:'steps',c:'food',p:'protein',cb:'carbs',f:'fat',fb:'fiber',na:'sodium',sf:'saturated fat',su:'sugar',sl:'sleep',hr:'heart rate',ws:'waist (Sunday)'};
+const P146A={c:'your maintenance and the check-in’s food days',wt:'the check-in’s weigh-ins',st:'the check-in’s step average',ws:'the check-in’s waist hold',p:'your protein average',cb:'your protein average',f:'your protein average',fb:'food insights',na:'food insights',sf:'food insights',su:'food insights',sl:'sleep notes',hr:'the heart rate chart'};
+// owner, Nov 8, 3:06 PM: "it should flag everything that's supposed to come in that isn't": a kind is expected from the
+// first day it ever came in (food details: from Apple Health) on, however long it has been missing since
+const P146H=new Set(['p','cb','f','fb','na','sf','su']);
+function p146Ev(L,k,t){return L.some(x=>x.t<t&&x[k]!=null&&(!P146H.has(k)||x.hk))}
+// the last 4 weeks, newest first: [{t, ks}] (what's expected and didn't come in)
+function p146Md(){if(!window.__SA)return [];const td=today(),yd=addD(td,-1),hl=hlList(),fl=fdList(),wl=wtList(),H=new Map(hl.map(x=>[x.t,x])),F=new Map(fl.map(x=>[x.t,x])),W=new Set(wl.map(x=>x.t)),ws=wsSun(),mo=hkMorn(),nx=S.mdx&&typeof S.mdx==='object'?S.mdx:{},out=[];
+const us=p146Ev;
+for(let i=1;i<=28;i++){const t=addD(td,-i),h=H.get(t)||{},f=F.get(t),ks=[],wait=t===yd&&!mo;
+if(!W.has(t)&&!(S.wtx&&S.wtx[t]!=null)&&us(wl,'w',t))ks.push('wt');
+if(!wait&&h.st==null&&!hkxHas(t,'st')&&us(hl,'st',t))ks.push('st');
+if(!wait&&!nx[t]){if(!(f&&f.c))(!hkxHas(t,'c')&&us(fl,'c',t))&&ks.push('c');else for(const k of['p','cb','f','fb','na','sf','su'])if((f[k]==null||(f.c>=800&&Math.round(+f[k])===0))&&us(fl,k,t))ks.push(k)}
+{const sm=h.sl==null&&!hkxHas(t,'sl')&&us(hl,'sl',t);if(sm)ks.push('sl');if((sm||h.sl!=null)&&h.hr==null&&us(hl,'hr',t))ks.push('hr')}
+if(dowOf(t)===0&&!ws.some(x=>x.t===t)&&ws.some(x=>x.t<t))ks.push('ws');
+if(ks.length)out.push({t,ks})}return out}
+const p146Day=t=>new Date(t+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+const p146And=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+function p146Sec(){if(!window.__SA)return '';const L=p146Md(),td=today();
+if(!L.length)return `<section class="ex p146" id="hkmd"><h2>Missing days</h2><p class="hint">Nothing missing in the last 4 weeks.</p></section>`;
+const rows=L.map(r=>{const w=p146And(r.ks.map(k=>P146L[k])),a=[...new Set(r.ks.map(k=>P146A[k]))];
+return `<div class="syr"><div><b>${E(p146Day(r.t))}</b><small>${E(w.charAt(0).toUpperCase()+w.slice(1))}</small><small>Affects ${E(p146And(a))}.</small></div>${r.ks.includes('c')?`<button class="edit" data-a="p146x" data-t="${E(r.t)}">Not logged</button>`:''}</div>`}).join('');
+const K=new Set(L.flatMap(r=>r.ks)),hk=['wt','st','c','p','cb','f','fb','na','sf','su'],how=[];
+if(L.some(r=>r.t>=addD(td,-2)&&r.ks.some(k=>hk.includes(k))))how.push('From the last 3 days: run Gym Health and paste again.');
+if(L.some(r=>(r.t<addD(td,-2)&&r.ks.some(k=>hk.includes(k)))||r.ks.includes('sl')))how.push('Older'+(K.has('sl')?', and any missed night’s sleep':'')+': in the Gym Health shortcut, set that step’s Start Date to the last 28 days, run it once and paste here, then set it back'+(K.has('sl')?' (sleep to 1 day, the rest to 3 days). A month of sleep is a long paste.':' to 3 days.'));
+if(K.has('c'))how.push('A day you didn’t log in Lose It: tap Not logged and it stops being flagged.');
+if(K.has('sl')||K.has('hr'))how.push('Heart rate can’t be filled in later; it’s only shown.');
+if(K.has('ws'))how.push('A missed waist: add it on Weight › Waist with that Sunday’s date, if you measured it.');
+return `<section class="ex p146" id="hkmd"><h2>Missing days</h2><p class="hint">The last 4 weeks: what usually comes in but didn’t, and what it affects.</p>${rows}<p class="hint" style="margin-top:.6rem"><b>How to fill them in</b></p><ul class="hint">${how.map(x=>`<li>${E(x)}</li>`).join('')}</ul></section>`}
 // ===== Standalone: the Sync page (Apple Health, twice a day) =====
 const hkT=k=>S.hkt&&S.hkt.d===today()?S.hkt[k]||null:null;
 const hkMorn=()=>!!(hkT('m')||(wtList().some(x=>x.t===today())&&(hlList().find(x=>x.t===today())||{}).sl!=null));
@@ -3994,7 +4027,7 @@ const clk=(h,m,full)=>(h%12||12)+(full||m?':'+String(m||0).padStart(2,'0'):'')+(
 function syncHtml(){const late=new Date().getHours()>=evH(),ms=hkMiss(),mm=ms.filter(x=>!x.ev).length,me=ms.filter(x=>x.ev).length,row=(lab,sub,ok,tm,wait,mi)=>`<div class="syr"><div><b>${lab}</b><small>${sub}</small></div><span class="${ok&&!mi?'ok':ok?'dn':''}">${ok&&mi?(tm?E(hkTm(tm))+', ':'')+mi+' missing':ok?'✓ '+(tm?E(hkTm(tm)):'Done'):wait?(typeof wait==='string'?wait:'After '+evT()):'Not yet'}</span></div>`;
 // an evening paste before 10 pm brought today's steps; today's food (when it usually comes in) is still to come
 const td0=today(),eT=hkT('e'),eP=!!eT&&eT<'22:00'&&!me&&!fdList().some(x=>x.t===td0&&x.c)&&fdList().some(x=>x.t>=addD(td0,-14)&&x.t<td0&&x.c!=null);
-return `<h1>Upload</h1><p class="sub">Everything that comes into the app comes in here. Apple Health: sync each morning, and again in the evening if you want today’s numbers the same day: steps after ${evT()}, food after 10 pm (when Lose It adds your snacks). DEXA and blood work: upload the report PDF when you get a new one.</p>${hkPend?hkConfirm():''}${suHk()}<section class="ex" id="hksync"><h2>Apple Health today</h2>${row('Morning','Weigh-in, last night’s sleep and resting heart rate, yesterday’s food and steps',hkMorn(),hkT('m'),window.__SA&&hkT('p')?E(hkTm(hkT('p')))+': no weigh-in or sleep yet':false,mm)}${row('Evening','Today’s steps after '+evT()+', food after 10 pm',eP?false:hkEve(),eT,eP?(fdLate()?'Not yet':'Food after 10 pm'):!late,me)}${ms.length&&(hkMorn()||hkEve())?`<p class="hint dn" style="margin:.5rem 0 0">Didn’t come in: ${E(hkMissTxt(ms,'and'))}.${E(hkMissHow(ms))}</p>`:''}</section>${hkCard()}${upReports()}`}
+return `<h1>Upload</h1><p class="sub">Everything that comes into the app comes in here. Apple Health: sync each morning, and again in the evening if you want today’s numbers the same day: steps after ${evT()}, food after 10 pm (when Lose It adds your snacks). DEXA and blood work: upload the report PDF when you get a new one.</p>${hkPend?hkConfirm():''}${suHk()}<section class="ex" id="hksync"><h2>Apple Health today</h2>${row('Morning','Weigh-in, last night’s sleep and resting heart rate, yesterday’s food and steps',hkMorn(),hkT('m'),window.__SA&&hkT('p')?E(hkTm(hkT('p')))+': no weigh-in or sleep yet':false,mm)}${row('Evening','Today’s steps after '+evT()+', food after 10 pm',eP?false:hkEve(),eT,eP?(fdLate()?'Not yet':'Food after 10 pm'):!late,me)}${ms.length&&(hkMorn()||hkEve())?`<p class="hint dn" style="margin:.5rem 0 0">Didn’t come in: ${E(hkMissTxt(ms,'and'))}.${E(hkMissHow(ms))}</p>`:''}</section>${hkCard()}${window.__SA?p146Sec():''}${upReports()}`}
 // the DEXA and lab uploaders, under Apple Health, each with the latest one on file
 function upReports(){const sc=scans(),c=sc[sc.length-1],L=(S.labs||[]).slice().sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0),l=L[L.length-1];
 const see=id=>'<button class="edit" data-a="tgo" data-d="p" data-id="'+id+'" style="padding:0">See it in Progress</button>',yr=t=>E(wtLong(t))+', '+t.slice(0,4);
@@ -4027,12 +4060,12 @@ const hkPlanB=()=>{try{const L=Object.assign({},planNums(),planT()||{});return L
 // keep the "Didn't come in" explanation clear of the toast
 function hkClr(){const el=app.querySelector('#hksync p.hint.dn'),m=document.getElementById('msg');if(!el||!m)return;const b=el.getBoundingClientRect().bottom,t=m.getBoundingClientRect().top;if(b>t-8)window.scrollBy(0,b-t+16)}
 function hkMiss(){if(!window.__SA)return[];const td=today(),yd=addD(td,-1),hl=hlList(),fl=fdList(),wl=wtList(),H=new Map(hl.map(x=>[x.t,x])),F=new Map(fl.map(x=>[x.t,x])),out=[];
-const usual=(L,k,t)=>L.some(x=>x.t>=addD(t,-14)&&x.t<t&&x[k]!=null),mo=!!hkT('m'),ev=!!hkT('e')&&new Date().getHours()>=evH(),h=H.get(td)||{};
+const usual=(L,k,t)=>window.__SA?p146Ev(L,k,t):L.some(x=>x.t>=addD(t,-14)&&x.t<t&&x[k]!=null),mo=!!hkT('m'),ev=!!hkT('e')&&new Date().getHours()>=evH(),h=H.get(td)||{};
 const mac=(t,e)=>{const f=F.get(t);if(!f||f.c==null)return;const nm=[['p','protein'],['cb','carbs'],['f','fat'],['fb','fiber'],['sf','saturated fat'],['su','sugar'],['na','sodium']].filter(([k])=>f[k]==null&&usual(fl,k,t)).map(x=>x[1]);if(nm.length)out.push({k:'mac',ev:e,l:(t===td?'today’s ':'yesterday’s ')+nm.join(', ').replace(/, ([^,]*)$/,' and $1'),m:nm,pre:t===td?'today’s ':'yesterday’s '})};
 // after the morning paste: what it brings
 if(mo&&!wl.some(x=>x.t===td)&&!(S.wtx&&S.wtx[td]!=null)&&usual(wl,'w',td))out.push({k:'wt',l:'today’s weigh-in'});
 if(mo&&h.sl==null&&!hkxHas(td,'sl')&&usual(hl,'sl',td))out.push({k:'sl',l:'last night’s sleep'});
-if(h.sl!=null&&h.hr==null&&usual(hl,'hr',td))out.push({k:'hr',l:'last night’s heart rate'});
+if((h.sl!=null||(window.__SA&&mo&&!hkxHas(td,'sl')))&&h.hr==null&&usual(hl,'hr',td))out.push({k:'hr',l:'last night’s heart rate'});
 if(mo&&(H.get(yd)||{}).st==null&&!hkxHas(yd,'st')&&usual(hl,'st',yd))out.push({k:'st',l:'yesterday’s steps'});
 if(mo&&!(F.get(yd)||{}).c&&!hkxHas(yd,'c')&&usual(fl,'c',yd))out.push({k:'c',l:'yesterday’s food'});
 if(mo)mac(yd,false);
@@ -4045,7 +4078,7 @@ return out}
 const hkMissTxt=(ms,cj)=>{const a=[];for(const x of ms)if(Array.isArray(x.m)&&x.m.length)a.push(x.pre+x.m[0],...x.m.slice(1));else a.push(x.l);return a.length<2?a.join(''):a.slice(0,-1).join(', ')+' '+(cj||'or')+' '+a[a.length-1]};
 const hkMissHow=ms=>{const k=new Set(ms.map(x=>x.k)),o=[];
 if(k.has('wt'))o.push('Open your scale’s app so the weigh-in syncs to Apple Health.');
-if(k.has('hr')&&hkT('hro'))o.push(`The shortcut sent your lowest heart rate from ${dsh({t:hkT('hro')})}, not last night: in Shortcuts, open Gym Health and set the Heart Rate step’s Start Date to “is today”.`);
+if(k.has('hr')&&hkT('hro'))o.push(`The shortcut sent your lowest heart rate from ${dsh({t:hkT('hro')})}, not last night. Open your ring or watch app so last night syncs to Apple Health, and check the Gym Health shortcut’s Heart Rate step: Start Date “is in the last 1 day”, Limit 300.`);
 if(k.has('sl')||(k.has('hr')&&!hkT('hro')))o.push('Open your ring or watch app so last night syncs to Apple Health.');
 if(k.has('st'))o.push('Open the app that counts your steps so they sync to Apple Health.');
 if(k.has('c')||k.has('mac'))o.push('Check that Lose It has that day’s food.');
@@ -4292,6 +4325,7 @@ const usual=(L,k)=>L.some(x=>x.t>=addD(td,-14)&&x.t<td&&x[k]!=null);
 // nothing has come in for 14+ days (syncing lapsed): still a To do
 if(!(usual(wl,'w')||usual(hl,'sl')||usual(hl,'st')||usual(fl,'c'))){const lt=[wl,hl,fl].map(L=>L.length?L[L.length-1].t:'').sort().pop();if(lt&&lt<addD(td,-14)&&!hkMorn())add('hk','h','sync with Apple Health: nothing has come in since '+dsh({t:lt}),'#hk')}
 else{const ms=hkMiss().filter(x=>!x.ev);if(!hkMorn())add('hk','h',ciWaitW()?'this morning’s Apple Health sync: the weekly check-in waits for it':'this morning’s Apple Health sync','#hk');else if(ms.length)add('hk','h','it didn’t bring '+hkMissTxt(ms,'and'),'#hksync')}
+{const md=p146Md().filter(r=>r.ks.includes('c')&&r.t<addD(td,-1));if(md.length)add('hk','h',md.length===1?'fill in '+p146Day(md[0].t)+'’s food: it counts toward your maintenance':'fill in '+md.length+' missing food days: they count toward your maintenance','#hkmd')}
 if(wd===0&&!wsList().some(x=>x.t===td))add('w','h','Sunday’s waist','#waist');
 if(phaseWarn())add('w','h','',null);
 if(FEM&&cyNat()){const c=cyAt(td);if(c&&c.ph==='per'&&!(cyDay(td)||{}).f)add('cy','h','today’s flow','#cylog')}
@@ -4438,6 +4472,7 @@ function p110Act(a,b){if(!window.__SA)return false;
 if(a==='bnmore'){tapAnc=null;bnOpen=!bnOpen;render();return true}
 if(a==='ciall'){ciAll=!ciAll;render();return true}
 if(a==='rcwk'){const v=+b.dataset.v;if(isFinite(v)){rcWkSel=v;render()}return true}
+if(a==='p146x'){const t=b.dataset.t;if(/^\d{4}-\d{2}-\d{2}$/.test(t||'')){S.mdx=Object.assign({},S.mdx&&typeof S.mdx==='object'?S.mdx:{},{[t]:1});save();render();say(p146Day(t)+': marked as not logged, so it isn’t flagged.')}return true}
 return false}
 // p113: iPhone pulled the page back (and dropped the sticky tab bar for a frame) when it got shorter than the spot on
 // screen; a spacer under #app holds the height and only ever shrinks below the bottom of the screen
