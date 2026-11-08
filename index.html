@@ -503,6 +503,15 @@ details.why>.hint:first-of-type,details.why>p:first-of-type{margin-top:.1rem}
 .p125 :is(.msb.tdl,.msb.bkb,.tgq) :focus-visible{outline-color:currentColor}
 .p125 .tabs button.td::after,.p125 .tabs2 button.td::after,.p125 .tabs .tgear.up::after{background:var(--ink)}
 
+/* p144a: the weekly recap, one week at a time: ‹ picker › ; a watch-out in the week's Food line */
+.p125 .p44nav{display:flex;align-items:center;gap:.5rem;margin:.6rem 0 .3rem}
+.p125 .p44nav>.sel{flex:1;min-width:0;width:auto;margin:0;min-height:2.75rem}
+.p125 .p44ar{flex:none;width:2.75rem;height:2.75rem;border:1px solid var(--line);border-radius:.5rem;background:var(--bg);color:var(--acc);font:inherit;font-size:1.5rem;line-height:1;padding:0;cursor:pointer}
+.p125 .p44ar:disabled{color:var(--mute);opacity:.45;cursor:default}
+.p125 .p44st{margin:.35rem 0 .1rem}
+.p125 b.p44w{color:var(--p43lt);font-weight:600}
+.p125 b.p44w::before{content:"";display:inline-block;width:var(--p43sw);height:1em;margin-right:var(--p43sm);vertical-align:-.15em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5 1.5 21h21z' fill='%23ffe066' stroke='%2314202b' stroke-width='1.8' stroke-linejoin='round'/%3E%3Cpath d='M12 9v5.5' stroke='%2314202b' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='17.6' r='1.4' fill='%2314202b'/%3E%3C/svg%3E") center/contain no-repeat}
+
 /* p143k: the app colour for on target / done, green only for a measured change for the better (owner, Nov 7, 7:17 PM) */
 :root.p125{--good:var(--acc);--goodink:var(--accink);--gain:#1e7b3a;--p43kt:#0e7482;--p43kti:#fff}
 @media (prefers-color-scheme:dark){:root.p125:not([data-theme="light"]){--good:var(--acc);--goodink:var(--accink);--gain:#5cc97a;--p43kt:#52c4d1;--p43kti:#06262b}
@@ -514,6 +523,7 @@ details.why>.hint:first-of-type,details.why>p:first-of-type{margin-top:.1rem}
 .p125 .cmp b .p43st{display:block;font-size:.8rem;white-space:normal;overflow-wrap:normal;word-break:normal;color:inherit}
 .p125 .hint b.p43vok{color:var(--good)}
 .p125 .cmp b.p43so{white-space:normal;font-size:.8rem;overflow-wrap:normal;word-break:normal}
+.p125 #dlcal .p45dlb{display:flex;flex-wrap:wrap;gap:0 1.1rem;margin-top:.15rem}.p125 #dlcal .p45dlb .edit{padding-left:0}
 </style>
 </head>
 <body>
@@ -630,7 +640,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='72c18cdd04',SFB=+'1794104690'||0,sfT0=Date.now();
+const SFV='1bd6c6ce43',SFB=+'1794161378'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -993,7 +1003,7 @@ function pcEx(m){const o=[];for(const d of ORDER)for(const x of (P[d]&&P[d].x)||
 const PCA={Chest:'chest',Back:'back','Front delts':'front-delt','Side delts':'side-delt','Rear delts':'rear-delt',Biceps:'biceps',Triceps:'triceps',Quads:'quad',Hamstrings:'hamstring',Glutes:'glute',Calves:'calf'};
 const PCEG={Chest:'Machine chest press',Back:'Lat pulldown','Front delts':'Machine shoulder press','Side delts':'Lateral raise','Rear delts':'Reverse pec deck',Biceps:'Dumbbell curl',Triceps:'Overhead tricep extension',Quads:'Leg extension',Hamstrings:'Seated hamstring curl',Glutes:'Hip thrust',Calves:'Standing calf raise'};
 // the card's numbers, flags (biggest gaps first) and suggestions; a suggestion is a change you can try (c)
-function pcCalc(){const ks=pcWks();if(ks.length<2)return{ks};const ph=phase(),cut=ph.k==='cut',ln=cut?4:10,A=pcAgg(ks),M=A.m,ch=checkRows(),fl=[],used=new Set(),dn={};
+function pcCalc(){const k0=pcWks(),xo=window.__SA?p145cOut(k0):null,ks=xo?k0.filter(k=>k!==xo.k):k0;if(ks.length<2)return{ks,xo};const ph=phase(),cut=ph.k==='cut',ln=cut?4:10,A=pcAgg(ks),M=A.m,ch=checkRows(),fl=[],used=new Set(),dn={};
 const lifts=m=>ch.rows.concat(ch.few||[]).filter(r=>(pcMap(r.n)[m]||0)>=1);
 // her plan keeps 3 working sets an exercise ("never add a set"): her options are swaps, from a muscle well over its line
 const donor=m=>{let best=null;for(const k of PCM){if(PCI.has(k)||k===m)continue;const v=M[k].v-(dn[k]||0);if(v-3<ln||(best&&v<=M[best].v-(dn[best]||0)))continue;if(pcEx(k).some(q=>!used.has(q.d+'|'+q.n)))best=k}if(!best)return null;
@@ -1017,7 +1027,7 @@ if(t&&m==='Hamstrings'&&ex.some(q=>hamK(q.n)==='seated'))o=(o?o+' ':'')+'You alr
 if(t)fl.push({m,gp,t,o,c,a,ls:lifts(m)})}
 fl.sort((a,b)=>b.gp-a.gp||PCM.indexOf(a.m)-PCM.indexOf(b.m));
 const cr=PCM.filter(m=>!PCI.has(m)&&M[m].cr>11);
-return{ks,ph,cut,ln,A,M,ch,fl,cr,lifts}}
+return{ks,ph,cut,ln,A,M,ch,fl,cr,lifts,xo}}
 // ===== p141f (standalone, both apps): Try it makes the Program check's change in the program, as the editor would
 // an exercise for muscle m that isn't on day d yet (st: a standing calf raise): the check's example first, then one from
 // your own program, then the library
@@ -1086,7 +1096,7 @@ return `<p><b>${E(x.m)} (${E(x.c)}, ${E(dsh({t:x.s}))} to ${E(dsh({t:addD(x.s,56
 return `<h3>Your experiments</h3>${o}`}
 function pcSec(){const R=pcCalc();
 if(!R.fl)return `<section class="ex" id="pcchk"><h2>Program check</h2><p class="hint">It looks at your sets per muscle over your last 2–4 full weeks of workouts, so it shows after 2 (${R.ks.length} so far).</p>${whyO('pc0')}<p class="hint">A week counts once it has ended, or once every workout day is done; the week you started tracking counts only if it was complete.</p>${whyC}</section>`;
-const{ks,ph,cut,ln,A,M,ch,fl,cr,lifts}=R,s0=ks[0],e0=addD(ks[ks.length-1],6),nm=phN(ph.k);
+const{ks,ph,cut,ln,A,M,ch,fl,cr,lifts,xo}=R,s0=ks[0],e0=addD(ks[ks.length-1],6),nm=phN(ph.k);
 const hard=A.tp?`Hard sets only: sets you tapped 4+ reps left don’t count (${pcF(A.ez)} easy set${pcF(A.ez)==='1'?'':'s'} a week); sets without a tap count as hard.`:'Counts assume every set was hard (tap reps left on your last set to sharpen it).';
 const fi=f=>`<li>${f.t}${(window.__SA&&f.c&&pexRun(f.m)&&pexRun(f.m).o)?' '+pexRun(f.m).o /* p143h: the option as tried */:(f.o?' '+f.o:'')}${f.c?(pexRun(f.m)?(window.__SA?p141Tr(pexRun(f.m)):` <i>Trying since ${E(dsh({t:pexRun(f.m).s}))}.</i>`):` <button class="edit" data-a="pcx" data-m="${E(f.m)}">Try it</button>`):''}</li>`;
 const fh=fl.length?`<ol class="pcf">${fl.slice(0,3).map(fi).join('')}</ol>${fl.length>3?`<details class="pcmore"><summary>More (${fl.length-3})</summary><ol class="pcf" start="4">${fl.slice(3).map(fi).join('')}</ol></details>`:''}`:`<p>Every muscle is at or over ~${ln} sets a week.</p>`;
@@ -1096,7 +1106,7 @@ const lw=m=>{const L=lifts(m);if(!L.length)return '';const c={};for(const r of L
 const rw=m=>{const x=M[m],inf=PCI.has(m),lo=!inf&&x.v<ln-1e-9,gas=m==='Calves'&&x.bt>0&&x.st===0,dy=Math.round(x.days*10)/10;return `<div class="pcm"><span>${m}<small>${dy?dy+' day'+(dy===1?'':'s')+' a week'+(window.__SA&&x.ez>0?', '+pcF(x.ez)+' easy set'+(pcF(x.ez)==='1'?'':'s'):''):window.__SA&&x.ez>0?pcF(x.ez)+' easy set'+(pcF(x.ez)==='1'?'':'s'):'no direct work'}${inf?'':lw(m)}</small></span><b>${pcF(x.v)}</b><i class="${lo||gas?'lo':''}">${inf?(window.__SA?'not judged':'info'):lo?(cut?'Low':window.__SA?'Under 10':'Below the growth range'):gas?'No standing':'OK'}</i></div>`};
 const sc=scans().filter(x=>x&&x.al>0&&x.ll>0),b=sc[sc.length-1],a=sc[sc.length-2],rg=(k,l)=>{const d=b[k]-a[k],bd=a[k]*.05;return `${l} ${f1(a[k])} → ${f1(b[k])} lb (${sg(Math.round(d*10)/10)}), ${Math.abs(d)>bd?'beyond':'inside'} the ±${f1(bd)} lb (5%) a scan can’t tell apart`};
 const dx=!b?'':a?`<p class="hint">DEXA lean mass (${E(dsh(a))} to ${E(dsh(b))}): ${rg('al','arms')}; ${rg('ll','legs')}. Lean mass is muscle plus water and glycogen; trunk lean and left vs right aren’t used.</p>`:`<p class="hint">DEXA: one scan so far (${E(dsh(b))}). The next one counts a change in your arms’ or legs’ lean mass only beyond 5% of it (arms ${f1(b.al*.05)} lb, legs ${f1(b.ll*.05)} lb).</p>`;
-return `<section class="ex" id="pcchk"><h2>Program check</h2><p class="hint"><b>${E(nm.charAt(0).toUpperCase()+nm.slice(1))} (goal: ${cut?'keep':ph.k==='maint'?'keep or build':'build'} muscle)</b> · ${E(wkRange(s0,e0))}: ${ks.length} weeks, ${A.nw} workouts.</p>${why('pcw','<p class="hint">Sets per muscle a week: 1 for the muscle an exercise works most, ½ for a helper (presses for triceps and front delts, pulls for biceps, rows for rear delts), warm-ups out. '+hard+'</p>')}${fh}${crn}${window.__SA?(()=>{const tr=PCM.filter(m=>!PCI.has(m)&&M[m].days>0),one=tr.filter(m=>Math.round(M[m].days*10)/10<=1);if(!one.length)return '';return `<p class="hint">${one.length===tr.length?'Each muscle':andL(one.map(m=>m.toLowerCase())).replace(/^./,c=>c.toUpperCase())} 1 day a week: fine for size at the same weekly sets; strength rose more at 2 days a week in studies.</p>`})():''}${whyO('pcl')}<p class="hint">${cut?'On a cut, under ~4 sets a week is Low: about the least that built muscle in studies. It’s a floor, not a target, and you don’t need to cut sets.':(window.__SA?'Under 10 means under ~10 sets a week. It still builds muscle, but studies saw more growth at 10 or more.':'Under ~10 sets a week is below the growth range, where most studies saw the most growth.')} Suggestions only: nothing changes unless you ${window.__SA?'tap Try it or ':''}change your program.${FEM?' Your plan keeps 3 sets an exercise, so the options are swaps.':''}${window.__SA?' Adductors, lower back and abs are counted but not judged: they get no line and no flag.':''}</p>${whyC}${PCM.map(rw).join('')}<p class="hint">Strength is from the Strength check (each lift’s last 3 sessions against its first 3, beyond its usual scatter): it shows strength, not muscle size.</p>${dx}${pexHtml(M)}${fl.some(f=>f.c)?'<p class="hint">'+(window.__SA?'Try it makes the change in your program (Undo puts it back, the same day) and records the weeks before.':'Try it records the change and the weeks before.')+' After 8 weeks (6+ sessions of its lifts, same phase) the card compares that muscle’s lifts with the weeks before and with your other lifts. Most real effects of a change like this are too small for 8 weeks of lifts to show, so “can’t tell yet” is the usual answer and doesn’t mean it didn’t work.</p>':''}</section>`}
+return `<section class="ex" id="pcchk"><h2>Program check</h2><p class="hint"><b>${E(nm.charAt(0).toUpperCase()+nm.slice(1))} (goal: ${cut?'keep':ph.k==='maint'?'keep or build':'build'} muscle)</b> · ${E(wkRange(s0,e0))}: ${ks.length} weeks, ${A.nw} workouts.</p>${xo?`<p class="hint" id="pcxo">${E(p145cTxt(xo))}</p>`:''}${why('pcw','<p class="hint">Sets per muscle a week: 1 for the muscle an exercise works most, ½ for a helper (presses for triceps and front delts, pulls for biceps, rows for rear delts), warm-ups out. '+hard+'</p>')}${fh}${crn}${window.__SA?(()=>{const tr=PCM.filter(m=>!PCI.has(m)&&M[m].days>0),one=tr.filter(m=>Math.round(M[m].days*10)/10<=1);if(!one.length)return '';return `<p class="hint">${one.length===tr.length?'Each muscle':andL(one.map(m=>m.toLowerCase())).replace(/^./,c=>c.toUpperCase())} 1 day a week: fine for size at the same weekly sets; strength rose more at 2 days a week in studies.</p>`})():''}${whyO('pcl')}<p class="hint">${cut?'On a cut, under ~4 sets a week is Low: about the least that built muscle in studies. It’s a floor, not a target, and you don’t need to cut sets.':(window.__SA?'Under 10 means under ~10 sets a week. It still builds muscle, but studies saw more growth at 10 or more.':'Under ~10 sets a week is below the growth range, where most studies saw the most growth.')} Suggestions only: nothing changes unless you ${window.__SA?'tap Try it or ':''}change your program.${FEM?' Your plan keeps 3 sets an exercise, so the options are swaps.':''}${window.__SA?' Adductors, lower back and abs are counted but not judged: they get no line and no flag.':''}</p>${whyC}${PCM.map(rw).join('')}<p class="hint">Strength is from the Strength check (each lift’s last 3 sessions against its first 3, beyond its usual scatter): it shows strength, not muscle size.</p>${dx}${pexHtml(M)}${fl.some(f=>f.c)?'<p class="hint">'+(window.__SA?'Try it makes the change in your program (Undo puts it back, the same day) and records the weeks before.':'Try it records the change and the weeks before.')+' After 8 weeks (6+ sessions of its lifts, same phase) the card compares that muscle’s lifts with the weeks before and with your other lifts. Most real effects of a change like this are too small for 8 weeks of lifts to show, so “can’t tell yet” is the usual answer and doesn’t mean it didn’t work.</p>':''}</section>`}
 // this week's sets per muscle, the Program check's count (Gym › Lifts, Sets per muscle this week)
 function pcWeek(ck){const M=pcAgg([ck]).m,lc=phase().k==='cut'?' style="--ln:20%"':'';return PCM.map(m=>{const v=M[m].v;return `<div class="mrow f"><span>${E(m)}</span><div class="mt"${lc}><i style="width:${Math.min(100,v*5)}%"></i></div><b>${pcF(v)}</b></div>`}).join('')}
 
@@ -1113,8 +1123,8 @@ function stalls(){const o=[],nn={};for(const e of S.log)for(const n in e.s)nn[n]
 function dlSlip(){if(S.dl&&S.dl>addD(today(),-21))return '';const c=checkRows(),n=c.rows.length,sl=c.rows.filter(r=>r.st==='slip').length;if(!sl)return '';const gr=c.ph.k==='bulk'||(FEM&&c.ph.k==='recomp'),w=`${sl} of your ${n} lifts ${sl===1?'is':'are'} slipping (down more than ${gr?3:5}% on the Strength check)`,tl='. Consider an easier week: same weights, half the sets.';if(slipMany(sl,n))return w+tl;const u=!window.__SA&&slipSome(sl,n)?hrUp():null;return u?w+` and your resting heart rate is up ${u} bpm on its 4-week average`+tl:''}
 // p103: the 8-week calendar deload is an optional note on the workout page's Weeks list (no banner, To do or dot):
 // weeks since the last easy week marked Done (or the first workout); Hide puts it away for 8 weeks (prof.dlh)
-function dlCal(){if(!window.__SA)return '';const f=S.log.length?S.log[S.log.length-1].t:null,since=S.dl&&(!f||S.dl>f)?S.dl:f,td=today(),h=(S.prof||{}).dlh;if(!since)return '';const w=Math.floor(cdGap(since,td)/7);if(w<8||(h&&h>addD(td,-56)))return '';
-return `<div class="hint" id="dlcal" style="margin:0 0 .4rem">Optional: ${w} weeks since your last easy week. If you feel run down, take one: same weights, half the sets. <button class="edit" data-a="dl">Done</button><button class="edit" data-a="dlh">Hide</button></div>`}
+function dlCal(){if(!window.__SA||(S.prof||{}).dlx)return '';const f=S.log.length?S.log[S.log.length-1].t:null,since=S.dl&&(!f||S.dl>f)?S.dl:f,td=today(),h=(S.prof||{}).dlh;if(!since)return '';const w=Math.floor(cdGap(since,td)/7);if(w<8||(h&&h>addD(td,-56)))return '';
+return `<div class="hint" id="dlcal" style="margin:0 0 .4rem">Optional: ${w} weeks since your last easy week. If you feel run down, take one: same weights, half the sets.${window.__SA?'<span class="p45dlb">':' '}<button class="edit" data-a="dl">Done</button><button class="edit" data-a="dlh">Hide</button><button class="edit" data-a="dlx">Don’t remind me</button>${window.__SA?'</span>':''}</div>`}
 function deload(){
 {const m=dlSlip();if(m)return m}
 if(window.__SA)return '';
@@ -1143,6 +1153,7 @@ let pr=0;for(const e of S.log)if(logWk(e)===k)pr+=p143Pr(e);
 const c=checkRows(addD(k,6));
 return `<p><b>${E(title)}:</b> ${w.n} workouts, ${w.sets} sets, ${fmt(w.vol)} lb${ch===null?'':' ('+(ch>=0?'+':'')+ch+'% vs the week before)'}. ${pr} new best${pr===1?'':'s'}.${c.rows.length?' Strength: '+strLine(c)+'.':''}</p>`}
 // ===== Standalone: the recap by weigh-in week =====
+var rcWkSel=null;
 function recapSA(){
 const ws=wtStats();if(!ws)return null;
 const td=today(),a0=wtD(wkA0()),i=Math.floor(Math.round((wtD(td)-a0)/864e5)/7);
@@ -1160,11 +1171,14 @@ const nfb=D.filter(x=>x.fb!=null).length,mac=[[avg('p'),L.prot,'protein'],[avg('
 o.push(f?`<p><b>Food:</b> ${av} ${fmt(f.c)} cal a day${window.__SA?rcBud(D,f):f.b>0?` (budget ${fmt(f.b)})`:''} over ${f.n} logged day${f.n===1?'':'s'}${mac.length?': '+mac.join(', '):''}.</p>`:`<p><b>Food:</b> no food logged ${th}.</p>`)}
 const sum=rcSum(s0,e0,now,g,w,f);o.push(h&&(h.sd||h.nd)?`<p><b>Steps and sleep:</b> ${h.sa!=null?fmt(h.sa)+' steps a day ('+h.hit+' of '+h.sd+' day'+(h.sd===1?'':'s')+' at '+fmt(h.tg)+')':'no steps logged'}${h.sla!=null?', '+hm(h.sla)+' of sleep a night':''}${h.ha!=null?', resting heart rate '+Math.round(h.ha)+' bpm':''}.</p>`:`<p><b>Steps and sleep:</b> none logged ${th}.</p>`);
 return `<div class="rcw">${sum}${rcWs(s0,e0)}${now?'':rcCi(e0)}${why('rcm'+s0,o.join(''),'More')}</div>`};
-{const g=gym(cs,ce),nw=wtList().filter(x=>x.t>=cs&&x.t<=ce).length,nf=fdList().filter(x=>x.t>=cs&&x.t<=ce).length,el=Math.round((wtD(td)-wtD(cs))/864e5)+1;
-out.push(`<p class="rch"><b>This week so far, ${E(wkRange(cs,ce))}</b>${el>1?` (day ${el} of 7)`:''}</p>`+(el===1&&!g.n&&nw<=1&&!nf?'<p>It started today. It fills in as the days come in; today’s steps arrive with the evening sync, and today’s food after 10 pm or with the next morning’s sync.</p>':wkLines(cs,ce,true)))}
-if(i>=1){const[ls,le]=rng(i-1);out.push(`<p class="rch"><b>Last week, ${E(wkRange(ls,le))}</b>${ciWaitW()?'':rcDone(le)}</p>`+(ciWaitW()?`<p class="hint">Not complete yet: ${E(FN[dowOf(le)])}’s food and steps come in with this morning’s sync.</p>`:'')+wkLines(ls,le,false))}
-else out.push(`<p class="hint">Your first full week ends ${E(wtLong(ce))}. Its recap shows here from ${E(wtLong(addD(ce,1)))}.</p>`);
-const wn=wtRecap(),rn=(wn.length?[wn[wn.length-1]]:[]).concat(rcWn(),FEM?cyRecap():[]);if(rn.length)out.push(`<p class="rch"><b>Right now</b></p>`+rn.join(''));
+const k=rcWkSel==null||!isFinite(+rcWkSel)?(i>=1?i-1:i):Math.max(0,Math.min(i,Math.round(+rcWkSel)));
+{const lab=j=>{const[s0,e0]=rng(j);return j===i?'This week':j===i-1?'Last week':wkRange(s0,e0)};let op='';for(let j=i;j>=0;j--)op+=`<option value="${j}"${j===k?' selected':''}>${E(lab(j))}</option>`;
+out.push(`<div class="p44nav"><button type="button" class="p44ar" data-a="rcwk" data-v="${k-1}"${k<=0?' disabled':''} aria-label="The week before">‹</button><select class="sel" data-p6c="${E(JSON.stringify({a:'rcwk'}))}" data-p6k="v" aria-label="Week">${op}</select><button type="button" class="p44ar" data-a="rcwk" data-v="${k+1}"${k>=i?' disabled':''} aria-label="The week after">›</button></div>`)}
+if(k===i){const g=gym(cs,ce),nw=wtList().filter(x=>x.t>=cs&&x.t<=ce).length,nf=fdList().filter(x=>x.t>=cs&&x.t<=ce).length,el=Math.round((wtD(td)-wtD(cs))/864e5)+1;
+out.push(`<p class="p44st">${E(wkRange(cs,ce))} · so far, day ${el} of 7</p>`+(el===1&&!g.n&&nw<=1&&!nf?'<p>It started today. It fills in as the days come in; today’s steps arrive with the evening sync, and today’s food after 10 pm or with the next morning’s sync.</p>':wkLines(cs,ce,true)));
+if(i<1)out.push(`<p class="hint">Your first full week ends ${E(wtLong(ce))}. Its recap shows here from ${E(wtLong(addD(ce,1)))}.</p>`);
+const wn=wtRecap(),rn=(wn.length?[wn[wn.length-1]]:[]).concat(rcWn(),FEM?cyRecap():[]);if(rn.length)out.push(`<p class="rch"><b>Right now</b></p>`+rn.join(''))}
+else{const[ls,le]=rng(k),wt=k===i-1&&ciWaitW();out.push((wt?`<p class="hint">Not complete yet: ${E(FN[dowOf(le)])}’s food and steps come in with this morning’s sync.</p>`:`<p class="rch p44st">${k===i-1?E(wkRange(ls,le))+' ·':''}${rcDone(le)}</p>`)+wkLines(ls,le,false))}
 return `<section class="ex"><h2>Weekly recap</h2>${out.join('')}</section>`}
 function recapSec(){if(window.__SA){const r=recapSA();if(r)return r}
 const W=weeks(),ck=wkKey(today()),cur=W.find(w=>w.k===ck),prev=W.find(w=>w.k<ck);
@@ -1227,7 +1241,7 @@ const cell=(s,old)=>{if(!s||!ok(r,s))return '-';const v=r.g(s),sm=[r.z?r.z(v):''
 let ch='-',cl='';
 if(l&&ok(r,b)){const d=r.g(l)-r.g(b);ch=(d>0?'+':'')+(window.__SA?r.f(d):d.toFixed(r.dp));cl=Math.abs(d)<0.005?'':(d<0)===!!r.lb?'g':'w';if(cl){const x9=dxCtx(b,l),o=dxCl(x9,r.q,d);if(o!==undefined)cl=o;cl=p43dR(x9,r.q,cl)}}
 return `<span>${r.l}</span><span>${cell(b,false)}</span><span>${cell(l,l&&l!==c)}</span><b class="${cl}">${ch}</b>`}).join('');
-return `<p class="hint"><b>Side by side</b></p><div class="cmp"><b class="h">Metric</b><b class="h">Baseline</b><b class="h">Latest</b><b class="h">Change</b>${rows}</div>${window.__SA?evDx(b,c)+whyO('dxc'):''}<p class="hint">${window.__SA?'Lean mass (muscle plus water, organs and glycogen) moves with water and carbs as well as muscle. ':''}RMR${window.__SA?' (resting metabolic rate)':''} is estimated from fat-free mass, so it tracks lean and bone mass, not metabolic slowdown.${(()=>{const x=dxCtx(b,c);return !x?'':x.k==='cut'?' On a cut some lean loss is expected, so drops in lean mass and RMR stay uncoloured unless the DEXA line on your Goal card says to watch your lean mass.':' On a '+phN('bulk')+' some fat gain is expected, so fat increases stay uncoloured unless the DEXA line on your Goal card says the gain is mostly fat.'})()} Muscle index is arm and leg lean mass divided by height squared${window.__SA?`. The one established cut-off is the low-muscle (sarcopenia) line, under ${RZL().toFixed(1)} for ${FEM?'women':'men'} (European working group, EWGSOP2); there’s no agreed healthy or athlete level above it`:FEM?' (for women, under about 5.45 is low)':''}. Visceral fat under 15.5 in² is in the normal zone.</p>${window.__SA?whyC:''}`}
+return `<p class="hint"><b>Side by side</b></p><div class="cmp"><b class="h">Metric</b><b class="h">Baseline</b><b class="h">Latest</b><b class="h">Change</b>${rows}</div>${window.__SA?evDx(b,c)+whyO('dxc'):''}<p class="hint">${window.__SA?'Lean mass (muscle plus water, organs and glycogen) moves with water and carbs as well as muscle. ':''}RMR${window.__SA?' (resting metabolic rate)':''} is estimated from fat-free mass, so it tracks lean and bone mass, not metabolic slowdown.${window.__SA?p145dRmr(c):''}${(()=>{const x=dxCtx(b,c);return !x?'':x.k==='cut'?' On a cut some lean loss is expected, so drops in lean mass and RMR stay uncoloured unless the DEXA line on your Goal card says to watch your lean mass.':' On a '+phN('bulk')+' some fat gain is expected, so fat increases stay uncoloured unless the DEXA line on your Goal card says the gain is mostly fat.'})()} Muscle index is arm and leg lean mass divided by height squared${window.__SA?`. The one established cut-off is the low-muscle (sarcopenia) line, under ${RZL().toFixed(1)} for ${FEM?'women':'men'} (European working group, EWGSOP2); there’s no agreed healthy or athlete level above it`:FEM?' (for women, under about 5.45 is low)':''}.${window.__SA&&p145dVz(sc)?'</p>'+p145dVz(sc):' Visceral fat under 15.5 in² is in the normal zone.</p>'}${window.__SA?whyC:''}`}
 const RN={arms:'Arms',legs:'Legs',trunk:'Trunk',android:'Android',gynoid:'Gynoid',tot:'Total body',armR:'Right arm',armL:'Left arm',legR:'Right leg',legL:'Left leg',trR:'Right trunk',trL:'Left trunk',totR:'Right side',totL:'Left side',armD:'Arms diff.',legD:'Legs diff.',trD:'Trunk diff.',totD:'Total diff.'};
 const RM=[['tf','Tissue % fat','%',1],['rf','Region % fat','%',1],['tl','Tissue mass','lb',-1],['f','Fat mass','lb',1],['l','Lean mass','lb',0],['b','Bone mineral content','lb',-1],['t','Total mass','lb',-1]];
 const mk=(gs,df)=>gs.flatMap(g=>RM.map(m=>[RN[g]+': '+m[1],g+'.'+m[0],m[2],df?2:m[3],1]));
@@ -1865,7 +1879,7 @@ body=`<div class="wk">${T(fmt(n.cal),'Calories a day')+T(n.prot+' g','Protein a 
 const pl=S.plan,cur=pl&&pl.pid===planId(),r=pl&&plFix(pl.r),sx=cur?planStale(pl):null,sx0=cur?planStale(pl,1):null,gp=(c,g)=>`${fmt(c)} cal${g?' and '+Math.round(g)+' g protein':''}`,
 olds=y=>!!(sx0&&sx0.lc&&sx0.ok&&/Lose It/i.test(y)&&(y.includes(fmt(sx0.lb.b))||y.includes(String(sx0.lb.b)))),li=y=>olds(y)?`<li class="done"><s>${E(y)}</s> <b>Done since</b></li>`:`<li>${E(y)}</li>`;
 const ai=plBusy?'<p class="hint goal">Claude is building your plan from your DEXA, weight, workouts, food and labs. This can take a minute or two.</p><button class="edit" data-a="pbstop" style="padding:.4rem 0 0">Stop</button>':(r?`${cur||window.__SA?'':`<p class="hint dn">This plan was written for your ${E(phN(pl.pid.split('|')[0]))}. ${window.__SA?'Get one for this phase: tap Update with Claude below.':'Build a new one for this phase.'}</p>`}<p class="hint">Written ${E(wtLong(pl.t))}, from your data that day.</p>${window.__SA?clSug(pl):''}${sx&&!window.__SA?`<p class="hint dn"><b>Out of date.</b>${sx.num?` It was written for ${fmt(sx.n.cal)} cal${sx.n.prot!==sx.L.prot?', '+sx.n.prot+' g protein':''}${sx.n.st!=null&&sx.n.st!==sx.L.st?' and '+fmt(sx.n.st)+' steps':''}; your numbers are now ${fmt(sx.L.cal)} cal${sx.n.prot!==sx.L.prot?', '+sx.L.prot+' g protein':''}${sx.n.st!=null&&sx.n.st!==sx.L.st?' and '+fmt(sx.L.st)+' steps':''} (shown above).`:''}${sx.lc?` When it was written, Lose It was set to ${gp(sx.lb.b,sx.lb.pg)}; it’s now ${gp(sx.now.b,sx.now.pg)}${sx.ok?', which matches your plan':''}.`:''}${window.__SA?' For an updated one, tap Update with Claude below.':' Rebuild it so the advice matches.'}</p>`:''}${r.h?`<p class="hint goal">${E(r.h)}</p>`:''}${[['Nutrition',r.nu],['Training',r.tr],['Habits',r.hb]].filter(x=>x[1]&&x[1].length).map(x=>`<p class="hint"><b>${x[0]}</b></p><ul class="tl">${x[1].map(li).join('')}</ul>`).join('')}${r.ck&&r.ck.length?`<p class="hint"><b>Checkpoints</b></p><ul class="tl">${r.ck.map(y=>olds(y.x)?`<li class="done"><s><b>${E(y.w)}:</b> ${E(y.x)}</s> <b>Done since</b></li>`:`<li><b>${E(y.w)}:</b> ${E(y.x)}</li>`).join('')}</ul>`:''}${r.wa&&r.wa.length?`<p class="hint"><b>Keep an eye on</b></p><ul class="tl">${r.wa.map(li).join('')}</ul>`:''}`:'<p class="hint">Claude can turn these numbers into a full plan: how to set up your meals, how to adjust your training for this phase, daily habits, and checkpoints like when to rescan.</p>')+(window.__SA?`${clLink('pl',r?'Ask Claude':'Get a plan from Claude',n.cal==null)}${why('plhow','<p class="hint">Copies your plan request with your data and opens Claude. Paste it there and send. When Claude replies, press and hold the reply, tap Copy, then come back and tap Paste plan from Claude.</p>','How it works')}${clBox('pl')}<button class="edit" data-a="plcp" style="padding:.2rem 0 .4rem"${n.cal==null?' disabled':''}>Copy only</button>`:smpReady&&!smp?'<p class="hint dn">Building a plan isn’t available in this view. Ask in a Claude chat instead.</p>':plBusy?'':`<button class="fin" data-a="pb" style="margin:.6rem 0 .2rem"${n.cal==null?' disabled':''}>${r&&cur?'Rebuild my plan':'Build my full plan'}</button>`);
-if(window.__SA){const W=plWhy;plWhy='';return `<section class="ex" id="plan"><h2>Your ${E(phN(p.k))} plan</h2><p class="hint goal">${E(n.goal)}</p>${body}${W?why('plwhy','<p class="hint">'+E(W)+'</p>'+(n.src==='m'?p135Mx(fdMaint()):''),'Why these numbers?'):''}</section>${brkSec()}${phaseCard()}<section class="ex${window.__SA?' p6g':''}" id="plgoal"><h2>Goal settings</h2>${qs}${p42cWhy(n,p)}</section>${(()=>{const ask=clLink('pl',r?'Ask Claude':'Get a plan from Claude',n.cal==null);return p6Fd('clplan','p6pl','Written plan',r?'by Claude, '+wtLong(pl.t):'',ask,(r?ai.replace(`<p class="hint">Written ${E(wtLong(pl.t))}, from your data that day.</p>`,'<p class="hint">From your data that day.</p>'):ai).replace(ask,'')+(plErr?`<p class="hint dn${window.__SA?' p42r':''}">${E(plErr)}</p>`:'')+'<p class="hint">Plans use standard formulas and Claude’s suggestions, not medical advice. Check big changes with your doctor.</p>',!!plErr)})()}`}
+if(window.__SA){const W=plWhy;plWhy='';return `<section class="ex" id="plan"><h2>Your ${E(phN(p.k))} plan</h2><p class="hint goal">${E(n.goal)}</p>${body}${W?why('plwhy','<p class="hint">'+E(W)+'</p>'+p145dProt(n,p)+(n.src==='m'?p135Mx(fdMaint()):''),'Why these numbers?'):''}</section>${brkSec()}${phaseCard()}<section class="ex${window.__SA?' p6g':''}" id="plgoal"><h2>Goal settings</h2>${qs}${p42cWhy(n,p)}</section>${(()=>{const ask=clLink('pl',r?'Ask Claude':'Get a plan from Claude',n.cal==null);return p6Fd('clplan','p6pl','Written plan',r?'by Claude, '+wtLong(pl.t):'',ask,(r?ai.replace(`<p class="hint">Written ${E(wtLong(pl.t))}, from your data that day.</p>`,'<p class="hint">From your data that day.</p>'):ai).replace(ask,'')+(plErr?`<p class="hint dn${window.__SA?' p42r':''}">${E(plErr)}</p>`:'')+'<p class="hint">Plans use standard formulas and Claude’s suggestions, not medical advice. Check big changes with your doctor.</p>',!!plErr)})()}`}
 return `<section class="ex" id="plan"><h2>Your ${E(phN(p.k))} plan</h2><p class="hint goal">${E(n.goal)}</p>${body}${qs}<p class="hint"><b>Full plan</b></p>${ai}${plErr?`<p class="hint dn${window.__SA?' p42r':''}">${E(plErr)}</p>`:''}<p class="hint">Plans use standard formulas and Claude’s suggestions, not medical advice. Check big changes with your doctor.</p></section>`}
 const PL_PROMPT='You are a sports-nutrition and strength coach writing a phase plan for a client from his own fitness-tracker data. PHASE_TEXT. He lifts 3 days a week on a fixed split (listed in the data), doesn’t deadlift because of a sensitive lower back, and uses assisted pull-ups and dips. The tracker has already set his daily targets (calories, protein, carbs, fat, weekly rate and steps) with standard formulas: use those exact numbers and don’t change them. If you think one is off, say so under "watch". Build the rest of the plan around them, using his DEXA (including regional lean mass and visceral fat), weight trend, waist measurements (if logged), strength check, food patterns, steps and sleep (if logged) and any labs.\n\nRules: the tracker’s calorie floor is a hard limit: never recommend eating under 1,500 cal a day or under his DEXA resting metabolic rate, whichever is higher. Don’t recommend medications or supplements. Don’t diagnose; for any lab value outside its range, say to bring it to his doctor. Keep his split, his exercises and 3 working sets per exercise, because the tracker’s progression rules need 3 sets; suggest changes to reps, rest, effort or order rather than a new program. Calorie, macro and step changes are made only by the tracker’s weekly check-in, so checkpoints point to that check-in instead of telling him to change targets himself. Time checkpoints by the check-in dates in weekly_checkins and number weeks from the phase start the way the tracker does (phase_week_now is the current week). Don’t tell him to hold or cap his loads: when the tracker’s progression rules say go heavier, he goes heavier. The tracker started recently (see tracking_started), so don’t treat days before then as missed workouts or missed logs. The plan stays on screen for weeks, so don’t quote things that change day to day, like how many days or workouts are logged so far or what his Lose It goals are set to: the tracker shows those live. Keep every item short and specific, with numbers.\n\nReply with only this JSON object: {"headline": one sentence summing up the plan, "nutrition": [up to 4 short strings: meal structure, protein per meal, food choices], "training": [up to 4 short strings: how to adjust his training for this phase], "habits": [up to 3 short strings: steps, sleep and other daily habits], "checkpoints": [up to 4 objects {"when": a check-in from weekly_checkins written like "Week 6 check-in (date)", or a month like "Jan 2027", "what": one sentence}], "watch": [up to 3 short strings]}\n\nDATA:\n';
 // p138f: his Program check may suggest an added set or a swap; the request says so (optional, his call, no new program)
@@ -3078,6 +3092,7 @@ if(x.o)return D().v[x.id]||(window.__SA&&x.aw&&x.id!=='b1'&&p3Aw(x)?p3Next(x):la
 return x.n}
 let lastEx=null,openEx=null;
 function goalRows(x,n){
+if(window.__SA&&!p145bIn){const u=p145bUse(x,n);if(u)return u.g.map(a=>a.slice())}
 const l=last(n);if(!l||!l.length)return null;
 const F=a=>parseFloat(a)||0,S2=v=>v?String(v):'',lw=l.filter(a=>a[2]!=='w');if(!lw.length)return null;
 const wu=l.filter(a=>a[2]==='w').map(a=>[String(a[0]==null?'':a[0]),String(a[1]==null?'':a[1]),'w']);
@@ -3091,7 +3106,7 @@ else if(!x.nn&&lo&&(!window.__SA||lw.length===1)&&F(lw[0][1])<lo&&weak2(n,lo,1)&
 // standalone (p143c): the last working set under the range in the last two workouts, not improving, gets a lighter goal;
 // earlier sets keep their weight (+1 rep), so following the goal doesn't move the best set into another rep bracket
 if(window.__SA&&!x.nn&&lo){for(const q of easeAt(x,n,lw,(prevSets(n)||[]).filter(a=>a[2]!=='w')))if(out[q.i][0]===S2(F(lw[q.i][0])))out[q.i]=[S2(q.g),String(mid)]}
-return window.__SA?p143gFloor(n,wu.concat(out)):wu.concat(out)}
+return window.__SA?p145aFl(x,n,p143gFloor(n,wu.concat(out))):wu.concat(out)}
 // the lighter weight next time's goal gives a set under the range (more assistance on an assisted lift); null if none
 function p143gEw0(x,n,w,r){const lo=+String(x.r).split('-')[0],tp=+String(x.r).split('-').pop();return AS.has(n)?sugA(w,r,lo,tp,-1,bwAt(today()),stepOf(n)):(x.hr||x.er||!(w>0))?null:sug(w,r,lo,tp,-1,stepOf(n))}
 // standalone (p143g): never under the lift's starting weight (none when the start leaves no lighter weight)
@@ -3571,7 +3586,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'72c18cdd04',d:'Nov 7, 2026 at 9:24 PM',b:+'1794104690'||0};
+const APP_V={h:'1bd6c6ce43',d:'Nov 8, 2026 at 1:09 PM',b:+'1794161378'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
@@ -3614,6 +3629,7 @@ return `<h1>Settings</h1><p class="sub">How the app looks, and your backup. Your
 +`<section class="ex" id="setth">${window.__SA?p6HRow('Theme',{a:'thset'},[['','Match phone'],['light','Light'],['dark','Dark']],pr.th||''):`<h2>Theme</h2><div class="chips">${[['','Match phone'],['light','Light'],['dark','Dark']].map(([k,l])=>`<button class="chip" aria-pressed="${((pr.th||'')===k)}" data-a="thset" data-v="${k}">${l}</button>`).join('')}</div>`}</section>`
 +`<section class="ex" id="setac"><h2>App colour</h2><div class="chips">${ACS.map(([k,l,c])=>`<button class="chip acs" aria-pressed="${((pr.ac||'')===k)}" data-a="acset" data-v="${k}"><i style="background:${c}"></i>${l}</button>`).join('')}</div></section>`
 +setVer()
++(window.__SA?p145cSet():'')
 +`<section class="ex" id="setsc"><h2>Gym Health shortcut</h2><p class="hint">The iPhone shortcut behind Run Gym Health on the Upload page. You only need these steps to set it up again, for example on a new phone.</p>${hkGuide()}<details class="mf"><summary>Fill in older food days (one time)</summary><ol class="hint"><li>In Shortcuts, open Gym Health and find the <b>Dietary Energy</b> step.</li><li>Change <b>last 3 days</b> to <b>last 28 days</b>.</li><li>Run it, come back here, tap Paste from Health on the Upload page and Save. About four weeks of days are listed.</li><li>Change the step back to <b>3 days</b>.</li></ol><p class="hint">Only that step needs changing. Your older days fill in with their calories, so the Food chip on the Goal card can work out your real maintenance straight away.</p></details></section>`
 +(scans().length?'':`<section class="ex" id="about"><h2>About you</h2><p class="hint">Until you upload a DEXA scan, your calories are estimated from your height, age and weight. A scan fills these in from its report, and this section goes away.</p>${selH('pby','Birth year',BYO(),pr.by)}${selH('pht','Height',HTO,pr.ht)}</section>`)+bkSec()}
 function aboutSec(){
@@ -4405,7 +4421,7 @@ return `<p class="hint"><b>Past check-ins</b></p><div class="hist cil" style="ma
 // workouts x of N), its waist readings, its check-in
 function rcSum(s0,e0,now,g,w,f){const ws=wtStats(),c=now?null:(S.ci||[]).filter(x=>x.w===e0&&!ciOff(x)).pop(),k=window.__SA&&!now?(phOn(e0)||phase()).k:phase().k,er=c&&c.e!=null&&isFinite(+c.e)?+c.e:window.__SA&&!now?rcRate(e0,w):ws?ws.er:null,av=now?'averaging':'averaged',th=now?'this week so far':'that week',o=[];
 o.push(w?`<p><b>Weight:</b> ${av} ${f1(w.a)} lb${window.__SA?gWkT(gWkChg(w,ws&&ws.wk.find(y=>y.i===w.i-1),now),now):w.ch!=null?', '+sg(w.ch)+' lb vs '+(now?'last week':'the week before'):''}${HOLD(k)?' (plan: hold steady)':er!=null&&isFinite(er)?' (plan '+rSg(er)+' lb a week)':''}.</p>`:`<p><b>Weight:</b> no weigh-ins ${th}.</p>`);
-if(f){const L=planT(),D=fdList().filter(x=>x.t>=s0&&x.t<=e0),tg=L&&L.cal!=null?Math.round(ciTgt(D,L)):null,d=tg!=null?f.c-tg:null;o.push(`<p><b>Food:</b> ${av} ${fmt(f.c)} cal a day over ${f.n} logged day${f.n===1?'':'s'}${d==null?'':Math.abs(d)<=150?`, on target (${fmt(tg)})`:`, ${fmt(Math.abs(d))} ${d>0?'over':'under'} your ${fmt(tg)} target`}.</p>`)}else o.push(`<p><b>Food:</b> no food logged ${th}.</p>`);
+if(f){const L=planT(),D=fdList().filter(x=>x.t>=s0&&x.t<=e0),tg=L&&L.cal!=null?Math.round(ciTgt(D,L)):null,d=tg!=null?f.c-tg:null,pD=D.filter(x=>x.p!=null),pa=pD.length?Math.round(pD.reduce((q,x)=>q+x.p,0)/pD.length):null,pg=(Object.assign({},planNums(),L||{})).prot,ww=[];if(d!=null&&Math.abs(d)>150)ww.push(`${fmt(Math.abs(d))} cal a day ${d>0?'over':'under'} your ${fmt(tg)} target.`);if(!now&&f.n<5)ww.push('Fewer than 5 days logged.');if(pa!=null&&pg>0&&pa<pg*.9)ww.push(`Protein ${pa} g a day, under your ${Math.round(pg)} g goal.`);o.push(`<p><b>Food:</b> ${av} ${fmt(f.c)} cal a day over ${f.n} logged day${f.n===1?'':'s'}${d!=null&&Math.abs(d)<=150?`, on target (${fmt(tg)})`:''}.${ww.map(x=>` <b class="p44w">${x}</b>`).join('')}</p>`)}else o.push(`<p><b>Food:</b> no food logged ${th}.</p>`);
 o.push(`<p><b>Workouts:</b> ${g.d} of ${ORDER.length}${now?' so far':''}${g.n>g.d?' ('+g.n+' workouts, counting repeats)':''}.</p>`);return o.join('')}
 function rcWs(s0,e0){const L=wsList();return L.map((x,i)=>x.t>=s0&&x.t<=e0?`<p><b>Waist:</b> ${inF(x.v)} in on ${E(dsh(x))}${i?`, ${wsg(x.v-L[i-1].v)} in vs ${E(dsh(L[i-1]))}`:''}.</p>`:'').join('')}
 function rcCi(e0){const c=(S.ci||[]).filter(x=>x.w===e0&&!ciOff(x)).pop();if(!c)return '';const g=c.chg;return `<p class="rcci"><b>Check-in ${E(dsh({t:c.t}))}:</b> ${E(CI_LAB[c.v]||c.v)}${g&&g.from!==g.to?`, ${fmt(g.from)} → ${fmt(g.to)} cal`:''}${g&&g.st!==g.st0?`, ${fmt(g.st0)} → ${fmt(g.st)} steps`:''}.</p>`}
@@ -4421,6 +4437,7 @@ return w.length?`<p class="hint clsg">Since it was written: ${E(andL(w))}. Ask C
 function p110Act(a,b){if(!window.__SA)return false;
 if(a==='bnmore'){tapAnc=null;bnOpen=!bnOpen;render();return true}
 if(a==='ciall'){ciAll=!ciAll;render();return true}
+if(a==='rcwk'){const v=+b.dataset.v;if(isFinite(v)){rcWkSel=v;render()}return true}
 return false}
 // p113: iPhone pulled the page back (and dropped the sticky tab bar for a frame) when it got shorter than the spot on
 // screen; a spacer under #app holds the height and only ever shrinks below the bottom of the screen
@@ -4472,7 +4489,7 @@ const chips=Array.isArray(x.o)&&!(window.__SA&&x.of)?`<div class="chips">${x.o.m
 const hint=window.__SA&&(x.o==='rest'||x.of)?p3Hint(x,TD):window.__SA&&x.aw&&p3Aw(x)?p3AwHint(x):x.o==='rest'?'<p class="hint">Opposite of your first bench</p>':x.ss===1?'<p class="hint">Superset: go straight to the next exercise, then rest</p>':x.ss===2?'<p class="hint">Superset: rest after this set</p>':'';
 const lnt=FEM?(()=>{for(const e of S.log){if(e.s[n]&&e.s[n].length)return e.nt&&e.nt[n]||'';if(window.__SA&&e.nt&&e.nt[n])return 'Note ('+dsh({t:e.t})+', no sets): '+e.nt[n]}return ''})():'';
 const lt=l?`<p class="last">Last time: ${l.map(a=>E((a[2]==='w'?'W ':'')+wLb(n,a[0])+'×'+a[1])).join(', ')}${E(window.__SA?p3LtSw(n):'')}${E(efLast(n))}${lnt?`<br><span class="lnt">${/^Note \(/.test(lnt)?'':'Note: '}${E(lnt)}</span>`:''}</p>`:'';
-const lw=l?l.filter(a=>a[2]!=='w'):null;
+const{lw,tp,tg,asx,ws,mw,rc,uq,up,lo,dr,dn,gl}=p145bWith(x,n,l,l=>{const lw=l?l.filter(a=>a[2]!=='w'):null;
 const tp=x.r?+String(x.r).split('-').pop():0;
 const tg=x.r?`<p class="hint">Target: ${x.k||3} × ${E(x.r)} reps${window.__SA?E(p6HoldT(x,n)):''}${(x.rs||RS[x.id])&&x.ss!==1?` · Rest ${x.rs||RS[x.id]}`:''}</p>`:'';
 const asx=AS.has(n),ws=lw?lw.map(a=>parseFloat(a[0])||0):[],mw=lw&&lw.length?(asx?Math.min(...ws):Math.max(...ws)):0;
@@ -4485,9 +4502,10 @@ const dn=!up&&!x.nn&&lo&&lw&&lw[0]&&(!window.__SA||lw.length===1)&&(parseFloat(l
 const gl=(()=>{
 if((up&&!window.__SA)||dn||!x.r||!lw||!lw.length)return '';
 const gR=window.__SA?goalRows(x,n)||[]:[],gW=gR.filter(a=>a[2]!=='w'),gs=gW.length===lw.length?gW.map(a=>[parseFloat(a[0])||0,parseFloat(a[1])||0]):lw.map(a=>[parseFloat(a[0])||0,Math.min(tp,(parseFloat(a[1])||0)+1)]),ws=[...new Set(gs.map(g=>g[0]))];
-const lgt=gW.length===lw.length&&!up?gs.map((g,i)=>(window.__SA?(AS.has(n)?g[0]>(parseFloat(lw[i][0])||0):g[0]<(parseFloat(lw[i][0])||0)):g[0]!==(parseFloat(lw[i][0])||0))?gR.length-gW.length+i+1:0).filter(Boolean):[],lgw=lgt.length?` (${window.__SA&&lgt.length===1&&lgt[0]===gR.length?'last set':'set'+(lgt.length>1?'s':'')+' '+lgt.join(' and ')} ${AS.has(n)?'with more assistance':'lighter'}: under ${lo} reps in each of your last two workouts)`:'';
-if(window.__SA)return p143gGoal(x,n,l,lw,gR,gW,gs,lgw,lo,up);
+const lgt=gW.length===lw.length&&!up?gs.map((g,i)=>(window.__SA?(AS.has(n)?g[0]>(parseFloat(lw[i][0])||0):g[0]<(parseFloat(lw[i][0])||0)):g[0]!==(parseFloat(lw[i][0])||0))&&!(window.__SA&&(P145A.get(n)||[]).includes(i))?gR.length-gW.length+i+1:0).filter(Boolean):[],lgw=lgt.length?` (${window.__SA&&lgt.length===1&&lgt[0]===gR.length?'last set':'set'+(lgt.length>1?'s':'')+' '+lgt.join(' and ')} ${AS.has(n)?'with more assistance':'lighter'}: under ${lo} reps in each of your last two workouts)`:'';
+if(window.__SA)return p145aGoal(x,n,l,lw,gR,gW,gs,lgw,lo,up);
 return `<p class="hint goal">Goal ${TD}: ${E(window.__SA&&gR.length>gW.length?p7GlW(n,gR,gs,ws):ws.length===1?gs.map(g=>g[1]).join(', ')+' reps'+(ws[0]>0?' at '+ws[0]+(AS.has(n)?' lb of assistance':' lb'+(window.__SA?p3Bk(n,ws[0]):'')):''):gs.map(g=>(g[0]?g[0]+(AS.has(n)?' assist':''):'BW')+'×'+g[1]).join(', ')+(window.__SA&&!AS.has(n)&&ws.some(v=>v>0)?p3SwSfx(...swB(n)):''))}${E(lgw)}</p>`})();
+return{lw,tp,tg,asx,ws,mw,rc,uq,up,lo,dr,dn,gl}});
 const gq=window.__SA?goalRows(x,n):null,lq=gq||l,lWk=lq?lq.filter(a=>a[2]!=='w'):[],lWu=lq?lq.filter(a=>a[2]==='w'):[];
 const sets=r.map((a,i)=>{
 const ph=window.__SA?(((a[2]==='w')?lWu:lWk)[r.slice(0,i).filter(b=>(b[2]==='w')===(a[2]==='w')).length]||[]):((l&&l[i])||[]);
@@ -5477,7 +5495,7 @@ return [...o].filter(i=>i<lw.length-1&&F(gW[i][0])===F(lw[i][0])&&F(gW[i][1])===
 function p143cGoal(x,n,l,lw,gR,gW,gs,lgw,lo,up){const h=p40aGoal(n,l,gR,gs,lgw),k=P40A.get(n);if(!k||up)return h;
 const H=p143cHold(x,n,lw,gW);if(!H.length)return h;const as=AS.has(n),no=H.map(i=>gR.length-gW.length+i+1),one=no.length===1;
 const sl=one?'Set '+no[0]:'Sets '+no.slice(0,-1).join(', ')+' and '+no[no.length-1];
-k.why=(k.why?k.why+' ':'')+`${sl} ${one?'keeps its':'keep their'} ${as?'assistance':'weight'}, +1 rep: under ${lo} reps ${k.why?'too':'in each of your last two workouts'} (the goal only ever ${as?'gives the last set more assistance':'lowers the last set'}).`;
+k.why=p145aHold(x,n,lw,gR,gW,H,lo,as,k.why);
 return h}
 // ===== p143f (standalone, both apps): the app catches up on its own
 // what the clock changes on screen: the date, noon (the check-in's wait), the evening sync time (the app's setting), 10 pm
@@ -5523,6 +5541,98 @@ function p143gSlot(n){for(const d of Object.keys(P))for(const x of (P[d]&&P[d].x
 // the middles of the two weeks' weigh-ins to 0.1, and the rate = the shown difference ÷ the shown days × 7, to 2 decimals
 function p143gWk(c,p){const r2=v=>Math.sign(v)*Math.round(Math.abs(v)*100+1e-7)/100,pa=r2(p.a),ca=r2(c.a),d=r2(pa-ca),dy=Math.round((c.m-p.m)/864e5*10)/10,r=dy>0?r2(d/dy*7):0;
 return{r,t:`This week so far averages ${f2(ca)} lb (${c.n} weigh-ins), last week ${f2(pa)} lb: ${d===0?'the same, ':f2(Math.abs(d))+' lb '+(d>0?'lower':'higher')+', '}${dy} day${dy===1?'':'s'} apart (the middle of each week’s weigh-ins), so ${d===0||r===0?'no change yet':(d>0?'about ':'gaining about ')+f2(Math.abs(r))+' lb a week'}. It settles as the week fills in.`}}
+// ===== p145a (standalone, both apps): a lighter goal for an earlier set far under its range (S2 item 1, F3m10)
+// P145A: by exercise, the working-set indexes the floor made lighter in the goal goalRows worked out last
+var P145A=new Map(),P145N=3,P145M=.10;
+// g: the goal (warm-ups, then working sets) after the last-set rule and the starting-weight floor. An earlier working set
+// (not the last, not last time's best set) N+ reps under the range's bottom in each of the last two workouts, at the same
+// or a lighter weight (more assistance), with no more reps, gets easeW's lighter weight aiming for the middle of the range,
+// when that goal set's estimated max stays under 90% of the best of the goal's other sets
+function p145aFl(x,n,g){P145A.set(n,[]);if(!window.__SA||!g||!x||x.nn||!x.r)return g;const F=a=>parseFloat(a)||0,wk=r=>(r||[]).filter(a=>a[2]!=='w'),lw=wk(last(n)),pv=wk(prevSets(n));
+if(lw.length<2||!pv.length)return g;const p=String(x.r).split('-'),lo=+p[0],tp=+p[p.length-1],mid=Math.round((lo+tp)/2),asx=AS.has(n),wu=g.filter(a=>a[2]==='w').length,out=g.slice(),td=today();
+if(!lo||out.length-wu!==lw.length)return g;let bi=-1,bb=null;lw.forEach((a,i)=>{const z=setBest(n,a,td,td);if(z&&better(z,bb)){bb=z;bi=i}});const D=[];
+for(let i=0;i<lw.length-1;i++){const a=lw[i],b=pv[i];if(!b||i===bi)continue;const cw=F(a[0]),pw=F(b[0]),cr=F(a[1]),pr=F(b[1]);
+if(!(cr<=lo-P145N&&pr<=lo-P145N))continue;if(asx?cw<pw:cw>pw)continue;if(cw===pw&&cr>pr)continue;if(F(out[wu+i][0])!==cw)continue;
+const gw=easeW(x,n,cw,cr);if(gw==null)continue;const cand=[String(gw),String(mid)],ce=setBest(n,cand,td,td);let best=0;
+for(let j=0;j<lw.length;j++){if(j===i)continue;const z=setBest(n,out[wu+j],td,td);if(z&&z.e>best)best=z.e}
+if(ce&&ce.e<best*(1-P145M)){out[wu+i]=cand;D.push(i)}}
+P145A.set(n,D);return D.length?p143gFloor(n,out):g}
+// why an earlier set the rule before p143c would have made lighter keeps its weight now (H: working-set indexes): 'few'
+// (not 3+ reps under in both), 'best' (last time's best set), 'near' (lighter, it could become the best set), 'start'
+function p145aWhy(x,n,lw,gW,i){const F=a=>parseFloat(a)||0,lo=+String(x.r).split('-')[0],pv=(prevSets(n)||[]).filter(a=>a[2]!=='w'),a=lw[i],b=pv[i],td=today();
+if(!b||!(F(a[1])<=lo-P145N&&F(b[1])<=lo-P145N))return 'few';let bi=-1,bb=null;lw.forEach((q,j)=>{const z=setBest(n,q,td,td);if(z&&better(z,bb)){bb=z;bi=j}});if(i===bi)return 'best';
+return easeW(x,n,F(a[0]),F(a[1]))==null?'start':'near'}
+function p145aHold(x,n,lw,gR,gW,H,lo,as,w0){const G=[];for(const i of H){const r=p145aWhy(x,n,lw,gW,i);let g=G.find(z=>z.r===r);if(!g)G.push(g={r,no:[]});g.no.push(gR.length-gW.length+i+1)}
+const T={few:as?'an earlier set gets more assistance only 3+ reps under':'an earlier set goes lighter only 3+ reps under',best:'it was your best set last time',near:as?'with more assistance, it could become your best set':'lighter, it could become your best set',start:'the goal never goes under the starting weight'};
+let w=w0||'';for(const g of G){const one=g.no.length===1,sl=one?'Set '+g.no[0]:'Sets '+g.no.slice(0,-1).join(', ')+' and '+g.no[g.no.length-1];
+w=(w?w+' ':'')+`${sl} ${one?'keeps its':'keep their'} ${as?'assistance':'weight'}, +1 rep: under ${lo} reps ${w?'too':'in each of your last two workouts'} (${g.r==='best'&&!one?'each was your best set last time':T[g.r]}).`}return w}
+// the goal as p143g draws it, and More's reason: the floor's sets first, then the last set's line and the sets kept
+function p145aGoal(x,n,l,lw,gR,gW,gs,lgw,lo,up){const h=p143gGoal(x,n,l,lw,gR,gW,gs,lgw,lo,up),k=P40A.get(n),D=P145A.get(n)||[];if(!k||up||!D.length||gW.length!==lw.length)return h;
+const no=D.filter(i=>gs[i]&&(AS.has(n)?gs[i][0]>(parseFloat(lw[i][0])||0):gs[i][0]<(parseFloat(lw[i][0])||0))).map(i=>gR.length-gW.length+i+1);if(!no.length)return h;
+const as=AS.has(n),one=no.length===1,sl=one?'Set '+no[0]:'Sets '+no.slice(0,-1).join(', ')+' and '+no[no.length-1];
+k.why=`${sl} ${as?'with more assistance':'lighter'}: at least ${P145N} reps under ${lo} in each of your last two workouts (an earlier set ${as?'gets more assistance':'goes lighter'} only that far under).`+(k.why?' '+k.why:'');return h}
+// Finish: the floor's sets in next time's goal ([{i, g}]), worked out with this workout (rows r) in place of the log's head
+var p145bIn=0;
+function p145aFin(x,n,r){if(!window.__SA||!x||x.nn||!x.r||!Array.isArray(r))return [];const keep=S.log;let g=null,D=[];p145bIn++;
+try{S.log=[{id:'p145fin',t:today(),day,s:{[n]:r}}].concat(keep);GEN++;g=goalRows(x,n);D=(P145A.get(n)||[]).slice()}catch(e){g=null}finally{S.log=keep;p145bIn--;GEN++}
+if(!g)return [];const gw=g.filter(a=>a[2]!=='w');return D.filter(i=>gw[i]).map(i=>({i,g:parseFloat(gw[i][0])||0}))}
+// ===== p145b (standalone, both apps): next time's goal from the better of the last two workouts (S2 item 4, guard d)
+var P145BC=new Map(),P145BF=new WeakMap(),P145D=175;
+// the latest two workouts with n, as last() and prevSets() see them (a workout open for editing doesn't count)
+function p145bPair(n){const ed=new Set(Object.values(S.draft||{}).filter(d=>d&&d.ed&&d.id).map(d=>d.id)),o=[];for(const e of S.log){if(ed.has(e.id))continue;const r=e.s&&e.s[n];if(r&&r.length){o.push(e);if(o.length===2)break}}return o}
+// a deliberate drop: the workout's heaviest working weight P145D/1000 (17.5%) or more under its goal's heaviest (assisted:
+// body weight minus assistance), in thousandths of a pound, integers only (24 vs 30, exactly 20%, counts)
+function p145bDrop(n,did,goal){const asx=AS.has(n),bw=asx?(bwAt(today())||0):0,F=a=>parseFloat(a)||0,L=w=>asx?bw-w:w,wk=r=>(r||[]).filter(a=>Array.isArray(a)&&a[2]!=='w');
+const dw=wk(did).map(a=>L(F(a[0]))),gw=wk(goal).map(a=>L(F(a[0])));if(!dw.length||!gw.length)return false;const td=Math.max(...dw),tg=Math.max(...gw);if(!(tg>0))return false;
+return Math.round(td*1000)*1000<=Math.round(tg*1000)*(1000-P145D)}
+// lift n's sets in workout e hidden while f runs (the goal as if e hadn't happened); always put back. The log is the same
+// afterwards, so a better-of-2 answer kept from before still holds
+function p145bRun(n,e,f){const keep=e.s,g0=GEN;e.s=Object.assign({},keep);delete e.s[n];GEN++;p145bIn++;try{return f()}finally{p145bIn--;e.s=keep;GEN++;for(const c of P145BC.values())if(c.G===g0)c.G=GEN}}
+// {e: the latest workout, p: the one before, g: the goal from p} when the goal comes from the one before; else null
+function p145bUse(x,n){if(!window.__SA||p145bIn||!x||!x.r||x.nn)return null;const c=P145BC.get(n);if(c&&c.G===GEN&&c.x===x)return c.r;
+let r=null;try{r=p145bCalc(x,n)}catch(e){r=null}P145BC.set(n,{G:GEN,x,r});return r}
+function p145bCalc(x,n){const[e,p]=p145bPair(n);if(!e||!p)return null;const td=today(),b1=sbest(n,e.s[n],td),b2=sbest(n,p.s[n],td);
+if(!(b1&&b2&&b1.k!=='b'&&b2.k!=='b'&&b2.e>b1.e))return null;const rs=lrsAt(n);if(rs&&e.t>=rs&&p.t<rs)return null;
+const g=p145bRun(n,e,()=>goalRows(x,n));if(!g||!g.length)return null;
+// the goal it missed: the one saved with it, else the goal the rules give it from the workouts before it (= g)
+const sv=e.gl&&typeof e.gl==='object'&&Array.isArray(e.gl[n])?e.gl[n]:g.filter(a=>a[2]!=='w'&&(parseFloat(a[1])||0)>0);
+const gb=sbest(n,sv,td);if(!gb||gb.k==='b'||!(gb.e>0)||b1.e>=gb.e-.05)return null;if(p145bDrop(n,e.s[n],sv))return null;return{e,p,g}}
+// the card: its goal, Go heavier / Ease off lines and More worked out from the workout the goal comes from
+function p145bWith(x,n,l,f){const u=window.__SA?p145bUse(x,n):null;if(!u)return f(l);
+return p145bRun(n,u.e,()=>{const o=f(last(n)),pp=p145bPair(n)[1],P=dsh(u.p);let k=P40A.get(n);if(!k)P40A.set(n,k={});
+if(o.up)o.up=o.up.replace(' last time. ',' on '+P+'. ');if(k.ch)k.ch=k.ch.replace(/^Changes from last time:/,'Changes from '+P+':');
+const w=pp&&k.why?k.why.replace(/your last two workouts/g,`your ${P} and ${dsh(pp)} workouts`):k.why||'';
+k.why=`From your ${P} workout: your ${dsh(u.e)} one came in under its goal, so the goal comes from the better of your last two.`+(w?' '+w:'');return o})}
+// Finish: does next time's goal for n come from the workout before this one? (Level up and Ease off leave it out)
+function p145bFin(x,n,s,d){if(!window.__SA||!x||!x.r||x.nn||!d)return false;let m=P145BF.get(d);if(!m)P145BF.set(d,m=new Map());if(m.has(n))return m.get(n);
+let v=false;try{v=p145bFin0(x,n,s,d)}catch(e){v=false}m.set(n,v);return v}
+function p145bFin0(x,n,s,d){const r=s[n];if(!Array.isArray(r)||!r.some(a=>a[2]!=='w'))return false;const t=d.t||today();
+if(S.log.some(e=>e.id!==d.id&&e.t>t&&e.s&&Array.isArray(e.s[n])&&e.s[n].length))return false;
+let g=null;if(d.id){const o=d.o&&d.o.gl;g=o&&typeof o==='object'&&Array.isArray(o[n])?o[n]:null}
+else{let q=null;try{q=goalRows(x,n)}catch(e){q=null}const gw=(q||[]).filter(a=>Array.isArray(a)&&a[2]!=='w'&&parseFloat(a[1])>0).map(a=>[String(a[0]==null?'':a[0]),String(a[1])]);g=gw.length?gw:null}
+const keep=S.log,ent={id:'p145fin',t,day,s:{[n]:r}};if(g)ent.gl={[n]:g};
+try{S.log=[ent].concat(keep.filter(e=>e.id!==d.id));GEN++;P145BC.delete(n);return !!p145bUse(x,n)}finally{S.log=keep;GEN++;P145BC.delete(n)}}
+// ===== p145c (standalone, both apps): the easy week
+// Settings: the calendar note on or off (the slipping-lifts Heads up card isn't affected)
+function p145cSet(){const off=!!(S.prof||{}).dlx;return `<section class="ex" id="setdl">${p6HRow('Easy-week reminder',{a:'dloff'},[['on','On'],['off','Off']],off?'off':'on')}<p class="hint">The optional note on your Weeks list, 8 weeks after your last easy week. The Heads up card for slipping lifts shows either way.</p></section>`}
+// the Program check's window ks (week keys): the one week whose working sets (warm-ups out) are under 60% of the median of
+// the other weeks', when exactly one is and 2+ weeks remain ({k, v: its sets, m: the others' median}); else null
+function p145cOut(ks){if(!window.__SA||!Array.isArray(ks)||ks.length<3)return null;const T={};for(const k of ks)T[k]=0;
+for(const e of S.log){const k=logWk(e);if(!(k in T)||!e.s)continue;for(const n in e.s){const r=e.s[n];if(Array.isArray(r))T[k]+=r.filter(a=>Array.isArray(a)&&a[2]!=='w'&&(parseFloat(a[1])||0)>0).length}}
+const med=v=>{const a=v.slice().sort((p,q)=>p-q),m=a.length>>1;return a.length%2?a[m]:(a[m-1]+a[m])/2},oth=k=>med(ks.filter(j=>j!==k).map(j=>T[j]));
+const lo=ks.filter(k=>{const m=oth(k);return m>0&&T[k]*5<m*3});if(lo.length!==1)return null;const k=lo[0];return{k,v:T[k],m:oth(k)}}
+function p145cTxt(o){const r=o.m>0?o.v/o.m:0;return `Leaves out ${wkRange(o.k,addD(o.k,6))}: ${r<.25?'under a quarter of':r<.4?'about a third of':'about half'} your usual sets.`}
+// ===== p145d (standalone, both apps; display only): three Why lines
+// the cut's protein (lean mass) under the off-cut one (body weight, as the plan rounds and caps it), still 2.5+ g per kg lean
+function p145dProt(n,p){if(!window.__SA||!n||!p||p.k!=='cut'||!(n.lmkg>0)||!(n.bwkg>0)||!(n.prot>0))return '';
+const x=(FEM?1.9:2)*n.bwkg,off=Math.min(Math.round(x/5)*5,Math.floor(2.2*n.bwkg/5)*5);if(!(n.prot<off)||n.prot<2.5*n.lmkg)return '';
+return '<p class="hint" id="p145pr">Why lower than off a cut? Off a cut, protein comes from your body weight; on a cut, from your DEXA lean mass (2.7 g per kg), which is what dieting studies measure. While body fat is high, body weight overstates what your muscle needs, so the cut number comes out lower. It’s still above the level where lean mass held steady in dieting studies (about 2.5 g per kg lean).</p>'}
+// the scan's resting rate: an estimate; "your calorie floor" only when it is the floor (over the fixed 1,500 / 1,200)
+function p145dRmr(c){if(!window.__SA||!c||!(c.rmr>0))return '';const fl=c.rmr>FLOOR();
+return `</p><p class="hint" id="p145rmr">This resting rate is the DEXA report’s estimate from your lean mass, not a measurement. In lifters, other formulas put it up to about 250 calories higher. ${fl?'The app uses it as your calorie floor; a':'A'} measured resting rate (a breath test) would settle it.</p><p class="hint">`}
+// the visceral fat labels' source, when a scan has visceral fat
+function p145dVz(sc){if(!window.__SA||!Array.isArray(sc)||!sc.some(x=>x&&x.vat>0))return '';
+return `<p class="hint" id="p145vz">Normal, Increased and High use the scanner maker’s (Hologic’s) provisional lines, 100 and 160 cm² (15.5 and 24.8 in²), from CT studies mostly in women. ${FEM?'Treat':'There are no validated DEXA lines for men yet, so treat'} the label as a rough guide; the change between your scans matters more.</p>`}
 function rmLog(i){
 const e=S.log[i];if(!e)return;
 if(armed!==e){armed=e;render();return}
@@ -5558,11 +5668,11 @@ let w=null;for(const[n,r]of dE){if(w)break;if(on.has(n))(Array.isArray(r)?r:[]).
 if(w){lastEx=w.n;openEx=w.n;render();const c3=[...app.querySelectorAll('section.ex[data-ex]')].find(x=>x.dataset.ex===w.n),g3=c3&&c3.querySelector('.wq[data-i="'+w.i+'"]');if(g3&&g3.scrollIntoView)g3.scrollIntoView({block:'center'});
 say('Check '+w.n+', set '+(w.i+1)+': it’s marked as a warm-up but it’s as heavy as your working sets. Answer on its card (warm-up or working set), then tap Finish again.');return}}
 const ups=[],upN=new Set();
-for(const x of P[day].x){const n=nm(x),f=(s[n]||[]).filter(a=>a[2]!=='w');if(!x.r||x.nn||!f.length||(window.__SA?f.length:(s[n]||[]).length)<3)continue;const tp=+String(x.r).split('-').pop(),asx=AS.has(n),ws=f.map(a=>parseFloat(a[0])||0),mw=asx?Math.min(...ws):Math.max(...ws);if(f.filter(a=>(parseFloat(a[0])||0)===mw).every(a=>(parseFloat(a[1])||0)>=tp)){const rc=rec(x,n,mw,tp,+String(x.r).split('-')[0],tp,1),q=window.__SA?upTx9(x,n,mw,Math.min(...f.filter(a=>(parseFloat(a[0])||0)===mw).map(a=>parseFloat(a[1])||0)),+String(x.r).split('-')[0],tp):null;ups.push(n+(q?': '+q.s:rc?': '+rc.toLowerCase():''));upN.add(n)}}
+for(const x of P[day].x){const n=nm(x),f=(s[n]||[]).filter(a=>a[2]!=='w');if(!x.r||x.nn||!f.length||(window.__SA?f.length:(s[n]||[]).length)<3||p145bFin(x,n,s,d))continue;const tp=+String(x.r).split('-').pop(),asx=AS.has(n),ws=f.map(a=>parseFloat(a[0])||0),mw=asx?Math.min(...ws):Math.max(...ws);if(f.filter(a=>(parseFloat(a[0])||0)===mw).every(a=>(parseFloat(a[1])||0)>=tp)){const rc=rec(x,n,mw,tp,+String(x.r).split('-')[0],tp,1),q=window.__SA?upTx9(x,n,mw,Math.min(...f.filter(a=>(parseFloat(a[0])||0)===mw).map(a=>parseFloat(a[1])||0)),+String(x.r).split('-')[0],tp):null;ups.push(n+(q?': '+q.s:rc?': '+rc.toLowerCase():''));upN.add(n)}}
 const downs=[];
 // Ease off next time: the set next time's goal makes lighter (p143c: the last set; a one-set exercise's by the first set's
 // rule); not with Level up
-for(const x of P[day].x){const n=nm(x),f=(s[n]||[]).filter(a=>a[2]!=='w');if(!x.r||x.nn||!f.length||upN.has(n))continue;const lo=+String(x.r).split('-')[0],F=v=>parseFloat(v)||0,w0=F(f[0][0]);const one=(!window.__SA||f.length===1)&&F(f[0][1])<lo&&weak2(n,lo,0)&&!gainUR(n,f,0),rc=one?rec(x,n,w0,F(f[0][1]),lo,+String(x.r).split('-').pop(),-1):'',g0=one?easeW(x,n,w0,F(f[0][1])):null;const es=easeAt(x,n,f,(lastN(n,0)||[]).filter(a=>a[2]!=='w')).filter(q=>!(g0!=null&&F(f[q.i][0])===w0));if(!es.length){if(one&&!(window.__SA&&g0==null&&p143gB(n)>0&&p143gEw0(x,n,w0,F(f[0][1]))!=null))downs.push(n+(rc?': '+rc.toLowerCase():''));continue}const L=(g0!=null?f.map((a,i)=>({i,g:g0})).filter(q=>F(f[q.i][0])===w0):[]).concat(es).sort((p,q)=>p.i-q.i);downs.push(n+': try '+easeTxt(n,s[n],L))}
+for(const x of P[day].x){const n=nm(x),f=(s[n]||[]).filter(a=>a[2]!=='w');if(!x.r||x.nn||!f.length||upN.has(n)||p145bFin(x,n,s,d))continue;const lo=+String(x.r).split('-')[0],F=v=>parseFloat(v)||0,w0=F(f[0][0]);const one=(!window.__SA||f.length===1)&&F(f[0][1])<lo&&weak2(n,lo,0)&&!gainUR(n,f,0),rc=one?rec(x,n,w0,F(f[0][1]),lo,+String(x.r).split('-').pop(),-1):'',g0=one?easeW(x,n,w0,F(f[0][1])):null;const es=easeAt(x,n,f,(lastN(n,0)||[]).filter(a=>a[2]!=='w')).filter(q=>!(g0!=null&&F(f[q.i][0])===w0)).concat(window.__SA&&!one?p145aFin(x,n,s[n]):[]);if(!es.length){if(one&&!(window.__SA&&g0==null&&p143gB(n)>0&&p143gEw0(x,n,w0,F(f[0][1]))!=null))downs.push(n+(rc?': '+rc.toLowerCase():''));continue}const L=(g0!=null?f.map((a,i)=>({i,g:g0})).filter(q=>F(f[q.i][0])===w0):[]).concat(es).sort((p,q)=>p.i-q.i);downs.push(n+': try '+easeTxt(n,s[n],L))}
 const prs=[];
 for(const[n,f]of Object.entries(s)){
 const nt=sbest(n,f,d.t||today(),asT());if(!nt)continue;
@@ -5594,6 +5704,7 @@ if(a==='fagot'){if(S.fa){const k=b.dataset.k;if(k==='wk')S.fa.wk=null;else S.fa[
 if(a==='rm'){rmLog(+b.dataset.i);return}
 if(a==='dl'){S.dl=today();save();render();return}
 if(a==='dlh'){S.prof=Object.assign({},S.prof,{dlh:today()});save();render();return}
+if(window.__SA&&(a==='dlx'||a==='dloff')){const off=a==='dlx'||b.dataset.v==='off';S.prof=Object.assign({},S.prof||{});if(off)S.prof.dlx=1;else delete S.prof.dlx;save();render();if(a==='dlx')say('Easy-week reminder off. Settings can turn it back on.');return}
 if(a==='scan'){addScan();return}
 if(a==='wt'){addWt();return}
 if(a==='cym'){const k=b.dataset.k;if(CYM[k]){cySet({m:k});say(k==='off'?'Cycle tracking off':CYM[k]+(CYNAT.has(k)?(window.__SA?cyOnMsg(k):''):': logging bleeding and symptoms only'))}return}
