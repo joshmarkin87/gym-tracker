@@ -510,6 +510,13 @@ details.why>.hint:first-of-type,details.why>p:first-of-type{margin-top:.1rem}
 .p125 .p44ar:disabled{color:var(--mute);opacity:.45;cursor:default}
 .p125 .p44st{margin:.35rem 0 .1rem}
 .p125 b.p44w{color:var(--p43lt);font-weight:600}
+/* p147w: the one waist card */
+.p125 #waist .p44nav{margin:.5rem 0 .7rem}
+.p125 .wk.p147wt{margin:0 0 .6rem}
+.p125 .wk.p147wt small{display:block;line-height:1.25;margin-top:.25rem}
+.p125 #waist .p147wc{margin:.2rem 0 .3rem}
+.p125 #waist .p147wl{margin:.3rem 0 .2rem}
+.p125 #waist .p147wn{margin:.6rem 0 0}
 .p125 b.p44w::before{content:"";display:inline-block;width:var(--p43sw);height:1em;margin-right:var(--p43sm);vertical-align:-.15em;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5 1.5 21h21z' fill='%23ffe066' stroke='%2314202b' stroke-width='1.8' stroke-linejoin='round'/%3E%3Cpath d='M12 9v5.5' stroke='%2314202b' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='17.6' r='1.4' fill='%2314202b'/%3E%3C/svg%3E") center/contain no-repeat}
 
 /* p143k: the app colour for on target / done, green only for a measured change for the better (owner, Nov 7, 7:17 PM) */
@@ -642,7 +649,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='326e1f9e5e',SFB=+'1794191285'||0,sfT0=Date.now();
+const SFV='ddfd2e7a40',SFB=+'1794196924'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1669,13 +1676,13 @@ if(armed!=='z'+sd){armed='z'+sd;render();return}
 armed=null;S.waist=wsList().filter(x=>x.t!==sd);wsDate=null;save();render();say('Waist removed')}
 // average weigh-in within 3 days of a date (null if none)
 function wAvg(t){const c=wtD(t),a=wtList().filter(x=>window.__SA?Math.abs(dN(x.t)-dN(t))<=3:Math.abs(wtD(x.t)-c)<=3*864e5);return a.length?a.reduce((q,x)=>q+x.w,0)/a.length:null}
-function wsChart(){
+function wsChart(hl){
 const L=wsSun().slice(-16);if(L.length<2)return '';
 const O=wsList().filter(x=>dowOf(x.t)!==0&&x.t>=L[0].t),d=x=>wtD(x.t)/864e5,x0=d(L[0]),xr=Math.max(1,Math.max(d(L[L.length-1]),...O.map(d))-x0),vs=L.map(x=>x.v),av=vs.concat(O.map(x=>x.v)),lo=Math.min(...av)-.5,hi=Math.max(...av)+.5;
 const L0=32,R0=292,T0=8,B0=100,X=x=>L0+(d(x)-x0)/xr*(R0-L0),Y=v=>B0-(v-lo)/(hi-lo)*(B0-T0),tk=niceTicks(lo,hi);
 const grid=tk.t.filter(v=>v>=lo&&v<=hi).map(v=>{const y=Y(v).toFixed(1);return `<line x1="${L0}" x2="${R0}" y1="${y}" y2="${y}" style="stroke:var(--line);stroke-width:.6"></line><text x="${L0-4}" y="${(+y+3).toFixed(1)}" text-anchor="end">${inF(v)}</text>`}).join('');
 let line='';if(L.length>=3){const mx=L.reduce((q,x)=>q+d(x),0)/L.length,my=vs.reduce((q,v)=>q+v,0)/L.length;let sxx=0,sxy=0;for(const x of L){sxx+=(d(x)-mx)**2;sxy+=(d(x)-mx)*(x.v-my)}const sl=sxx>0?sxy/sxx:0,f=x=>my+sl*(d(x)-mx);line=`<line x1="${X(L[0]).toFixed(1)}" x2="${X(L[L.length-1]).toFixed(1)}" y1="${Y(f(L[0])).toFixed(1)}" y2="${Y(f(L[L.length-1])).toFixed(1)}" style="stroke:var(--acc);stroke-width:2"></line>`}
-const dots=O.map(x=>`<circle cx="${X(x).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="1.8" style="fill:var(--mute);opacity:.55"></circle>`).join('')+L.map(x=>`<circle cx="${X(x).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="3" style="fill:var(--card);stroke:var(--ink);stroke-width:1.2"></circle>`).join('');
+const dots=O.map(x=>`<circle cx="${X(x).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="1.8" style="fill:var(--mute);opacity:.55"></circle>`).join('')+L.map(x=>`<circle cx="${X(x).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="${x.t===hl?4:3}" style="fill:${x.t===hl?'var(--acc)':'var(--card)'};stroke:${x.t===hl?'var(--acc)':'var(--ink)'};stroke-width:1.2"></circle>`).join('');
 const xl=(L.length>2?[0,Math.floor((L.length-1)/2),L.length-1]:[0,L.length-1]).map((i,j,a)=>`<text x="${X(L[i]).toFixed(1)}" y="114" text-anchor="${j===0?'start':j===a.length-1?'end':'middle'}">${dsh(L[i])}</text>`).join('');
 return `<svg class="ch" viewBox="0 0 300 120" width="100%" role="img" aria-label="Waist, last ${L.length} Sunday measurements">${grid}${line}${dots}${xl}</svg>`}
 function wsIns(){
@@ -2686,7 +2693,7 @@ if(window.__SA&&ph.k==='maint'&&ph.g&&!ph.g.wk){const el=Math.max(0,Math.round((
 if(ph.k==='maint'&&ph.g&&ph.g.wk){const wk=ph.g.wk,el=Math.max(0,Math.round((wtD(today())-wtD(ph.since))/864e5)),n=Math.min(wk,Math.floor(el/7)+1),pc=Math.min(100,el/(wk*7)*100),end=addD(ph.since,wk*7);
 return `<section class="ex" id="goalc"><h2>Goal</h2><p><b>Week ${n} of ${wk}</b> of maintenance</p>${bar(pc)}<p class="hint">${el>=wk*7?`Your ${wk} weeks are up. `:`Ends around ${E(yd(end))}. `}Judged by your weight holding steady and your lifts holding.</p>${mtCard(ph)}</section>`}
 return ''}
-function weightHtml(){return '<h1>Weight</h1><p class="sub">'+(window.__SA?'Weigh in every morning, workout day or not. Your scale’s reading comes in with the morning sync.':'Weigh in every morning, workout day or not.')+'</p>'+(window.__SA?'':phaseWarn()+phaseLine()+ordersLine())+(window.__SA?syncNote()+goalCard():'')+(window.__SA?'':wtBox())+(window.__SA?cyWt():cySec())+wsBox()+wtSec()+wsSec()+wtDaily()}
+function weightHtml(){return '<h1>Weight</h1><p class="sub">'+(window.__SA?'Weigh in every morning, workout day or not. Your scale’s reading comes in with the morning sync.':'Weigh in every morning, workout day or not.')+'</p>'+(window.__SA?'':phaseWarn()+phaseLine()+ordersLine())+(window.__SA?syncNote()+goalCard():'')+(window.__SA?'':wtBox())+(window.__SA?cyWt():cySec())+(window.__SA?wtSec()+p147Ws():wsBox()+wtSec()+wsSec())+wtDaily()}
 function wtStats(){return memo('ws',[S.wt,(S.wt||[]).length,S.phases,(S.phases||[]).length,S.scans,(S.scans||[]).length,S.log.length,today(),S.lock,S.ci,(S.ci||[]).length,S.prof],wtStats0)}
 function wtStats0(){
 const w=wtList();
@@ -3593,7 +3600,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'326e1f9e5e',d:'Nov 8, 2026 at 9:28 PM',b:+'1794191285'||0};
+const APP_V={h:'ddfd2e7a40',d:'Nov 8, 2026 at 11:02 PM',b:+'1794196924'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
@@ -4313,6 +4320,28 @@ const tok=x=>{P125T.lastIndex=0;let m,a=0;while((m=P125T.exec(x))){if(!/[\s\-–
 const ps=v.split(/( · )/);if(cm)tok(v);else if(ps.length>1)for(const x of ps){if(x!==' · '&&x.length<=20&&/\S[\s\-–]\S/.test(x)){f.append(mk('n-w','',x));ch=true}else tok(x)}else tok(v);
 if(ch)n.replaceWith(f)}}}
 // p125 (DISPLAY) 2: waist-to-height ratio on the Sunday waist card (display only)
+// ===== p147w (standalone, both apps): Health › Weight's waist in one card, one Sunday at a time (display only) =====
+var p147WsSel=null;
+function p147Ws(){
+const td=today(),L=wsList(),Sn=wsSun(),due=wsDue(),last=L[L.length-1],nx=addD(sunOf(td),7),H='<section class="ex" id="waist"><h2>Waist</h2>';
+if(due||wsOpen){p147WsSel=null;const sd=wsDate||td;return H+`<p class="hint">At your navel, standing relaxed, after the bathroom and before eating. Tape snug, not pressing in.</p><input class="sel" type="date" id="wsd" style="margin-top:.6rem" value="${sd}" min="2020-01-01" max="${td}" aria-label="Waist date"><div id="wsbody">${wsBody(sd)}</div>${due?'':'<button class="edit" data-a="wsclose" style="padding:.4rem 0 0">Done</button>'}</section>`}
+const ls=Sn[Sn.length-1],xo=last&&dowOf(last.t)!==0&&(!ls||last.t>ls.t)?last:null,ft=`<p class="hint p147wn">Next: ${E(wtLong(nx))}.</p><button class="edit" data-a="wsopen" style="padding:.2rem 0 0">Log or edit</button>`,xl=xo?`<p class="hint">Also logged ${E(dsh(xo))}: ${inF(xo.v)} in (other days are saved but don’t count).</p>`:'';
+if(!Sn.length)return H+`<p class="hint">Measured once a week, on Sunday mornings.</p>${xl}${ft}</section>`;
+const n=Sn.length,i0=Sn.findIndex(x=>x.t===p147WsSel),k=i0>=0?i0:n-1,c=Sn[k],pv=Sn[k-1],f0=Sn[0],h=+((S.prof||{}).ht),hi=h>=100&&h<=250?h/2.54:null;
+let nav='';if(n>1){let op='';for(let j=n-1;j>=0;j--)op+=`<option value="${Sn[j].t}"${j===k?' selected':''}>${E(wtLong(Sn[j].t))}${j===n-1?' (latest)':''}</option>`;
+nav=`<div class="p44nav"><button type="button" class="p44ar" data-a="p147ws" data-v="${k>0?Sn[k-1].t:''}"${k<=0?' disabled':''} aria-label="The Sunday before">‹</button><select class="sel" data-p6c="${E(JSON.stringify({a:'p147ws'}))}" data-p6k="v" aria-label="Sunday">${op}</select><button type="button" class="p44ar" data-a="p147ws" data-v="${k<n-1?Sn[k+1].t:''}"${k>=n-1?' disabled':''} aria-label="The Sunday after">›</button></div>`}
+const T=(v,l)=>`<div><b>${v}</b><small>${E(l)}</small></div>`;
+const tiles=`<div class="wk p147wt">${T(inF(c.v)+' in',n>1?dsh(c):wtLong(c.t))}${T(pv?wsg(c.v-pv.v)+' in':'–',pv?'vs '+dsh(pv):'first Sunday')}${hi?T((c.v/hi).toFixed(2),'waist ÷ height (aim under 0.5)'):T(k>0?wsg(c.v-f0.v)+' in':'–','since '+dsh(f0))}</div>`;
+const ch=wsChart(c.t),span=dN(Sn[n-1].t)-dN(f0.t),ph=phase();
+let tr;if(n>=3&&span>=14){const all=wsTrend(f0.t,td),pw=all.ch/(span/7),tot=all.last.v-all.first.v,t4=wsTrend(addD(td,-27),td),bad=ph.k==='bulk'?pw>=.19:pw>=.06;
+const tx=`${wsg(tot)} in since ${dsh(all.first)}, about ${wsg(pw)} in a week${t4&&t4.n>=3&&t4.span>=14&&t4.first.t!==all.first.t?` (last 4 weeks: ${wsg(t4.ch)} in)`:''}.`;
+tr=`<p class="p147wl"><b>Trend:</b> ${bad?`<b class="p44w">${tx}</b>`:tx}</p>`}
+else tr=`<p class="hint p147wl">The trend shows from 3 Sundays over 2+ weeks (${n} so far).</p>`;
+const r=wsIns(),oth=r.on.filter(x=>x.t!=='Waist trend'),off=r.off.filter(x=>!/^Waist trend:/.test(x)),grey=ch&&wsList().some(x=>dowOf(x.t)!==0&&x.t>=Sn.slice(-16)[0].t);
+const mo=[`<p class="hint">Measured the same way each Sunday, a change of 0.5 in or more over a few weeks is real; smaller week-to-week moves are mostly noise.${ch?` On the chart, dots are your Sunday measurements${n>=3?' and the line is the trend':''}, in inches; the filled dot is the Sunday picked.${grey?' Small grey dots are other days, shown for reference only.':''}`:''}</p>`].concat(oth.map(insH));
+if(off.length)mo.push(`<p class="hint"><b>Unlocks as you log</b></p><ul class="tl hint">${off.map(x=>`<li>${E(x)}</li>`).join('')}</ul>`);
+if(hi)mo.push(`<p class="hint" id="whtr"><b>Waist-to-height ratio: ${(c.v/hi).toFixed(2)}</b> (${inF(c.v)} in on ${E(wtLong(c.t))} ÷ your height, ${f1(hi)} in). NICE (the UK’s health guidance body, 2022) uses waist ÷ height for adults with a BMI under 35, of both sexes and including people with a lot of muscle: 0.4 to 0.49 is healthy, 0.5 to 0.59 means increased health risks and 0.6 or more further increased, so the advice is a waist under half your height. NICE measures halfway between your lowest rib and the top of your hip bone; your Sunday tape goes at the navel, so read this as a guide. Height is the ${h} cm from your setup. Display only: the check-in uses your waist trend, not this ratio.</p>`);
+return H+nav+tiles+xl+(ch?`<div class="p147wc">${ch}</div>`:'')+tr+why('p147wm',mo.join(''),'More')+ft+'</section>'}
 function whtrLn(){if(!window.__SA)return '';const h=+((S.prof||{}).ht),Sn=wsSun(),w=Sn[Sn.length-1]||wsList().slice(-1)[0];if(!w||!(h>=100&&h<=250))return '';
 const hi=h/2.54,r=w.v/hi;
 return `<p class="hint" id="whtr"><b>Waist-to-height ratio: ${r.toFixed(2)}</b> (${inF(w.v)} in on ${E(wtLong(w.t))} ÷ your height, ${f1(hi)} in). Under 0.5 is the common health line (NICE 2022).</p>`+why('whtr',`<p class="hint">NICE (the UK’s health guidance body, 2022) uses waist ÷ height for adults with a BMI under 35, of both sexes and including people with a lot of muscle: 0.4 to 0.49 is healthy, 0.5 to 0.59 means increased health risks and 0.6 or more further increased, so the advice is a waist under half your height. NICE measures halfway between your lowest rib and the top of your hip bone; your Sunday tape goes at the navel, so read this as a guide. Height is the ${h} cm from your setup. Display only: the check-in uses your waist trend, not this ratio.</p>`)}
@@ -4448,7 +4477,7 @@ function gCiRng(c){if(!c||c.a==null||!isFinite(c.a)||!c.w||!S.ci)return null;con
 if(!T||T.a==null||Math.abs(T.a-c.a)>.0051)return null;const se=gTrSE(T.use);return se==null?null:{lo:(window.__SA?T.a:c.a)-se,hi:(window.__SA?T.a:c.a)+se}}
 // a week's change vs the week before as shown (RU-06, NUM-6): a past week from the rounded averages; this week only from
 // 3 weigh-ins, as a pace a week (its average so far vs last week's, over the time between their middles: the This week chip)
-function gWkChg(x,P,now){if(!x||!P||P.i!==x.i-1)return null;if(now){if(x.n<3)return{wait:1};const r=(x.a-P.a)/((x.m-P.m)/6048e5);return{v:r,pc:r/P.a*100,rate:1}}const d=gR1(x.a)-gR1(P.a);return{v:d,pc:d/P.a*100}}
+function gWkChg(x,P,now){if(!x||!P||P.i!==x.i-1)return null;if(now){if(x.n<3)return{wait:1};const q=window.__SA?p143gWk(x,P).r:null,r=window.__SA?(q?-q:0):(x.a-P.a)/((x.m-P.m)/6048e5);return{v:r,pc:r/P.a*100,rate:1}}const d=gR1(x.a)-gR1(P.a);return{v:d,pc:d/P.a*100}}
 function gWkT(C,now,pc){return !C?'':C.wait?', the change vs last week shows from 3 weigh-ins':', '+(C.rate?sg2:sg)(C.v)+' lb'+(C.rate?' a week':'')+(pc?' ('+sg(C.pc)+'%)':'')+' vs '+(now?'last week'+(C.rate?' so far':''):'the week before')}
 // the recap's "Right now" (A3, SC4): which weight each number uses; "down" and "to your goal" from the same rounded averages
 function gRn(s){const cut=s.ph.k==='cut',o=[`<b>Weight now:</b> ${f1(s.L.w)} lb, your latest weigh-in (${E(gDsY(s.L))}).`],pa=s.a7!=null&&s.pa!=null?', '+sg(gR1(s.a7)-gR1(s.pa))+' lb vs the prior 7 days':'',nw=s.a7!=null?'your 7-day average':s.l3&&s.l3.length===3?`the average of your last 3 weigh-ins (${E(gRgY(s.l3[0].t,s.l3[2].t))})`:null;
@@ -4485,6 +4514,7 @@ function p110Act(a,b){if(!window.__SA)return false;
 if(a==='bnmore'){tapAnc=null;bnOpen=!bnOpen;render();return true}
 if(a==='ciall'){ciAll=!ciAll;render();return true}
 if(a==='rcwk'){const v=+b.dataset.v;if(isFinite(v)){rcWkSel=v;render()}return true}
+if(a==='p147ws'){const v=String(b.dataset.v||'');if(/^\d{4}-\d{2}-\d{2}$/.test(v)){p147WsSel=v;render()}return true}
 if(a==='p147c'){const t=b.dataset.t,ks=String(b.dataset.k||'').split(',').filter(k=>P146L[k]);if(/^\d{4}-\d{2}-\d{2}$/.test(t||'')&&ks.length){const m=Object.assign({},S.mdc&&typeof S.mdc==='object'?S.mdc:{});m[t]=[...new Set([...(Array.isArray(m[t])?m[t]:[]),...ks])];S.mdc=m;save();render();say(p146Day(t)+': cleared, so it isn’t flagged.')}return true}
 if(a==='p147u'){S.mdc={};S.mdx={};save();render();say('Cleared and Not logged days are flagged again.');return true}
 if(a==='p146x'){const t=b.dataset.t;if(/^\d{4}-\d{2}-\d{2}$/.test(t||'')){S.mdx=Object.assign({},S.mdx&&typeof S.mdx==='object'?S.mdx:{},{[t]:1});save();render();say(p146Day(t)+': marked as not logged, so it isn’t flagged.')}return true}
