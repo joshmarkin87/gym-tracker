@@ -525,6 +525,7 @@ details.why>.hint:first-of-type,details.why>p:first-of-type{margin-top:.1rem}
 .p125 .cmp b.p43so{white-space:normal;font-size:.8rem;overflow-wrap:normal;word-break:normal}
 .p125 #dlcal .p45dlb{display:flex;flex-wrap:wrap;gap:0 1.1rem;margin-top:.15rem}.p125 #dlcal .p45dlb .edit{padding-left:0}
 .p146 .syr{align-items:flex-start}.p146 .syr .edit{min-height:44px;white-space:nowrap}.p146 ul{margin:.5rem 0 0;padding-left:1.1rem}.p146 li{margin:.25rem 0}
+.p146 .p147u{display:inline;min-height:0;padding:0}.mac.p147n{gap:.4rem;margin-top:.8rem}.p147n>div>small:first-child{display:block;margin-bottom:.2rem}
 </style>
 </head>
 <body>
@@ -641,7 +642,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='828bbcd79c',SFB=+'1794171635'||0,sfT0=Date.now();
+const SFV='326e1f9e5e',SFB=+'1794191285'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1513,6 +1514,11 @@ document.addEventListener('pointermove',e=>{if(wtDrag==null||e.pointerId!==wtDra
 const fbGoal=c=>c>0?Math.round(c*14/1000):null;
 // the plan's calorie target on those days (the target in force each day, as the check-in judges a week)
 function fdTgtAt(d){const L=planT();return L&&d.length?ciTgt(d,L):Object.assign({},planNums(),L||{}).cal}
+// p147a: fiber, sodium, sugar and saturated fat on one line under the macro bars, numbers bold (owner, Nov 8: fiber was
+// hard to see); fiber at or over its goal in the good colour
+function p147Nut(e){if(!e)return '';const N=v=>v!=null&&isFinite(v),g=N(e.fb)?fbGoal(fdTgtAt([e])):null,a=[],c=(l,v,u,k)=>`<div><small>${l}</small><b${k?' class="up"':''}>${v}</b><small> ${u}</small></div>`;
+if(N(e.fb))a.push(c('Fiber',Math.round(e.fb),g?'/ '+g+' g':'g',g&&e.fb>=g));if(N(e.na))a.push(c('Sodium',fmt(e.na),'mg'));if(N(e.su))a.push(c('Sugar',Math.round(e.su),'g'));if(N(e.sf))a.push(c('Sat fat',Math.round(e.sf),'g'));
+return a.length?`<div class="mac p147n" style="grid-template-columns:repeat(${a.length},1fr)">${a.join('')}</div>`:''}
 function fbDay(e){if(!e||e.fb==null||!isFinite(e.fb))return '';const c=fdTgtAt([e]),g=fbGoal(c);return `<p class="hint fbd${g&&e.fb>=g?' up':''}">Fiber: <b>${Math.round(e.fb)} g</b>${g?` of your ${g} g goal (14 g per 1,000 cal of your ${fmt(c)}-cal plan)`:''}.</p>`}
 // ---- Food › This week: the last 7 finished days (today out), like Sleep and Steps
 function fdWkTop(){if(!window.__SA)return '';const td=today(),tn=p141Td(),s=addD(td,tn?-6:-7),e=tn?td:addD(td,-1),fd=fdList().filter(x=>x.t>=s&&x.t<=e),n=fd.length,L=planT(),pn=Object.assign({},planNums(),L||{}),T=(v,l,c)=>`<div><b${c?' class="'+c+'"':''}>${v}</b><small>${E(l)}</small></div>`,A=k=>{const v=fd.filter(x=>x[k]!=null&&isFinite(x[k]));return v.length?v.reduce((q,x)=>q+x[k],0)/v.length:null};
@@ -2884,8 +2890,8 @@ const T0=window.__SA&&planT()?Math.round(fdTgtAt([e])):null,bud=T0>0?T0:e.b,nob=
 const ring=`<div class="ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" style="fill:none;stroke:var(--line);stroke-width:9"></circle>${fr>0?`<circle cx="50" cy="50" r="42" style="fill:none;stroke:${ov?(window.__SA?'var(--p43y)':'#d98a2b'):'var(--good,var(--acc))'};stroke-width:9;stroke-linecap:round;stroke-dasharray:${(fr*C).toFixed(1)} ${C.toFixed(1)}"></circle>`:''}</svg><div><b${ov?' class="ov"':''}>${nob?'-':fmt(Math.abs(rem))}</b><small>${ov?'Over':'Left'}</small></div></div>`;
 const mac=(n,a,g,cap)=>`<div><small>${n}</small><div class="pb"><i style="width:${g&&a!=null?Math.min(100,a/g*100).toFixed(0):0}%${cap&&g&&a!=null&&a>g*1.05?(window.__SA?';background:var(--p43y)':';background:var(--warn)'):''}"></i></div><b>${a!=null?Math.round(a):'-'}</b><small>${g!=null?' / '+Math.round(g)+' g':' g'}</small></div>`;
 const its=(e.m||[]).filter(x=>x.it),nIt=its.reduce((a,x)=>a+x.it.length,0);
-const extra=(e.m&&e.m.length?`<p class="hint"><b>Meals</b>${e.mf?'':' (incomplete)'}</p>${mealRows(e.m)}`:'')+(e.na!=null||e.su!=null||e.sf!=null?`<p class="hint">${[e.na!=null?'Sodium '+fmt(e.na)+' mg':'',e.su!=null?'sugar '+Math.round(e.su)+' g':'',e.sf!=null?'saturated fat '+Math.round(e.sf)+' g':''].filter(Boolean).join(' · ')}</p>`:'')+(nIt?`<details class="mf"><summary>What you ate (${nIt} food${nIt===1?'':'s'})</summary>${its.map(x=>`<p class="hint"><b>${E(x.n)}</b>${x.ic===0?' (partly visible)':''}</p>${x.it.map(f=>`<div class="kv"><span>${E(f.n)}${f.q?` <small class="hint">${E(f.q)}</small>`:''}</span><b>${f.c!=null?fmt(f.c):'-'}</b></div>`).join('')}`).join('')}</details>`:'');
-return `<section class="ex"><div class="fdnav"><button class="edit" data-a="fdprev" aria-label="Previous logged day"${prev?'':' disabled'}>‹</button><h2>${E(wtLong(e.t))}${e.t===today()?' (today)':''}</h2><button class="edit" data-a="fdnext" aria-label="Next logged day"${next?'':' disabled'}>›</button></div><div class="fdtop"><div><b>${fmt(e.c)}</b><small>Food</small></div>${ring}<div><b>${bud>0?fmt(bud):'-'}</b><small>${T0>0?'Target':'Budget'}</small></div></div>${T0>0&&e.b>0&&Math.abs(e.b-T0)>25?`<p class="hint fdlb">Lose It’s budget that day was ${fmt(e.b)}; your plan’s target was ${fmt(T0)}.</p>`:''}<div class="mac">${mac('Protein',e.p,e.pg)}${mac('Carbs',e.cb,window.__SA?(e.gp&&e.cg!=null?e.cg:macPl(e,'carb')):e.cg,1)}${mac('Fat',e.f,window.__SA?(e.gp&&e.fg!=null?e.fg:macPl(e,'fat')):e.fg,1)}</div>${window.__SA?fbDay(e):''}${fdMacro({c:e.c,p:e.p,cb:e.cb,f:e.f,fb:e.fb},1)}${extra}<button class="edit${rm?' warn':''}" data-a="fddel" data-t="${e.t}" style="padding:.7rem 0 0">${rm?'Tap again to remove this day':'Remove this day'}</button></section>`}
+const extra=(e.m&&e.m.length?`<p class="hint"><b>Meals</b>${e.mf?'':' (incomplete)'}</p>${mealRows(e.m)}`:'')+(!window.__SA&&(e.na!=null||e.su!=null||e.sf!=null)?`<p class="hint">${[e.na!=null?'Sodium '+fmt(e.na)+' mg':'',e.su!=null?'sugar '+Math.round(e.su)+' g':'',e.sf!=null?'saturated fat '+Math.round(e.sf)+' g':''].filter(Boolean).join(' · ')}</p>`:'')+(nIt?`<details class="mf"><summary>What you ate (${nIt} food${nIt===1?'':'s'})</summary>${its.map(x=>`<p class="hint"><b>${E(x.n)}</b>${x.ic===0?' (partly visible)':''}</p>${x.it.map(f=>`<div class="kv"><span>${E(f.n)}${f.q?` <small class="hint">${E(f.q)}</small>`:''}</span><b>${f.c!=null?fmt(f.c):'-'}</b></div>`).join('')}`).join('')}</details>`:'');
+return `<section class="ex"><div class="fdnav"><button class="edit" data-a="fdprev" aria-label="Previous logged day"${prev?'':' disabled'}>‹</button><h2>${E(wtLong(e.t))}${e.t===today()?' (today)':''}</h2><button class="edit" data-a="fdnext" aria-label="Next logged day"${next?'':' disabled'}>›</button></div><div class="fdtop"><div><b>${fmt(e.c)}</b><small>Food</small></div>${ring}<div><b>${bud>0?fmt(bud):'-'}</b><small>${T0>0?'Target':'Budget'}</small></div></div>${T0>0&&e.b>0&&Math.abs(e.b-T0)>25?`<p class="hint fdlb">Lose It’s budget that day was ${fmt(e.b)}; your plan’s target was ${fmt(T0)}.</p>`:''}<div class="mac">${mac('Protein',e.p,e.pg)}${mac('Carbs',e.cb,window.__SA?(e.gp&&e.cg!=null?e.cg:macPl(e,'carb')):e.cg,1)}${mac('Fat',e.f,window.__SA?(e.gp&&e.fg!=null?e.fg:macPl(e,'fat')):e.fg,1)}</div>${window.__SA?p147Nut(e):''}${fdMacro({c:e.c,p:e.p,cb:e.cb,f:e.f,fb:e.fb},1)}${extra}<button class="edit${rm?' warn':''}" data-a="fddel" data-t="${e.t}" style="padding:.7rem 0 0">${rm?'Tap again to remove this day':'Remove this day'}</button></section>`}
 function fdWeeks(){
 const fl=fdList();if(!fl.length)return[];
 const ws=wtStats(),a0=wtD(ws?(window.__SA?wkA0():ws.st.t):fl[0].t),td=today(),g={};
@@ -3587,7 +3593,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'828bbcd79c',d:'Nov 8, 2026 at 4:00 PM',b:+'1794171635'||0};
+const APP_V={h:'326e1f9e5e',d:'Nov 8, 2026 at 9:28 PM',b:+'1794191285'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
@@ -3964,6 +3970,8 @@ const best={};for(const n of nights){
 // a daytime nap (starts after 9 am, ends before 8 pm the same day) isn't a night
 {const d0=new Date(n.e);d0.setHours(0,0,0,0);if(!(+n.s<+d0+6*36e5&&+n.e>+d0)&&n.e-n.s<3*36e5)continue;if(+n.s>=+d0+9*36e5&&+n.e<=+d0+20*36e5)continue}
 if(bed.length&&n===nights[0]&&!bed.some(b=>+b.s<=+n.e&&+b.e>=+n.s))continue;
+// p147a: the paste's range cut this night off (its In Bed piece runs on 3+ hours past its last asleep piece): only partly here
+if(window.__SA){const bo=bed.filter(b=>+b.s<=+n.e&&+b.e>=+n.s);if(bo.length&&Math.max(...bo.map(b=>+b.e))-+n.e>3*36e5)continue}
 const t0=Math.floor(+n.s/6e4)*6e4,aw=awk.filter(r=>+r.s<+n.e&&+r.e>+n.s);let m=0;
 for(let t=t0;t<+n.e;t+=6e4){let a=0,w=0;for(const[x,y]of n.iv)if(+x<=t&&t<+y)a++;if(!a)continue;for(const r of aw)if(+r.s<=t&&t<+r.e)w++;if(a>w)m++}
 n.min=m;const t=hkDay(n.e);if(!best[t]||n.min>best[t].min)best[t]=n}
@@ -3975,7 +3983,9 @@ const out=[];let skipT=false,skS=false,skF=false;
 const t0=addD(td,-2);
 // a kind that looks back further (a one-time backfill) counts every day after its own oldest, partly covered one
 const mn={};for(const r of rows){const t=hkDay(r.s);if(!mn[r.k]||t<mn[r.k])mn[r.k]=t}
-const k0=k=>mn[k]&&mn[k]<addD(td,-7)?addD(mn[k],1):t0,okD=(k,t)=>t>=k0(k),tMin=Object.keys(mn).reduce((a,k)=>k0(k)<a?k0(k):a,t0);
+// p147a: ...or when none of its readings reach the last 3 days (a copy of the shortcut with a past range)
+const mxD={};for(const r of rows){const t=hkDay(r.s);if(!mxD[r.k]||t>mxD[r.k])mxD[r.k]=t}
+const k0=k=>mn[k]&&(mn[k]<addD(td,-7)||(window.__SA&&mxD[k]<t0))?addD(mn[k],1):t0,okD=(k,t)=>t>=k0(k),tMin=Object.keys(mn).reduce((a,k)=>k0(k)<a?k0(k):a,t0);
 for(const t of Object.keys(D).sort().reverse()){if(t>td||t<tMin)continue;const x=D[t],o={t};
 if(okD('wt',t)&&x.wt!=null&&x.wt>=66&&x.wt<=600)o.wt=Math.round(x.wt*10)/10;if(o.wt!=null&&S.wtx&&S.wtx[t]!=null&&Math.abs(S.wtx[t]-o.wt)<.05)delete o.wt;
 if(okD('sl',t)&&x.sl!=null&&x.sl>=30&&x.sl<=960)o.sl=Math.round(x.sl);
@@ -4003,20 +4013,23 @@ if(!wait&&h.st==null&&!hkxHas(t,'st')&&us(hl,'st',t))ks.push('st');
 if(!wait&&!nx[t]){if(!(f&&f.c))(!hkxHas(t,'c')&&us(fl,'c',t))&&ks.push('c');else for(const k of['p','cb','f','fb','na','sf','su'])if((f[k]==null||(f.c>=800&&Math.round(+f[k])===0))&&us(fl,k,t))ks.push(k)}
 {const sm=h.sl==null&&!hkxHas(t,'sl')&&us(hl,'sl',t);if(sm)ks.push('sl');if((sm||h.sl!=null)&&h.hr==null&&us(hl,'hr',t))ks.push('hr')}
 if(dowOf(t)===0&&!ws.some(x=>x.t===t)&&ws.some(x=>x.t<t))ks.push('ws');
-if(ks.length)out.push({t,ks})}return out}
+{const cl=p147Cl(t),k2=cl?ks.filter(k=>!cl.includes(k)):ks;if(k2.length)out.push({t,ks:k2})}}return out}
+// p147a: kinds cleared on a day (S.mdc: {day: [kinds]}), and how many days in the window were cleared or marked Not logged
+function p147Cl(t){const m=S.mdc;return m&&typeof m==='object'&&Array.isArray(m[t])?m[t]:null}
+function p147Cn(){const td=today(),a=addD(td,-28),c=S.mdc&&typeof S.mdc==='object'?S.mdc:{},x=S.mdx&&typeof S.mdx==='object'?S.mdx:{};return new Set([...Object.keys(c),...Object.keys(x)].filter(t=>t>=a&&t<td)).size}
+const p147Un=()=>{const n=p147Cn();return n?`<p class="hint">${n===1?'1 day':n+' days'} cleared or marked Not logged. <button class="edit p147u" data-a="p147u">Show them again</button></p>`:''}
 const p146Day=t=>new Date(t+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
 const p146And=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
 function p146Sec(){if(!window.__SA)return '';const L=p146Md(),td=today();
-if(!L.length)return `<section class="ex p146" id="hkmd"><h2>Missing days</h2><p class="hint">Nothing missing in the last 4 weeks.</p></section>`;
+if(!L.length)return `<section class="ex p146" id="hkmd"><h2>Missing days</h2><p class="hint">Nothing missing in the last 4 weeks.</p>${p147Un()}</section>`;
 const rows=L.map(r=>{const w=p146And(r.ks.map(k=>P146L[k])),a=[...new Set(r.ks.map(k=>P146A[k]))];
-return `<div class="syr"><div><b>${E(p146Day(r.t))}</b><small>${E(w.charAt(0).toUpperCase()+w.slice(1))}</small><small>Affects ${E(p146And(a))}.</small></div>${r.ks.includes('c')?`<button class="edit" data-a="p146x" data-t="${E(r.t)}">Not logged</button>`:''}</div>`}).join('');
+return `<div class="syr"><div><b>${E(p146Day(r.t))}</b><small>${E(w.charAt(0).toUpperCase()+w.slice(1))}</small><small>Affects ${E(p146And(a))}.</small></div>${r.ks.includes('c')?`<button class="edit" data-a="p146x" data-t="${E(r.t)}">Not logged</button>`:`<button class="edit" data-a="p147c" data-t="${E(r.t)}" data-k="${E(r.ks.join(','))}">Clear</button>`}</div>`}).join('');
 const K=new Set(L.flatMap(r=>r.ks)),hk=['wt','st','c','p','cb','f','fb','na','sf','su'],how=[];
 if(L.some(r=>r.t>=addD(td,-2)&&r.ks.some(k=>hk.includes(k))))how.push('From the last 3 days: run Gym Health and paste again.');
-if(L.some(r=>(r.t<addD(td,-2)&&r.ks.some(k=>hk.includes(k)))||r.ks.includes('sl')))how.push('Older'+(K.has('sl')?', and any missed night’s sleep':'')+': in the Gym Health shortcut, set that step’s Start Date to the last 28 days, run it once and paste here, then set it back'+(K.has('sl')?' (sleep to 1 day, the rest to 3 days). A month of sleep is a long paste.':' to 3 days.'));
-if(K.has('c'))how.push('A day you didn’t log in Lose It: tap Not logged and it stops being flagged.');
-if(K.has('sl')||K.has('hr'))how.push('Heart rate can’t be filled in later; it’s only shown.');
+if(L.some(r=>(r.t<addD(td,-2)&&r.ks.some(k=>hk.includes(k)))||r.ks.includes('sl')||r.ks.includes('hr')))how.push('Older: duplicate Gym Health and, in the copy, set the Start Date of each missing step to “is between” the day before and the day after.'+(K.has('sl')||K.has('hr')?' For a night’s sleep or heart rate, set both the Sleep and Heart Rate steps, and give Sleep an End Date filter with the same two dates.':'')+' Run the copy from its tile and paste here, one day at a time.');
+{const hc=L.some(r=>r.ks.includes('c')),hx=L.some(r=>!r.ks.includes('c'));if(hc)how.push('A day you didn’t log in Lose It: tap Not logged and it stops being flagged.');if(hx)how.push((hc?'Anything else':'Anything')+' that isn’t in Apple Health (Lose It had no fiber that day, the ring wasn’t worn): tap Clear and it stops being flagged.')}
 if(K.has('ws'))how.push('A missed waist: add it on Weight › Waist with that Sunday’s date, if you measured it.');
-return `<section class="ex p146" id="hkmd"><h2>Missing days</h2><p class="hint">The last 4 weeks: what usually comes in but didn’t, and what it affects.</p>${rows}<p class="hint" style="margin-top:.6rem"><b>How to fill them in</b></p><ul class="hint">${how.map(x=>`<li>${E(x)}</li>`).join('')}</ul></section>`}
+return `<section class="ex p146" id="hkmd"><h2>Missing days</h2><p class="hint">The last 4 weeks: what usually comes in but didn’t, and what it affects.</p>${rows}<p class="hint" style="margin-top:.6rem"><b>How to fill them in</b></p><ul class="hint">${how.map(x=>`<li>${E(x)}</li>`).join('')}</ul>${p147Un()}</section>`}
 // ===== Standalone: the Sync page (Apple Health, twice a day) =====
 const hkT=k=>S.hkt&&S.hkt.d===today()?S.hkt[k]||null:null;
 const hkMorn=()=>!!(hkT('m')||(wtList().some(x=>x.t===today())&&(hlList().find(x=>x.t===today())||{}).sl!=null));
@@ -4472,6 +4485,8 @@ function p110Act(a,b){if(!window.__SA)return false;
 if(a==='bnmore'){tapAnc=null;bnOpen=!bnOpen;render();return true}
 if(a==='ciall'){ciAll=!ciAll;render();return true}
 if(a==='rcwk'){const v=+b.dataset.v;if(isFinite(v)){rcWkSel=v;render()}return true}
+if(a==='p147c'){const t=b.dataset.t,ks=String(b.dataset.k||'').split(',').filter(k=>P146L[k]);if(/^\d{4}-\d{2}-\d{2}$/.test(t||'')&&ks.length){const m=Object.assign({},S.mdc&&typeof S.mdc==='object'?S.mdc:{});m[t]=[...new Set([...(Array.isArray(m[t])?m[t]:[]),...ks])];S.mdc=m;save();render();say(p146Day(t)+': cleared, so it isn’t flagged.')}return true}
+if(a==='p147u'){S.mdc={};S.mdx={};save();render();say('Cleared and Not logged days are flagged again.');return true}
 if(a==='p146x'){const t=b.dataset.t;if(/^\d{4}-\d{2}-\d{2}$/.test(t||'')){S.mdx=Object.assign({},S.mdx&&typeof S.mdx==='object'?S.mdx:{},{[t]:1});save();render();say(p146Day(t)+': marked as not logged, so it isn’t flagged.')}return true}
 return false}
 // p113: iPhone pulled the page back (and dropped the sticky tab bar for a frame) when it got shorter than the spot on
