@@ -53,7 +53,7 @@ export default function Protocol() {
 
           <h2 id="thresholds">5. Published pass thresholds</h2>
           <p>A lot passes only if <strong>every one</strong> of the {SAMPLES_PER_LOT} vials meets all three:</p>
-          <div className="not-prose my-4 overflow-hidden rounded-xl border border-line bg-card">
+          <div className="not-prose my-4 overflow-hidden surface rounded-xl border border-line bg-card">
             <table className="w-full text-left">
               <caption className="sr-only">Pass thresholds</caption>
               <thead className="bg-paper text-sm text-muted">

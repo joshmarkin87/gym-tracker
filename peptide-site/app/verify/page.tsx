@@ -18,7 +18,7 @@ export default function Verify() {
         results, the range, the status, and the lab&apos;s full unedited report.
       </PageHeader>
       <Container className="max-w-2xl py-10">
-        <div className="rounded-2xl border border-line bg-card p-5 sm:p-7">
+        <div className="surface rounded-2xl border border-line bg-card p-5 sm:p-7">
           <LotCheckForm codes={lots.map((l) => l.code)} />
         </div>
 

@@ -33,45 +33,45 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <Container className="py-8 sm:py-12">
-      <nav aria-label="Breadcrumb" className="text-sm text-muted">
+      <nav aria-label="Breadcrumb" className="font-mono text-xs uppercase tracking-[0.08em] text-muted">
         <Link href="/shop" className="hover:text-accent hover:underline">Shop</Link> <span aria-hidden="true">/</span>{" "}
         <span aria-current="page">{product.name} {product.nominalSize}</span>
       </nav>
 
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-[2.625rem]">
         {product.name} <span className="font-normal text-muted">{product.nominalSize}</span>
       </h1>
       <RuoNotice className="mt-4" />
 
-      <dl className="mt-6 grid gap-4 rounded-2xl border border-line bg-card p-5 text-sm sm:grid-cols-3">
+      <dl className="surface mt-6 grid gap-4 rounded-2xl border border-line bg-card p-5 text-sm sm:grid-cols-3 [&_dt]:mb-1">
         <div>
-          <dt className="text-muted">Nominal size (label claim)</dt>
+          <dt className="label">Nominal size (label claim)</dt>
           <dd className="font-semibold">{product.nominalSize} per vial</dd>
         </div>
         <div>
-          <dt className="text-muted">Form</dt>
+          <dt className="label">Form</dt>
           <dd className="font-semibold">{product.form}</dd>
         </div>
         <div>
-          <dt className="text-muted">Storage</dt>
+          <dt className="label">Storage</dt>
           <dd>{product.storage}</dd>
         </div>
       </dl>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_340px]">
-        <section aria-labelledby="current-lot">
+        <section aria-labelledby="current-lot" className="min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 id="current-lot" className="text-xl font-semibold">
+            <h2 id="current-lot" className="text-xl font-semibold tracking-tight">
               {current ? "The lot you would receive" : "Current lot"}
             </h2>
             {shown && <StatusBadge status={shown.status} />}
           </div>
           {shown ? (
-            <div className="mt-4 rounded-2xl border border-line bg-card p-5 sm:p-6">
+            <div className="surface mt-4 rounded-2xl border border-line bg-card p-4 sm:p-6">
               <div className="flex flex-col-reverse gap-5 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-sm text-muted">Lot code</p>
-                  <p className="lot-code text-2xl font-semibold">{shown.code}</p>
+                  <p className="label">Lot code</p>
+                  <p className="lot-code mt-1 text-2xl font-semibold">{shown.code}</p>
                   <p className="mt-1 text-sm text-muted">
                     Arrived {date(shown.arrivalDate)}
                     {shown.results && <> · Tested {date(shown.results.analysisDate)}</>}
@@ -87,13 +87,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             </div>
           ) : (
-            <p className="mt-4 rounded-2xl border border-line bg-card p-5 text-muted">
+            <p className="mt-4 surface rounded-2xl border border-line bg-card p-5 text-muted">
               No lot is on sale or in testing right now. The history of every past lot is below.
             </p>
           )}
         </section>
 
-        <aside aria-label="Purchase" className="lg:sticky lg:top-24 lg:self-start">
+        <aside aria-label="Purchase" className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           <BuyBox
             launchMode={LAUNCH_MODE}
             product={{ slug: product.slug, name: product.name, nominalSize: product.nominalSize, priceCad: product.priceCad }}
@@ -108,10 +108,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <section aria-labelledby="history" className="mt-14">
         <h2 id="history" className="text-xl font-semibold">Every lot of {product.name} {product.nominalSize}</h2>
         <p className="text-muted">Passed and failed. Nothing is removed. Select a lot for all results and its full report.</p>
-        <ul className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
+        <ul className="mt-4 divide-y divide-line overflow-hidden surface rounded-2xl border border-line bg-card">
           {lots.map((l) => (
             <li key={l.code}>
-              <Link href={`/lot/${l.code}`} className="flex flex-col gap-2 p-4 hover:bg-paper sm:flex-row sm:items-center sm:gap-4">
+              <Link href={`/lot/${l.code}`} className="flex flex-col gap-2 p-4 transition-colors hover:bg-paper sm:flex-row sm:items-center sm:gap-4">
                 <span className="lot-code w-36 shrink-0 font-semibold">{l.code}</span>
                 <span className="shrink-0"><StatusBadge status={l.status} /></span>
                 <span className={`num flex-1 text-sm ${isFailed(l) ? "font-semibold text-fail" : ""}`}>{lotSummaryText(l, product)}</span>

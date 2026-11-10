@@ -42,8 +42,8 @@ export default function Guarantee() {
         <h2 className="text-xl font-semibold">Exactly what to do</h2>
         <ol className="mt-5 space-y-4">
           {STEPS.map((s, i) => (
-            <li key={s.title} className="flex gap-4 rounded-2xl border border-line bg-card p-5">
-              <span className="num flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent font-semibold text-white">{i + 1}</span>
+            <li key={s.title} className="flex gap-4 surface rounded-2xl border border-line bg-card p-5">
+              <span className="num flex h-7 shrink-0 items-center justify-center rounded-md border border-accent/25 bg-accent-soft px-2 text-xs font-medium text-accent-dark">{String(i + 1).padStart(2, "0")}</span>
               <div>
                 <p className="font-semibold">{s.title}</p>
                 <p className="mt-1 text-muted">{s.body}</p>

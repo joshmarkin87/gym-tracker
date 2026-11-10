@@ -59,13 +59,13 @@ export function LotCheckForm({
             spellCheck={false}
             inputMode="text"
             aria-describedby={`${id}-help`}
-            className={`lot-code min-w-0 flex-1 rounded-lg border border-line bg-card px-4 uppercase placeholder:normal-case placeholder:text-muted/80 focus:border-accent ${
+            className={`lot-code min-w-0 flex-1 field rounded-lg border border-line bg-card px-4 uppercase placeholder:normal-case placeholder:text-muted/80 focus:border-accent ${
               big ? "py-3.5 text-lg" : "py-2.5 text-base"
             }`}
           />
           <button
             type="submit"
-            className={`inline-flex items-center gap-2 rounded-lg bg-accent font-semibold text-white hover:bg-accent-dark ${
+            className={`inline-flex items-center gap-2 btn-primary rounded-lg bg-accent font-semibold text-white hover:bg-accent-dark ${
               big ? "px-5 text-lg" : "px-4"
             }`}
           >

@@ -66,7 +66,7 @@ export function WaitlistForm({
           onChange={(e) => setEmail(e.target.value)}
           aria-invalid={state === "error"}
           aria-describedby={error ? `${id}-err` : undefined}
-          className="min-w-0 flex-1 rounded-lg border border-line bg-card px-4 py-3 focus:border-accent"
+          className="min-w-0 flex-1 field rounded-lg border border-line bg-card px-4 py-3 focus:border-accent"
           placeholder="you@example.com"
         />
         {/* Honeypot for bots; hidden from people and assistive tech. */}
@@ -74,7 +74,7 @@ export function WaitlistForm({
         <button
           type="submit"
           disabled={state === "sending"}
-          className="rounded-lg bg-accent px-5 py-3 font-semibold text-white hover:bg-accent-dark disabled:opacity-60"
+          className="btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-white hover:bg-accent-dark disabled:opacity-60"
         >
           {state === "sending" ? "Joining…" : "Join the waitlist"}
         </button>

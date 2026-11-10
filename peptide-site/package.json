@@ -10,6 +10,7 @@
     "demo-reports": "node scripts/make-demo-reports.mjs"
   },
   "dependencies": {
+    "geist": "^1.9.2",
     "next": "^16.4.6",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",

@@ -11,7 +11,7 @@ export default function NotFound() {
         If you followed a QR code or typed a lot code, check it below. Every lot we have ever received has a page, and
         is listed on <Link href="/record" className="text-accent underline">The Record</Link>.
       </p>
-      <div className="mt-8 rounded-2xl border border-line bg-card p-5 sm:p-7">
+      <div className="mt-8 surface rounded-2xl border border-line bg-card p-5 sm:p-7">
         <LotCheckForm codes={getLots().map((l) => l.code)} />
       </div>
     </Container>

@@ -23,7 +23,7 @@ export function BuyBox({ launchMode, product, saleLot, testingLot, priceLabel }:
   const [added, setAdded] = useState(false);
 
   return (
-    <div className="rounded-2xl border border-line bg-card p-5 sm:p-6">
+    <div className="surface rounded-2xl border border-line bg-card p-5 sm:p-6">
       <p className="num text-3xl font-semibold">{priceLabel}</p>
       <p className="text-sm text-muted">per vial, {product.nominalSize} label claim</p>
 
@@ -66,7 +66,7 @@ export function BuyBox({ launchMode, product, saleLot, testingLot, priceLabel }:
                   id={qtyId}
                   value={qty}
                   onChange={(e) => setQty(Number(e.target.value))}
-                  className="mt-1 rounded-lg border border-line bg-card px-3 py-3"
+                  className="mt-1 field rounded-lg border border-line bg-card px-3 py-3"
                 >
                   {Array.from({ length: MAX_QTY }, (_, i) => i + 1).map((n) => (
                     <option key={n} value={n}>
@@ -81,7 +81,7 @@ export function BuyBox({ launchMode, product, saleLot, testingLot, priceLabel }:
                   add({ slug: product.slug, name: product.name, nominalSize: product.nominalSize, lotCode: saleLot, unitPrice: product.priceCad }, qty);
                   setAdded(true);
                 }}
-                className="flex-1 rounded-lg bg-accent px-5 py-3 font-semibold text-white hover:bg-accent-dark"
+                className="flex-1 btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-white hover:bg-accent-dark"
               >
                 Add to cart
               </button>

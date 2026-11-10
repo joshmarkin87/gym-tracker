@@ -14,7 +14,7 @@ export default function CartPage() {
         {LAUNCH_MODE === "live" ? (
           <CartView ruo={RUO_NOTICE} />
         ) : (
-          <div className="rounded-2xl border border-line bg-card p-6">
+          <div className="surface rounded-2xl border border-line bg-card p-6">
             <p className="text-lg font-semibold">Ordering hasn&apos;t opened yet.</p>
             <p className="mt-2 text-muted">
               Every result is already public. To be told when you can order, join the waitlist for a lot from its{" "}

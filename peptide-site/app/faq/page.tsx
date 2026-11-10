@@ -117,7 +117,7 @@ export default function Faq() {
       <Container className="max-w-3xl py-10">
         <div className="space-y-3">
           {FAQ.map((f, i) => (
-            <details key={f.q} open={i < 2} className="group rounded-2xl border border-line bg-card">
+            <details key={f.q} open={i < 2} className="group surface rounded-2xl border border-line bg-card">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 text-lg font-semibold [&::-webkit-details-marker]:hidden">
                 {f.q}
                 <span aria-hidden="true" className="text-accent transition group-open:rotate-45">+</span>

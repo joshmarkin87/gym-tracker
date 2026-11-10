@@ -15,18 +15,18 @@ export default function Contact() {
       <Container className="grid max-w-5xl gap-8 py-10 lg:grid-cols-[1fr_300px]">
         <ContactForm responseCommitment={RESPONSE_COMMITMENT} />
         <aside className="space-y-5">
-          <div className="rounded-2xl border border-line bg-card p-5">
+          <div className="surface rounded-2xl border border-line bg-card p-5">
             <p className="font-semibold">Email</p>
             <a href={`mailto:${SUPPORT_EMAIL}`} className="text-accent underline underline-offset-2">{SUPPORT_EMAIL}</a>
           </div>
-          <div className="rounded-2xl border border-line bg-card p-5">
+          <div className="surface rounded-2xl border border-line bg-card p-5">
             <p className="font-semibold">Our reply commitment</p>
             <p className="mt-1 text-muted">
               Within one business day (Monday to Friday, excluding Canadian statutory holidays). If an answer takes longer
               to find, we&apos;ll tell you that within the day and say when you&apos;ll hear back.
             </p>
           </div>
-          <div className="rounded-2xl border border-line bg-card p-5">
+          <div className="surface rounded-2xl border border-line bg-card p-5">
             <p className="font-semibold">Where we are</p>
             <p className="mt-1 text-muted">We operate from {COUNTRY}.</p>
           </div>

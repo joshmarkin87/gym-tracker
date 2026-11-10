@@ -24,13 +24,13 @@ const cols = [
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t border-line bg-card">
+    <footer className="mt-20 border-t border-line bg-white">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-        <p className="rounded-lg border border-line bg-paper px-4 py-3 text-center font-semibold">{RUO_NOTICE}</p>
+        <p className="rounded-xl border border-ink/15 bg-paper px-4 py-3 text-center text-sm font-semibold">{RUO_NOTICE}</p>
         <div className="mt-8 grid gap-8 sm:grid-cols-3">
           <div>
-            <p className="text-lg font-semibold">{BRAND_NAME}</p>
-            <p className="text-muted">{BRAND_TAGLINE}</p>
+            <p className="text-lg font-semibold tracking-tight">{BRAND_NAME}</p>
+            <p className="font-mono text-sm text-accent">{BRAND_TAGLINE}</p>
             <p className="mt-3 text-sm text-muted">
               Based in {COUNTRY}.
               <br />
@@ -41,7 +41,7 @@ export function Footer() {
           </div>
           {cols.map((c) => (
             <nav key={c.title} aria-label={c.title}>
-              <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted">{c.title}</p>
+              <p className="label mb-3">{c.title}</p>
               <ul className="space-y-1.5">
                 {c.links.map((l) => (
                   <li key={l.href}>

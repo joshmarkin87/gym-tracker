@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Container, PageHeader } from "@/components/Container";
 import { RuoNotice } from "@/components/RuoNotice";
+import { StatusGlyph } from "@/components/StatusBadge";
 import { lotSummaryText } from "@/components/LotSummaryLine";
 import { getCurrentLot, getLotsForProduct, getProducts } from "@/lib/data";
 import { price } from "@/lib/format";
@@ -19,7 +20,7 @@ export default function Shop() {
       </PageHeader>
       <Container className="py-10">
         {LAUNCH_MODE === "waitlist" && (
-          <p className="mb-6 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-accent-dark">
+          <p className="mb-6 rounded-xl border border-accent/25 bg-gradient-to-br from-white to-accent-soft px-4 py-3 text-accent-dark">
             <strong>Ordering opens soon.</strong> Prices and results are live now. Join the waitlist for a lot from its
             product page and we&apos;ll email you once when you can order.
           </p>
@@ -30,25 +31,26 @@ export default function Shop() {
             const testing = getLotsForProduct(p.slug).find((l) => l.status === "In testing");
             return (
               <li key={p.slug}>
-                <article className="flex h-full flex-col rounded-2xl border border-line bg-card p-6">
-                  <h2 className="text-xl font-semibold">
+                <article className="flex h-full flex-col surface rounded-2xl border border-line bg-card p-6">
+                  <h2 className="text-xl font-semibold tracking-tight">
                     <Link href={`/products/${p.slug}`} className="hover:text-accent hover:underline">
                       {p.name} <span className="font-normal text-muted">{p.nominalSize}</span>
                     </Link>
                   </h2>
-                  <p className="num mt-1 text-lg">{price(p.priceCad)}</p>
-                  <div className="mt-4 flex-1 rounded-xl bg-paper p-4 text-sm">
+                  <p className="num mt-1 text-lg font-medium">{price(p.priceCad)}</p>
+                  <div className="mt-4 flex-1 rounded-xl border border-line bg-paper p-4 text-sm">
                     {lot ? (
                       <p className="num">
-                        <span className="font-semibold text-pass">✓ Lot </span>
+                        <span className="font-semibold text-pass"><StatusGlyph kind="pass" className="mr-1.5 h-3.5 w-3.5 align-[-0.15em]" />Lot </span>
                         <span className="lot-code font-semibold text-pass">{lot.code}</span>
                         <span className="font-semibold text-pass">:</span> {lotSummaryText(lot, p)}
                       </p>
                     ) : (
                       <p className="font-semibold text-wait">
+                        <span aria-hidden="true" className="led led-live mr-2.5 align-middle" />
                         In testing, not for sale.
                         {testing && (
-                          <span className="block font-normal text-ink">
+                          <span className="mt-1 block font-normal text-ink">
                             Lot <span className="lot-code">{testing.code}</span> is with the lab. Results will be
                             published here first.
                           </span>
@@ -59,7 +61,7 @@ export default function Shop() {
                   <Link
                     href={`/products/${p.slug}`}
                     className={`mt-5 rounded-lg px-5 py-3 text-center font-semibold ${
-                      lot ? "bg-accent text-white hover:bg-accent-dark" : "border border-line text-ink hover:bg-paper"
+                      lot ? "btn-primary bg-accent text-white hover:bg-accent-dark" : "border border-ink/15 bg-white text-ink shadow-[0_1px_2px_rgb(18_27_36/0.05)] hover:bg-paper"
                     }`}
                   >
                     {lot

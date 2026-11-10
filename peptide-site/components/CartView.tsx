@@ -10,7 +10,7 @@ export function CartView({ ruo, checkout = false }: { ruo: string; checkout?: bo
 
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border border-line bg-card p-6">
+      <div className="surface rounded-2xl border border-line bg-card p-6">
         <p className="text-lg font-semibold">Your cart is empty.</p>
         <Link href="/shop" className="mt-3 inline-block font-semibold text-accent underline">Go to the shop</Link>
         <p className="mt-6 font-semibold">{ruo}</p>
@@ -19,7 +19,7 @@ export function CartView({ ruo, checkout = false }: { ruo: string; checkout?: bo
   }
 
   return (
-    <div className="rounded-2xl border border-line bg-card">
+    <div className="surface rounded-2xl border border-line bg-card">
       <ul className="divide-y divide-line">
         {items.map((i) => (
           <li key={i.lotCode} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
@@ -34,7 +34,7 @@ export function CartView({ ruo, checkout = false }: { ruo: string; checkout?: bo
             ) : (
               <div className="flex items-center gap-3">
                 <label className="sr-only" htmlFor={`q-${i.lotCode}`}>Quantity for {i.name}</label>
-                <select id={`q-${i.lotCode}`} value={i.qty} onChange={(e) => setQty(i.lotCode, Number(e.target.value))} className="rounded-lg border border-line bg-card px-3 py-2">
+                <select id={`q-${i.lotCode}`} value={i.qty} onChange={(e) => setQty(i.lotCode, Number(e.target.value))} className="field rounded-lg border border-line bg-card px-3 py-2">
                   {Array.from({ length: MAX_QTY }, (_, n) => n + 1).map((n) => <option key={n}>{n}</option>)}
                 </select>
                 <button type="button" onClick={() => remove(i.lotCode)} className="text-sm font-semibold text-fail underline">
@@ -51,7 +51,7 @@ export function CartView({ ruo, checkout = false }: { ruo: string; checkout?: bo
         <p className="mt-1 text-sm text-muted">Shipping and taxes are calculated at checkout.</p>
         <p role="note" className="mt-4 rounded-lg border border-ink/15 bg-paper px-4 py-3 text-sm font-semibold">{ruo}</p>
         {!checkout && (
-          <Link href="/checkout" className="mt-4 block rounded-lg bg-accent px-5 py-3 text-center font-semibold text-white hover:bg-accent-dark">
+          <Link href="/checkout" className="mt-4 block btn-primary rounded-lg bg-accent px-5 py-3 text-center font-semibold text-white hover:bg-accent-dark">
             Continue to checkout
           </Link>
         )}

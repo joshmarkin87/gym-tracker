@@ -21,10 +21,10 @@ export default function Record() {
         arrive. Nothing on this page is ever edited away or removed.
       </PageHeader>
       <Container className="py-10">
-        <dl className="num grid grid-cols-3 gap-3 rounded-2xl border border-line bg-card p-5 text-center">
-          <div><dt className="text-sm text-muted">Lots received</dt><dd className="text-3xl font-semibold">{counts.total}</dd></div>
-          <div><dt className="text-sm text-muted">Results published</dt><dd className="text-3xl font-semibold">{counts.tested}</dd></div>
-          <div><dt className="text-sm text-muted">Failed</dt><dd className="text-3xl font-semibold text-fail">{counts.failed}</dd></div>
+        <dl className="readout surface grid grid-cols-3 rounded-2xl border border-line bg-card py-5 text-center">
+          <div><dt className="label px-1">Lots received</dt><dd className="num mt-1 text-4xl font-medium">{counts.total}</dd></div>
+          <div><dt className="label px-1">Results published</dt><dd className="num mt-1 text-4xl font-medium">{counts.tested}</dd></div>
+          <div><dt className="label px-1">Failed</dt><dd className="num mt-1 text-4xl font-medium text-fail">{counts.failed}</dd></div>
         </dl>
 
         <p className="mt-6 text-sm text-muted">
@@ -39,7 +39,7 @@ export default function Record() {
             const failed = isFailed(lot) || !!lot.recall;
             return (
               <li key={lot.code}>
-                <article className={`rounded-2xl border bg-card p-5 ${failed ? "border-fail/50" : "border-line"}`} aria-labelledby={`r-${lot.code}`}>
+                <article className={`surface rounded-2xl border bg-card p-5 sm:p-6 ${failed ? "border-fail/50" : "border-line"}`} aria-labelledby={`r-${lot.code}`}>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                     <h2 id={`r-${lot.code}`} className="lot-code text-lg font-semibold">
                       <Link href={`/lot/${lot.code}`} className="hover:text-accent hover:underline">{lot.code}</Link>
@@ -47,37 +47,37 @@ export default function Record() {
                     <StatusBadge status={lot.status} />
                     <span className="text-sm text-muted sm:ml-auto">Arrived {date(lot.arrivalDate)}</span>
                   </div>
-                  <p className="mt-1">{p.name} {p.nominalSize}</p>
+                  <p className="mt-1.5 font-medium">{p.name} <span className="font-normal text-muted">{p.nominalSize}</span></p>
 
                   {s && lot.results ? (
-                    <dl className="num mt-4 grid gap-4 text-sm sm:grid-cols-4">
-                      <div>
-                        <dt className="text-muted">Net content, vials A / B / C</dt>
-                        <dd className={`font-semibold ${failed ? "text-fail" : ""}`}>
+                    <dl className="mt-4 grid grid-cols-2 gap-4 border-t border-line pt-4 text-sm sm:grid-cols-[1.5fr_1fr_1fr_1.2fr] [&_dt]:mb-0.5">
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="label">Net content, vials A / B / C</dt>
+                        <dd className={`num font-semibold ${failed ? "text-fail" : ""}`}>
                           {lot.results.samples.map((x) => mg(x.netContentMg)).join(" / ")} mg
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-muted">Purity range</dt>
-                        <dd className="font-semibold">{range(s.purityMin, s.purityMax, pct)}%</dd>
+                        <dt className="label">Purity range</dt>
+                        <dd className="num font-semibold">{range(s.purityMin, s.purityMax, pct)}%</dd>
                       </div>
                       <div>
-                        <dt className="text-muted">Identity</dt>
+                        <dt className="label">Identity</dt>
                         <dd className="font-semibold">
                           {s.checks.every((c) => c.identityOk) ? "Confirmed, all 3" : `Confirmed in ${s.checks.filter((c) => c.identityOk).length} of 3`}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-muted">Tested</dt>
+                        <dt className="label">Tested</dt>
                         <dd className="font-semibold">{date(lot.results.analysisDate)}</dd>
                       </div>
                     </dl>
                   ) : (
-                    <p className="mt-3 text-sm text-wait">With the lab. Not for sale until results are published here.</p>
+                    <p className="mt-4 flex items-center gap-2.5 border-t border-line pt-4 text-sm text-wait"><span aria-hidden="true" className="led led-live" />With the lab. Not for sale until results are published here.</p>
                   )}
 
                   {lot.disposition && (
-                    <p className="mt-4 rounded-lg bg-fail-soft px-4 py-3 text-sm">
+                    <p className="mt-4 rounded-lg border border-fail/20 bg-fail-soft px-4 py-3 text-sm">
                       <strong className="text-fail">Disposition, {date(lot.disposition.date)}:</strong> {lot.disposition.note}
                     </p>
                   )}
