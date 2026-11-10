@@ -20,7 +20,7 @@ export default function Shop() {
       </PageHeader>
       <Container className="py-10">
         {LAUNCH_MODE === "waitlist" && (
-          <p className="mb-6 rounded-xl border border-accent/25 bg-gradient-to-br from-white to-accent-soft px-4 py-3 text-accent-dark">
+          <p className="mb-6 rounded-xl border border-accent/25 bg-gradient-to-br from-card to-accent-soft px-4 py-3 text-accent-dark">
             <strong>Ordering opens soon.</strong> Prices and results are live now. Join the waitlist for a lot from its
             product page and we&apos;ll email you once when you can order.
           </p>
@@ -61,7 +61,7 @@ export default function Shop() {
                   <Link
                     href={`/products/${p.slug}`}
                     className={`mt-5 rounded-lg px-5 py-3 text-center font-semibold ${
-                      lot ? "btn-primary bg-accent text-white hover:bg-accent-dark" : "border border-ink/15 bg-white text-ink shadow-[0_1px_2px_rgb(18_27_36/0.05)] hover:bg-paper"
+                      lot ? "btn-primary bg-accent text-on-accent hover:bg-accent-dark" : "border border-ink/15 bg-card text-ink shadow-[0_1px_2px_rgb(18_27_36/0.05)] hover:bg-paper"
                     }`}
                   >
                     {lot

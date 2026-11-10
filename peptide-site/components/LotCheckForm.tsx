@@ -65,7 +65,7 @@ export function LotCheckForm({
           />
           <button
             type="submit"
-            className={`inline-flex items-center gap-2 btn-primary rounded-lg bg-accent font-semibold text-white hover:bg-accent-dark ${
+            className={`inline-flex items-center gap-2 btn-primary rounded-lg bg-accent font-semibold text-on-accent hover:bg-accent-dark ${
               big ? "px-5 text-lg" : "px-4"
             }`}
           >

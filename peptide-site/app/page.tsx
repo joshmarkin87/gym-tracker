@@ -25,7 +25,7 @@ export default function Home() {
         <Container className="grid gap-10 py-12 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:gap-12">
           <div className="min-w-0">
             <p className="eyebrow mb-4">Research peptides, tested in public</p>
-            <h1 className="text-[2.375rem] font-semibold leading-[1.06] tracking-[-0.035em] sm:text-[3.375rem]">
+            <h1 className="headline text-[2.5rem] font-semibold leading-[1.04] tracking-[-0.04em] sm:text-[3.75rem]">
               Every lot tested. Every result published. Including the failures.
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted">
@@ -33,7 +33,7 @@ export default function Home() {
               &ldquo;third-party tested&rdquo;. We would rather show you: three vials from every lot, tested
               individually, every number published before a single vial is sold.
             </p>
-            <p className="mt-6 text-2xl font-semibold tracking-tight text-accent">{BRAND_TAGLINE}</p>
+            <p className="mt-6 tagline text-2xl font-semibold tracking-tight text-accent">{BRAND_TAGLINE}</p>
           </div>
           <div className="halo min-w-0">
           <div className="glass rounded-3xl border border-ink/10 p-5 sm:p-7">
@@ -78,7 +78,7 @@ export default function Home() {
         </Container>
       </section>
 
-      <section aria-labelledby="how" className="border-y border-line bg-white py-14">
+      <section aria-labelledby="how" className="border-y border-line bg-card py-14">
         <Container>
           <h2 id="how" className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">How it works</h2>
           <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

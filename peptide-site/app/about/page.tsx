@@ -36,7 +36,7 @@ export default function About() {
           </p>
         </div>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/record" className="btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-white hover:bg-accent-dark">See The Record</Link>
+          <Link href="/record" className="btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-on-accent hover:bg-accent-dark">See The Record</Link>
           <Link href="/protocol" className="field rounded-lg border border-line bg-card px-5 py-3 font-semibold hover:bg-paper">Read the protocol</Link>
         </div>
       </Container>

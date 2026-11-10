@@ -68,7 +68,7 @@ export function ContactForm({ responseCommitment }: { responseCommitment: string
       </div>
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
       {error && <p role="alert" className="text-fail">{error}</p>}
-      <button type="submit" disabled={state === "sending"} className="btn-primary rounded-lg bg-accent px-6 py-3 font-semibold text-white hover:bg-accent-dark disabled:opacity-60">
+      <button type="submit" disabled={state === "sending"} className="btn-primary rounded-lg bg-accent px-6 py-3 font-semibold text-on-accent hover:bg-accent-dark disabled:opacity-60">
         {state === "sending" ? "Sending…" : "Send message"}
       </button>
     </form>

@@ -24,7 +24,7 @@ const cols = [
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t border-line bg-white">
+    <footer className="mt-20 border-t border-line bg-card">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <p className="rounded-xl border border-ink/15 bg-paper px-4 py-3 text-center text-sm font-semibold">{RUO_NOTICE}</p>
         <div className="mt-8 grid gap-8 sm:grid-cols-3">

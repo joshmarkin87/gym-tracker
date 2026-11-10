@@ -81,7 +81,7 @@ export function BuyBox({ launchMode, product, saleLot, testingLot, priceLabel }:
                   add({ slug: product.slug, name: product.name, nominalSize: product.nominalSize, lotCode: saleLot, unitPrice: product.priceCad }, qty);
                   setAdded(true);
                 }}
-                className="flex-1 btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-white hover:bg-accent-dark"
+                className="flex-1 btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-on-accent hover:bg-accent-dark"
               >
                 Add to cart
               </button>

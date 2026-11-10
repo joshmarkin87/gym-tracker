@@ -29,7 +29,7 @@ function Verdict({ lot }: { lot: Lot }) {
     case "FAILED - Destroyed":
     case "FAILED - Returned":
       return (
-        <div className="rounded-2xl border border-fail/50 bg-gradient-to-b from-white to-fail-soft p-5 shadow-[0_14px_32px_-20px_rgb(180_35_24/0.5)] sm:p-6">
+        <div className="rounded-2xl border border-fail/50 bg-gradient-to-b from-card to-fail-soft p-5 shadow-[0_14px_32px_-20px_rgb(180_35_24/0.5)] sm:p-6">
           <p className="flex items-center gap-3 text-2xl font-bold tracking-tight text-fail"><StatusGlyph kind="fail" className="h-6 w-6" />FAILED</p>
           <p className="mt-2 text-lg">
             This lot did not meet our published specification.{" "}
@@ -45,7 +45,7 @@ function Verdict({ lot }: { lot: Lot }) {
       );
     case "In testing":
       return (
-        <div className="scan rounded-2xl border border-wait/40 bg-gradient-to-b from-white to-wait-soft p-5 shadow-[0_14px_32px_-20px_rgb(138_75_0/0.45)] sm:p-6">
+        <div className="scan rounded-2xl border border-wait/40 bg-gradient-to-b from-card to-wait-soft p-5 shadow-[0_14px_32px_-20px_rgb(138_75_0/0.45)] sm:p-6">
           <p className="flex items-center gap-3 text-2xl font-bold tracking-tight text-wait"><StatusGlyph kind="wait" className="h-6 w-6" />In testing</p>
           <p className="mt-2 text-lg">
             Three vials from this lot are with the lab. Nothing from it is sold until all three results are published on
@@ -56,7 +56,7 @@ function Verdict({ lot }: { lot: Lot }) {
     case "For sale":
     case "Sold out":
       return (
-        <div className="rounded-2xl border border-pass/40 bg-gradient-to-b from-white to-pass-soft p-5 shadow-[0_14px_32px_-20px_rgb(20_108_52/0.5)] sm:p-6">
+        <div className="rounded-2xl border border-pass/40 bg-gradient-to-b from-card to-pass-soft p-5 shadow-[0_14px_32px_-20px_rgb(20_108_52/0.5)] sm:p-6">
           <p className="flex items-center gap-3 text-2xl font-bold tracking-tight text-pass"><StatusGlyph kind="pass" className="h-6 w-6" />PASSED</p>
           <p className="mt-2 text-lg">
             All {SAMPLES_PER_LOT} vials tested met the published specification.{" "}
@@ -121,7 +121,7 @@ export default async function LotPage({ params }: { params: Promise<{ code: stri
       </section>
 
       {passed && (
-        <section className="mt-8 rounded-2xl border border-accent/25 bg-gradient-to-br from-white to-accent-soft p-5 sm:p-6">
+        <section className="mt-8 rounded-2xl border border-accent/25 bg-gradient-to-br from-card to-accent-soft p-5 sm:p-6">
           <h2 className="text-lg font-semibold text-accent-dark">Have a vial from this lot? Don&apos;t take our word for it.</h2>
           <p className="mt-1">
             Send it to an independent lab of your choice. If it materially fails the published specification, we refund

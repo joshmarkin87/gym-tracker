@@ -32,7 +32,7 @@ export function CheckoutStub() {
           will not use them in people or animals.
         </span>
       </label>
-      <button type="submit" disabled={!ack} className="w-full btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-white hover:bg-accent-dark disabled:opacity-50">
+      <button type="submit" disabled={!ack} className="w-full btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-on-accent hover:bg-accent-dark disabled:opacity-50">
         Continue to payment
       </button>
       <p aria-live="polite" className="text-sm">

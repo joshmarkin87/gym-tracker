@@ -29,9 +29,9 @@ export function StatusGlyph({ kind, className = "h-3.5 w-3.5" }: { kind: Kind; c
     <svg aria-hidden="true" viewBox="0 0 16 16" className={`inline-block shrink-0 ${className}`}>
       <circle cx="8" cy="8" r="8" fill="currentColor" />
       {kind === "pass" ? (
-        <path d="m4.6 8.3 2.3 2.3 4.5-4.9" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="m4.6 8.3 2.3 2.3 4.5-4.9" fill="none" stroke="var(--color-paper)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       ) : (
-        <path d="m5.2 5.2 5.6 5.6m0-5.6-5.6 5.6" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="m5.2 5.2 5.6 5.6m0-5.6-5.6 5.6" fill="none" stroke="var(--color-paper)" strokeWidth="1.8" strokeLinecap="round" />
       )}
     </svg>
   );

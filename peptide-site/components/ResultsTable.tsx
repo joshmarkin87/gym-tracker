@@ -129,7 +129,7 @@ export function ResultsTable({ lot, product }: { lot: Lot; product: Product }) {
         href={r.report}
         target="_blank"
         rel="noopener"
-        className="mt-5 inline-flex items-center gap-2 rounded-lg border border-accent/60 bg-white px-4 py-2.5 font-semibold text-accent shadow-[0_1px_2px_rgb(18_27_36/0.05)] transition-colors hover:border-accent hover:bg-accent-soft"
+        className="mt-5 inline-flex items-center gap-2 rounded-lg border border-accent/60 bg-card px-4 py-2.5 font-semibold text-accent shadow-[0_1px_2px_rgb(18_27_36/0.05)] transition-colors hover:border-accent hover:bg-accent-soft"
       >
         <DocIcon /> Read the full, unedited lab report (PDF)
       </a>

@@ -74,7 +74,7 @@ export function WaitlistForm({
         <button
           type="submit"
           disabled={state === "sending"}
-          className="btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-white hover:bg-accent-dark disabled:opacity-60"
+          className="btn-primary rounded-lg bg-accent px-5 py-3 font-semibold text-on-accent hover:bg-accent-dark disabled:opacity-60"
         >
           {state === "sending" ? "Joining…" : "Join the waitlist"}
         </button>

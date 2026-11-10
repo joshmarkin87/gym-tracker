@@ -51,7 +51,7 @@ export function CartView({ ruo, checkout = false }: { ruo: string; checkout?: bo
         <p className="mt-1 text-sm text-muted">Shipping and taxes are calculated at checkout.</p>
         <p role="note" className="mt-4 rounded-lg border border-ink/15 bg-paper px-4 py-3 text-sm font-semibold">{ruo}</p>
         {!checkout && (
-          <Link href="/checkout" className="mt-4 block btn-primary rounded-lg bg-accent px-5 py-3 text-center font-semibold text-white hover:bg-accent-dark">
+          <Link href="/checkout" className="mt-4 block btn-primary rounded-lg bg-accent px-5 py-3 text-center font-semibold text-on-accent hover:bg-accent-dark">
             Continue to checkout
           </Link>
         )}

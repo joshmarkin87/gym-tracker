@@ -86,7 +86,7 @@ export function CartCount() {
   const { count } = useCart();
   return (
     <span className="num">
-      Cart{count > 0 && <span className="ml-1 rounded-full bg-accent px-2 py-0.5 text-xs text-white">{count}</span>}
+      Cart{count > 0 && <span className="ml-1 rounded-full bg-accent px-2 py-0.5 text-xs text-on-accent">{count}</span>}
       <span className="sr-only">, {count} items</span>
     </span>
   );
