@@ -35,7 +35,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <Container className="py-8 sm:py-12">
-      <nav aria-label="Breadcrumb" className="font-mono text-xs uppercase tracking-[0.08em] text-muted">
+      <nav aria-label="Breadcrumb" className="text-xs uppercase tracking-[0.1em] text-muted">
         <Link href="/shop" className="hover:text-accent hover:underline">Shop</Link> <span aria-hidden="true">/</span>{" "}
         <span aria-current="page">{product.name} {product.nominalSize}</span>
       </nav>

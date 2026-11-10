@@ -1,7 +1,17 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import localFont from "next/font/local";
 import "./globals.css";
+
+const display = localFont({
+  src: [
+    { path: "./fonts/instrument-serif-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/instrument-serif-latin-400-italic.woff2", weight: "400", style: "italic" },
+  ],
+  variable: "--font-instrument-serif",
+  display: "swap",
+});
 import { BRAND_NAME, BRAND_TAGLINE, SITE_URL } from "@/site.config";
 import { Header, TopBar } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -16,11 +26,11 @@ export const metadata: Metadata = {
   icons: { icon: "/icon.svg" },
 };
 
-export const viewport: Viewport = { themeColor: "#04070c", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-CA" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en-CA" className={`${GeistSans.variable} ${GeistMono.variable} ${display.variable}`}>
       <body className="flex min-h-screen flex-col">
         <a
           href="#main"

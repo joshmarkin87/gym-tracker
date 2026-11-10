@@ -50,7 +50,7 @@ Everything lives in **`site.config.ts`**:
 Edit the value, save, and rebuild. The logo is a small inline SVG in `components/Header.tsx` (plus `public/icon.svg`).
 
 Colours, fonts and the shared visual styles (cards, status lights, the hero grid) are in `app/globals.css`. The
-typefaces are Geist Sans and Geist Mono, bundled from the `geist` npm package, so nothing is fetched from a font
+typefaces are Instrument Serif for headlines (bundled in `app/fonts`) and Geist Sans and Geist Mono from the `geist` npm package, so nothing is fetched from a font
 service at build time or in the browser.
 
 ## Flip LAUNCH_MODE (open the shop)

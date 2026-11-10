@@ -30,7 +30,7 @@ export function ResearchGate() {
   const gated = path === "/" || ["/shop", "/products", "/cart", "/checkout"].some((p) => path.startsWith(p));
   if (!open || !gated) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 p-4 backdrop-blur-sm sm:items-center" role="dialog" aria-modal="true" aria-labelledby="gate-title">
       <div className="glass w-full max-w-md rounded-3xl border p-6 sm:p-8">
         <p className="eyebrow">{BRAND_NAME}</p>
         <h2 id="gate-title" className="mt-3 text-2xl font-semibold tracking-tight">Research use only</h2>

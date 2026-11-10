@@ -30,7 +30,7 @@ export function Footer() {
         <div className="mt-8 grid gap-8 sm:grid-cols-3">
           <div>
             <p className="text-lg font-semibold tracking-tight">{BRAND_NAME}</p>
-            <p className="font-mono text-sm text-accent">{BRAND_TAGLINE}</p>
+            <p className="tagline !text-lg text-accent">{BRAND_TAGLINE}</p>
             <p className="mt-3 text-sm text-muted">
               Based in {COUNTRY}.
               <br />

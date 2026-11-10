@@ -36,7 +36,7 @@ export function RecordFilter({ counts }: { counts: Record<string, number> }) {
             type="button"
             aria-pressed={kind === k.id}
             onClick={() => setKind(k.id)}
-            className={`rounded-full border px-3.5 py-1.5 font-mono text-xs uppercase tracking-[0.06em] transition-colors ${
+            className={`rounded-full border px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.08em] transition-colors ${
               kind === k.id ? "border-accent bg-accent text-on-accent" : "border-line bg-card text-muted hover:border-accent/50 hover:text-ink"
             }`}
           >

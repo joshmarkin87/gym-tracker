@@ -15,21 +15,21 @@ export function Logo() {
   return (
     <Link href="/" className="group flex items-center gap-2.5" aria-label={`${BRAND_NAME}, home`}>
       {/* A door, slightly open. */}
-      <svg aria-hidden="true" viewBox="0 0 32 32" className="h-9 w-9 shrink-0 drop-shadow-[0_0_14px_rgb(46_230_208/0.55)]">
+      <svg aria-hidden="true" viewBox="0 0 32 32" className="h-9 w-9 shrink-0">
         <defs>
           <linearGradient id="logo-tile" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#5ff5e2" />
-            <stop offset="1" stopColor="#12b5a3" />
+            <stop offset="0" stopColor="#0f4c3a" />
+            <stop offset="1" stopColor="#0f4c3a" />
           </linearGradient>
         </defs>
-        <rect width="32" height="32" rx="8.5" fill="url(#logo-tile)" />
-        <rect x="9.75" y="6.75" width="12.5" height="18.5" rx="1.5" fill="none" stroke="#03201d" strokeOpacity="0.5" strokeWidth="1.5" />
-        <path d="M10.5 7.5 18 10v15l-7.5-1.2z" fill="#03201d" />
-        <circle cx="15.6" cy="17" r="1" fill="#5ff5e2" />
+        <rect width="32" height="32" rx="7" fill="url(#logo-tile)" />
+        <rect x="9.75" y="6.75" width="12.5" height="18.5" rx="1.5" fill="none" stroke="#fff" strokeOpacity="0.5" strokeWidth="1.5" />
+        <path d="M10.5 7.5 18 10v15l-7.5-1.2z" fill="#fff" />
+        <circle cx="15.6" cy="17" r="1" fill="#0f4c3a" />
       </svg>
       <span className="leading-none">
         <span className="block text-[1.0625rem] font-semibold tracking-tight">{BRAND_NAME}</span>
-        <span className="mt-1 hidden font-mono text-[0.6875rem] tracking-[0.04em] text-muted sm:block">{BRAND_TAGLINE}</span>
+        <span className="mt-1 hidden text-xs text-muted sm:block">{BRAND_TAGLINE}</span>
       </span>
     </Link>
   );
@@ -38,7 +38,7 @@ export function Logo() {
 export function TopBar() {
   return (
     <div className="border-b border-line bg-paper">
-      <ul className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-5 gap-y-0.5 px-4 py-1.5 font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-muted sm:px-6">
+      <ul className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-5 gap-y-0.5 px-4 py-1.5 text-[0.6875rem] uppercase tracking-[0.12em] text-muted sm:px-6">
         {TOP_BAR.map((t, i) => (
           <li key={t} className={`items-center gap-2 ${i === 0 ? "flex" : "hidden sm:flex"}`}>
             <span aria-hidden="true" className="led text-accent" />

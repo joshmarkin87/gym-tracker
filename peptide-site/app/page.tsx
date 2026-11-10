@@ -41,7 +41,7 @@ export default function Home() {
         <Container className="grid gap-10 py-12 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:gap-12">
           <div className="min-w-0">
             <p className="eyebrow mb-4">Research peptides, tested in public</p>
-            <h1 className="headline text-[2.5rem] font-semibold leading-[1.04] tracking-[-0.04em] sm:text-[3.75rem]">
+            <h1 className="headline text-[2.5rem] font-semibold   sm:text-[3.75rem]">
               Every lot tested. Every result published. Including the failures.
             </h1>
             <p className="mt-6 max-w-xl text-lg text-muted">
@@ -87,7 +87,7 @@ export default function Home() {
             <div><dt className="label">Lots received</dt><dd className="num stat mt-1 text-4xl font-medium sm:text-5xl">{counts.total}</dd></div>
             <div><dt className="label">Vials sent to the lab</dt><dd className="num stat mt-1 text-4xl font-medium sm:text-5xl">{counts.total * SAMPLES_PER_LOT}</dd></div>
             <div><dt className="label">Results published</dt><dd className="num stat mt-1 text-4xl font-medium sm:text-5xl">{counts.tested}</dd></div>
-            <div><dt className="label">Failed, never sold</dt><dd className="num mt-1 text-4xl font-medium text-fail sm:text-5xl">{counts.failed}</dd></div>
+            <div><dt className="label">Failed, never sold</dt><dd className="num stat mt-1 text-4xl font-medium text-fail sm:text-5xl">{counts.failed}</dd></div>
           </dl>
           <p className="mt-5 text-center text-sm text-muted">
             Other sellers show a perfect record. Ours shows the failures too, because a test that never fails anything
@@ -96,7 +96,7 @@ export default function Home() {
         </Container>
       </section>
 
-      <section aria-labelledby="latest" className="py-14">
+      <section aria-labelledby="latest" className="py-20">
         <Container>
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -117,7 +117,7 @@ export default function Home() {
         </Container>
       </section>
 
-      <section aria-labelledby="how" className="border-y border-line bg-card py-14">
+      <section aria-labelledby="how" className="border-y border-line bg-card py-20">
         <Container>
           <h2 id="how" className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">How it works</h2>
           <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -144,7 +144,7 @@ export default function Home() {
         </Container>
       </section>
 
-      <section aria-labelledby="compare" className="py-14">
+      <section aria-labelledby="compare" className="py-20">
         <Container>
           <h2 id="compare" className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">&ldquo;Third-party tested&rdquo; can mean almost anything</h2>
           <p className="mt-1 max-w-2xl text-muted">Here is what it usually means in this industry, next to what it means here.</p>
@@ -195,7 +195,7 @@ export default function Home() {
         </Container>
       </section>
 
-      <section aria-labelledby="home-faq" className="py-14">
+      <section aria-labelledby="home-faq" className="py-20">
         <Container className="max-w-3xl">
           <h2 id="home-faq" className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">The questions we&apos;d ask us</h2>
           <div className="mt-6 space-y-3">
@@ -219,7 +219,7 @@ export default function Home() {
         </Container>
       </section>
 
-      <section aria-labelledby="proof" className="border-t border-line py-14">
+      <section aria-labelledby="proof" className="border-t border-line py-20">
         <Container>
           <h2 id="proof" className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">The parts other sellers leave out</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">

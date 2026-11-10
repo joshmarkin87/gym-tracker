@@ -41,7 +41,7 @@ export function StatusBadge({ status, size = "sm" }: { status: LotStatus; size?:
   const s = styles[status];
   return (
     <span
-      className={`inline-flex items-center rounded-full border font-mono font-medium uppercase whitespace-nowrap ${tone[s.kind]} ${
+      className={`inline-flex items-center rounded-full border font-medium uppercase whitespace-nowrap ${tone[s.kind]} ${
         size === "lg" ? "gap-2 px-3.5 py-1.5 text-[0.8125rem] tracking-[0.06em]" : "gap-1.5 py-1 pl-1.5 pr-2.5 text-[0.6875rem] tracking-[0.05em]"
       }`}
     >
