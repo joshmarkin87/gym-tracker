@@ -11,6 +11,7 @@ import { RuoNotice } from "@/components/RuoNotice";
 import { lotSummaryText } from "@/components/LotSummaryLine";
 import { getCurrentLot, getLotsForProduct, getProduct, getProducts, isFailed } from "@/lib/data";
 import { date, price } from "@/lib/format";
+import { RESPONSE_COMMITMENT, SHIPPING } from "@/site.config";
 import { LAUNCH_MODE } from "@/site.config";
 
 export const dynamicParams = false;
@@ -111,6 +112,24 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             testingLot={testing?.code ?? null}
             priceLabel={price(product.priceCad)}
           />
+          <ul className="surface mt-4 space-y-3 rounded-2xl border border-line bg-card p-5 text-sm">
+            {[
+              current ? `You receive lot ${current.code}, the lot tested on this page` : null,
+              SHIPPING.shipsFrom ? `Ships from ${SHIPPING.shipsFrom}` : null,
+              SHIPPING.dispatch,
+              SHIPPING.canadaDelivery,
+              SHIPPING.freeShippingOver,
+              "Covered by the test-it-yourself guarantee",
+              RESPONSE_COMMITMENT,
+            ]
+              .filter(Boolean)
+              .map((t) => (
+                <li key={t} className="flex gap-2.5">
+                  <span aria-hidden="true" className="led mt-1.5 text-accent" />
+                  <span>{t}</span>
+                </li>
+              ))}
+          </ul>
           <RuoNotice className="mt-4" />
         </aside>
       </div>

@@ -48,3 +48,18 @@ export const SPEC = {
 /** Every lot: this many vials pulled for testing, this many sealed retains kept. */
 export const SAMPLES_PER_LOT = 3;
 export const RETAINS_PER_LOT = 2;
+
+/**
+ * Shipping facts shown on product pages and the home page. Set a line to null
+ * to hide it. Only state what is true: these are promises customers will hold
+ * you to.
+ */
+export const SHIPPING: { shipsFrom: string | null; dispatch: string | null; canadaDelivery: string | null; freeShippingOver: string | null } = {
+  shipsFrom: "Canada",
+  dispatch: null, // e.g. "Orders placed before 2 pm ET ship the same business day"
+  canadaDelivery: null, // e.g. "Typically 1 to 3 business days within Canada"
+  freeShippingOver: null, // e.g. "Free express shipping on orders over $300"
+};
+
+/** The slim bar across the very top of every page. */
+export const TOP_BAR = ["Every lot tested before sale", "Failed lots published, never sold", "Ships within Canada"];

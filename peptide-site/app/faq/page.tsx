@@ -105,6 +105,35 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     ),
   },
   {
+    q: "What if my order arrives damaged, or something is missing or wrong?",
+    a: (
+      <p>
+        Tell us within 14 days with your order number and a photo. We send the correct, undamaged items at no cost to
+        you. You don&apos;t need to send the damaged ones back.
+      </p>
+    ),
+  },
+  {
+    q: "Do you offer refunds?",
+    a: (
+      <p>
+        Yes. If we made a mistake, we fix it or refund you, your choice. If your own independent test of an unopened
+        vial materially fails our published specification, <Link href="/guarantee">the guarantee</Link> refunds your
+        whole order and repays your testing cost. Because these are research materials, we can&apos;t take back vials once
+        they have left our storage for any other reason.
+      </p>
+    ),
+  },
+  {
+    q: "I entered the wrong shipping address. What now?",
+    a: (
+      <p>
+        <Link href="/contact">Contact us</Link> straight away. If the order hasn&apos;t shipped, we correct it. If it has, we
+        can reship once the parcel is returned to us.
+      </p>
+    ),
+  },
+  {
     q: "How fast do you reply?",
     a: <p>{RESPONSE_COMMITMENT} A real person reads every message. <Link href="/contact">Contact us</Link>.</p>,
   },

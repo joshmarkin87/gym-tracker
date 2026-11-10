@@ -29,7 +29,7 @@ export default function Record() {
         </dl>
 
         <p className="mt-6 text-sm text-muted">
-          Newest arrival first. Net content shows all three vials, as tested.{" "}
+          Last updated {date(lots.map((l) => l.disposition?.date ?? l.results?.publishedDate ?? l.results?.analysisDate ?? l.arrivalDate).sort().at(-1)!)}. Newest arrival first. Net content shows all three vials, as tested.{" "}
           <a href="/record.csv" download className="text-accent underline">Download The Record as a spreadsheet (CSV)</a>.
         </p>
 

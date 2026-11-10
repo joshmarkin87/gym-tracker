@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BRAND_NAME, BRAND_TAGLINE, LAUNCH_MODE } from "@/site.config";
+import { BRAND_NAME, BRAND_TAGLINE, LAUNCH_MODE, TOP_BAR } from "@/site.config";
 import { CartCount } from "./cart";
 
 export const NAV = [
@@ -32,6 +32,21 @@ export function Logo() {
         <span className="mt-1 hidden font-mono text-[0.6875rem] tracking-[0.04em] text-muted sm:block">{BRAND_TAGLINE}</span>
       </span>
     </Link>
+  );
+}
+
+export function TopBar() {
+  return (
+    <div className="border-b border-line bg-paper">
+      <ul className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-5 gap-y-0.5 px-4 py-1.5 font-mono text-[0.6875rem] uppercase tracking-[0.1em] text-muted sm:px-6">
+        {TOP_BAR.map((t, i) => (
+          <li key={t} className={`items-center gap-2 ${i === 0 ? "flex" : "hidden sm:flex"}`}>
+            <span aria-hidden="true" className="led text-accent" />
+            {t}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

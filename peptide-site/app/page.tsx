@@ -195,7 +195,31 @@ export default function Home() {
         </Container>
       </section>
 
-      <section aria-labelledby="proof" className="py-14">
+      <section aria-labelledby="home-faq" className="py-14">
+        <Container className="max-w-3xl">
+          <h2 id="home-faq" className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">The questions we&apos;d ask us</h2>
+          <div className="mt-6 space-y-3">
+            {[
+              ["Do you test every vial?", "No. Nobody can: testing uses up the vial. We test three random vials from every lot, one by one, and publish all three results before anything is sold. Our guarantee covers the vial in your hands."],
+              ["What happens when a lot fails?", "It is never sold. It is destroyed or returned to the supplier, and its results stay on The Record for good."],
+              ["How do I know the certificate matches my vial?", "The lot code on your label is the address of its results page. Scan the QR code or type the code. If the code isn't on The Record, the vial may not be ours, and we want to hear about it."],
+            ].map(([q, a]) => (
+              <details key={q} className="surface group rounded-2xl border border-line bg-card">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 font-semibold tracking-tight [&::-webkit-details-marker]:hidden">
+                  {q}
+                  <span aria-hidden="true" className="text-xl text-accent transition-transform group-open:rotate-45 motion-reduce:transform-none">+</span>
+                </summary>
+                <p className="px-5 pb-5 text-muted">{a}</p>
+              </details>
+            ))}
+          </div>
+          <Link href="/faq" className="mt-5 inline-flex items-center gap-1 font-semibold text-accent hover:underline">
+            All questions and answers <ArrowIcon />
+          </Link>
+        </Container>
+      </section>
+
+      <section aria-labelledby="proof" className="border-t border-line py-14">
         <Container>
           <h2 id="proof" className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">The parts other sellers leave out</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">

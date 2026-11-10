@@ -3,7 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { BRAND_NAME, BRAND_TAGLINE, SITE_URL } from "@/site.config";
-import { Header } from "@/components/Header";
+import { Header, TopBar } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DemoBanner } from "@/components/DemoBanner";
 import { ResearchGate } from "@/components/ResearchGate";
@@ -31,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CartProvider>
           <ResearchGate />
           <DemoBanner />
+          <TopBar />
           <Header />
           <main id="main" className="flex-1">
             {children}

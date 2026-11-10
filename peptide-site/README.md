@@ -43,6 +43,8 @@ Everything lives in **`site.config.ts`**:
 | `LAUNCH_MODE` | `"waitlist"` | See below |
 | `SITE_URL` | `https://example.com` | Base of every QR code (`SITE_URL/lot/<code>`). **Set this before printing labels.** |
 | `SUPPORT_EMAIL`, `RESPONSE_COMMITMENT`, `COUNTRY` | | Contact page, footer, emails |
+| `SHIPPING` | ships from Canada; other lines hidden | Shipping facts on product pages. Fill in dispatch time, delivery estimate and free-shipping threshold when you have real ones; `null` hides a line. |
+| `TOP_BAR` | three short lines | The slim bar across the top of every page |
 | `SPEC` | 90–110 %, ≥ 98 % | Published pass thresholds. Every page and the build check read these. |
 
 Edit the value, save, and rebuild. The logo is a small inline SVG in `components/Header.tsx` (plus `public/icon.svg`).
@@ -200,6 +202,7 @@ proxy.ts                  /lot/ret-2026-001 → /lot/RET-2026-001
   That works on a server with a persistent disk. On serverless hosting (e.g. Vercel) the disk is temporary, so point
   `lib/store.ts` at a database or form service before launch.
 - **About page** text is a marked placeholder.
+- **Order-problem answers in the FAQ** (damaged or missing items replaced within 14 days, refunds, wrong address) are proposed policies. Have them reviewed.
 - **Guarantee terms** (12-month claim window, 5-business-day decision) are proposed defaults. Have them reviewed.
 - The data model supports one lab report per lot. Mystery re-buy and second-lab reports are described in the protocol.
   Showing them on lot pages is the natural next addition.
