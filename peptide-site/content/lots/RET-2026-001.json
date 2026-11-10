@@ -1,0 +1,21 @@
+{
+  "demo": true,
+  "code": "RET-2026-001",
+  "product": "retatrutide-10mg",
+  "arrivalDate": "2026-10-14",
+  "status": "For sale",
+  "samplesPulled": 3,
+  "retainVials": 2,
+  "results": {
+    "lab": "Independent third-party laboratory (DEMO name)",
+    "analysisDate": "2026-10-27",
+    "publishedDate": "2026-10-28",
+    "report": "/reports/RET-2026-001.pdf",
+    "methods": "Identity by LC-MS. Net content and purity by HPLC-UV.",
+    "samples": [
+      { "id": "A", "identity": "Detected", "netContentMg": 9.8, "purityPct": 99.1 },
+      { "id": "B", "identity": "Detected", "netContentMg": 10.1, "purityPct": 99.4 },
+      { "id": "C", "identity": "Detected", "netContentMg": 10.3, "purityPct": 99.2 }
+    ]
+  }
+}

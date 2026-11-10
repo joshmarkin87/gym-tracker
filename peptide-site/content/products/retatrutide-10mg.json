@@ -1,0 +1,11 @@
+{
+  "demo": true,
+  "slug": "retatrutide-10mg",
+  "name": "Retatrutide",
+  "nominalSize": "10 mg",
+  "nominalMg": 10,
+  "lotPrefix": "RET",
+  "form": "Lyophilized powder, single sealed vial",
+  "storage": "Store sealed vials at -20 °C, protected from light. Keep dry. Allow to reach room temperature before opening.",
+  "priceCad": 189
+}
