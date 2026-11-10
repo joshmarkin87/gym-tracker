@@ -4,6 +4,7 @@ import { Container, PageHeader } from "@/components/Container";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getLots, getProduct, isFailed, lotCounts, summarize } from "@/lib/data";
 import { date, mg, pct, range } from "@/lib/format";
+import { RecordFilter } from "@/components/RecordFilter";
 import { DocIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -32,13 +33,22 @@ export default function Record() {
           <a href="/record.csv" download className="text-accent underline">Download The Record as a spreadsheet (CSV)</a>.
         </p>
 
+        <RecordFilter
+          counts={{
+            all: lots.length,
+            fail: lots.filter((l) => isFailed(l) || !!l.recall).length,
+            wait: lots.filter((l) => l.status === "In testing").length,
+            pass: lots.filter((l) => (l.status === "For sale" || l.status === "Sold out") && !l.recall).length,
+          }}
+        />
+
         <ol className="mt-4 space-y-4">
           {lots.map((lot) => {
             const p = getProduct(lot.product)!;
             const s = summarize(lot, p);
             const failed = isFailed(lot) || !!lot.recall;
             return (
-              <li key={lot.code}>
+              <li key={lot.code} data-record-row data-kind={failed ? "fail" : lot.status === "In testing" ? "wait" : "pass"} data-text={`${lot.code} ${p.name} ${p.nominalSize}`.toLowerCase()}>
                 <article className={`surface rounded-2xl border bg-card p-5 sm:p-6 ${failed ? "border-fail/50" : "border-line"}`} aria-labelledby={`r-${lot.code}`}>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                     <h2 id={`r-${lot.code}`} className="lot-code text-lg font-semibold">

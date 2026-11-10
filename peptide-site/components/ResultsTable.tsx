@@ -3,6 +3,7 @@ import { summarize } from "@/lib/data";
 import { date, mg, pct, range } from "@/lib/format";
 import { SPEC } from "@/site.config";
 import Link from "next/link";
+import { SpecChart } from "./SpecChart";
 import { DocIcon } from "./icons";
 import { StatusGlyph } from "./StatusBadge";
 
@@ -43,6 +44,7 @@ export function ResultsTable({ lot, product }: { lot: Lot; product: Product }) {
 
   return (
     <div>
+      <div className="mb-4"><SpecChart lot={lot} product={product} /></div>
       <div className="surface overflow-x-auto rounded-xl border border-line bg-card">
         <table className="w-full text-left text-xs sm:text-base">
           <caption className="sr-only">
@@ -133,6 +135,11 @@ export function ResultsTable({ lot, product }: { lot: Lot; product: Product }) {
       >
         <DocIcon /> Read the full, unedited lab report (PDF)
       </a>
+      {r.verifyUrl && (
+        <a href={r.verifyUrl} target="_blank" rel="noopener noreferrer" className="ml-0 mt-3 block text-sm font-semibold text-accent underline underline-offset-2 sm:ml-4 sm:mt-0 sm:inline">
+          Check this report on the lab&apos;s own website
+        </a>
+      )}
     </div>
   );
 }

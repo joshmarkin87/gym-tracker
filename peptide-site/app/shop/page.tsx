@@ -6,6 +6,7 @@ import { StatusGlyph } from "@/components/StatusBadge";
 import { lotSummaryText } from "@/components/LotSummaryLine";
 import { getCurrentLot, getLotsForProduct, getProducts } from "@/lib/data";
 import { price } from "@/lib/format";
+import { Vial } from "@/components/Vial";
 import { LAUNCH_MODE } from "@/site.config";
 
 export const metadata: Metadata = { title: "Shop" };
@@ -32,6 +33,9 @@ export default function Shop() {
             return (
               <li key={p.slug}>
                 <article className="flex h-full flex-col surface rounded-2xl border border-line bg-card p-6">
+                  <div className="vial-stage -mx-6 -mt-6 mb-5 flex justify-center rounded-t-2xl border-b border-line py-6">
+                    <Vial name={p.name} size={p.nominalSize} lotCode={(lot ?? testing)?.code} prefix={p.lotPrefix} status={(lot ?? testing)?.status} className="h-52" />
+                  </div>
                   <h2 className="text-xl font-semibold tracking-tight">
                     <Link href={`/products/${p.slug}`} className="hover:text-accent hover:underline">
                       {p.name} <span className="font-normal text-muted">{p.nominalSize}</span>

@@ -3,8 +3,11 @@ import { Container } from "@/components/Container";
 import { LotCheckForm } from "@/components/LotCheckForm";
 import { LotCard } from "@/components/LotCard";
 import { ArrowIcon } from "@/components/icons";
+import { Vial } from "@/components/Vial";
+import { StatusGlyph } from "@/components/StatusBadge";
+import { mg, pct } from "@/lib/format";
 import { getLots, getProduct, lotCounts } from "@/lib/data";
-import { BRAND_TAGLINE, SPEC } from "@/site.config";
+import { BRAND_NAME, BRAND_TAGLINE, COUNTRY, RESPONSE_COMMITMENT, SAMPLES_PER_LOT, SPEC } from "@/site.config";
 
 const STEPS = [
   { title: "A batch arrives", body: "One shipment gets one lot code. It goes into quarantine, not onto the shelf." },
@@ -18,6 +21,19 @@ export default function Home() {
   const codes = getLots().map((l) => l.code);
   const recent = getLots().slice(0, 3);
   const counts = lotCounts();
+  const all = getLots();
+  const featured = all.find((l) => l.status === "For sale" && l.results);
+  const featuredProduct = featured ? getProduct(featured.product)! : null;
+
+  const COMPARE: [string, string, string][] = [
+    ["Vials tested per lot", "Often one, sometimes none", `${SAMPLES_PER_LOT}, each tested on its own`],
+    ["Who picks the samples", "The supplier, or nobody says", "We do, at random, from stock we sell"],
+    ["What gets published", "One certificate, reused for months", "Every vial's numbers for every lot"],
+    ["Failed lots", "Never mentioned", "Published and kept forever"],
+    ["When it goes on sale", "As soon as it arrives", "Only after results are public"],
+    ["If your own test disagrees", "No stated policy", "Refund, test cost repaid, public recall"],
+    ["Checking a vial", "Email the seller and wait", "Lot code or QR on every label"],
+  ];
 
   return (
     <>
@@ -38,22 +54,45 @@ export default function Home() {
           <div className="halo min-w-0">
           <div className="glass rounded-3xl border border-ink/10 p-5 sm:p-7">
             <LotCheckForm codes={codes} />
-            <dl className="readout mt-6 grid grid-cols-3 border-t border-line pt-5 text-center">
-              <div>
-                <dt className="label px-1">Lots received</dt>
-                <dd className="num mt-1 text-3xl font-medium">{counts.total}</dd>
-              </div>
-              <div>
-                <dt className="label px-1">Results published</dt>
-                <dd className="num mt-1 text-3xl font-medium">{counts.tested}</dd>
-              </div>
-              <div>
-                <dt className="label px-1">Failed, never sold</dt>
-                <dd className="num mt-1 text-3xl font-medium text-fail">{counts.failed}</dd>
-              </div>
-            </dl>
+            {featured && featuredProduct && (
+              <Link href={`/lot/${featured.code}`} className="group mt-6 flex items-center gap-4 border-t border-line pt-5">
+                <Vial name={featuredProduct.name} size={featuredProduct.nominalSize} lotCode={featured.code} prefix={featuredProduct.lotPrefix} className="vial-float h-40 sm:h-48" />
+                <div className="min-w-0 flex-1">
+                  <p className="label">Latest lot to pass</p>
+                  <p className="lot-code mt-1 text-lg font-semibold group-hover:text-accent">{featured.code}</p>
+                  <ul className="mt-3 space-y-1.5">
+                    {featured.results!.samples.map((v) => (
+                      <li key={v.id} className="num flex items-center gap-2 rounded-lg border border-line bg-paper px-2.5 py-1.5 text-sm">
+                        <span className="text-muted">Vial {v.id}</span>
+                        <span className="ml-auto font-semibold">{mg(v.netContentMg)} mg</span>
+                        <span className="text-muted">{pct(v.purityPct)}%</span>
+                        <span className="text-pass"><StatusGlyph kind="pass" /></span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-accent">
+                    Open the full report <ArrowIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" />
+                  </p>
+                </div>
+              </Link>
+            )}
           </div>
           </div>
+        </Container>
+      </section>
+
+      <section aria-label="The record so far" className="border-b border-line bg-card">
+        <Container className="py-8">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-6 text-center sm:grid-cols-4">
+            <div><dt className="label">Lots received</dt><dd className="num stat mt-1 text-4xl font-medium sm:text-5xl">{counts.total}</dd></div>
+            <div><dt className="label">Vials sent to the lab</dt><dd className="num stat mt-1 text-4xl font-medium sm:text-5xl">{counts.total * SAMPLES_PER_LOT}</dd></div>
+            <div><dt className="label">Results published</dt><dd className="num stat mt-1 text-4xl font-medium sm:text-5xl">{counts.tested}</dd></div>
+            <div><dt className="label">Failed, never sold</dt><dd className="num mt-1 text-4xl font-medium text-fail sm:text-5xl">{counts.failed}</dd></div>
+          </dl>
+          <p className="mt-5 text-center text-sm text-muted">
+            Other sellers show a perfect record. Ours shows the failures too, because a test that never fails anything
+            isn&apos;t testing much.
+          </p>
         </Container>
       </section>
 
@@ -102,6 +141,57 @@ export default function Home() {
               Read the full protocol
             </Link>
           </p>
+        </Container>
+      </section>
+
+      <section aria-labelledby="compare" className="py-14">
+        <Container>
+          <h2 id="compare" className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">&ldquo;Third-party tested&rdquo; can mean almost anything</h2>
+          <p className="mt-1 max-w-2xl text-muted">Here is what it usually means in this industry, next to what it means here.</p>
+          <div className="surface mt-6 overflow-hidden rounded-2xl border border-line bg-card">
+            <table className="w-full text-left text-sm sm:text-base">
+              <thead>
+                <tr className="border-b border-line">
+                  <th scope="col" className="label px-4 py-3 sm:px-6"><span className="sr-only">Question</span></th>
+                  <th scope="col" className="label px-3 py-3 sm:px-6">A typical seller</th>
+                  <th scope="col" className="label bg-accent-soft px-3 py-3 !text-accent sm:px-6">{BRAND_NAME}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARE.map(([q, them, us]) => (
+                  <tr key={q} className="border-b border-line last:border-0">
+                    <th scope="row" className="px-4 py-3.5 align-top font-semibold sm:px-6">{q}</th>
+                    <td className="px-3 py-3.5 align-top text-muted sm:px-6">{them}</td>
+                    <td className="bg-accent-soft px-3 py-3.5 align-top font-medium sm:px-6">
+                      <span className="mr-1.5 text-pass"><StatusGlyph kind="pass" className="h-3.5 w-3.5 align-[-0.12em]" /></span>
+                      {us}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Container>
+      </section>
+
+      <section aria-label="Service" className="border-y border-line bg-card py-10">
+        <Container>
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Ships from " + COUNTRY, "Packed and sent from inside the country. No customs surprises for Canadian labs."],
+              ["A reply in one business day", RESPONSE_COMMITMENT],
+              ["Lot code on every label", "With a QR code that opens that lot's results on your phone."],
+              ["Test it yourself", "If your own lab's result materially fails our spec, we refund you and pay for the test."],
+            ].map(([t, b]) => (
+              <li key={t} className="flex gap-3">
+                <span aria-hidden="true" className="led mt-2 text-accent" />
+                <div>
+                  <p className="font-semibold tracking-tight">{t}</p>
+                  <p className="mt-1 text-sm text-muted">{b}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </Container>
       </section>
 

@@ -5,6 +5,7 @@ import { Container } from "@/components/Container";
 import { ResultsTable } from "@/components/ResultsTable";
 import { StatusBadge, StatusGlyph } from "@/components/StatusBadge";
 import { LotQr } from "@/components/LotQr";
+import { Vial } from "@/components/Vial";
 import { RuoNotice } from "@/components/RuoNotice";
 import { getLot, getLots, getProduct, type Lot } from "@/lib/data";
 import { date } from "@/lib/format";
@@ -75,6 +76,8 @@ export default async function LotPage({ params }: { params: Promise<{ code: stri
 
   return (
     <Container className="max-w-3xl py-8 sm:py-12">
+      <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
       <p className="eyebrow">Lot verification</p>
       <h1 className="lot-code mt-3 text-[2rem] font-semibold leading-tight sm:text-5xl">{lot.code}</h1>
       <p className="mt-1 text-lg">
@@ -84,6 +87,9 @@ export default async function LotPage({ params }: { params: Promise<{ code: stri
       </p>
       <div className="mt-3">
         <StatusBadge status={lot.status} size="lg" />
+      </div>
+      </div>
+      <Vial name={product.name} size={product.nominalSize} lotCode={lot.code} prefix={product.lotPrefix} status={lot.status} className="h-36 sm:h-48" />
       </div>
 
       {lot.recall && (

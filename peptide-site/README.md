@@ -121,6 +121,7 @@ A lot's whole life lives in one file: `content/lots/<LOT-CODE>.json`.
     "publishedDate": "2026-12-13",
     "report": "/reports/RET-2026-002.pdf",
     "methods": "Identity by LC-MS. Net content and purity by HPLC-UV.",
+    "verifyUrl": "https://lab.example.com/report/12345",
     "samples": [
       { "id": "A", "identity": "Detected", "netContentMg": 9.9, "purityPct": 99.0 },
       { "id": "B", "identity": "Detected", "netContentMg": 10.2, "purityPct": 99.3 },
@@ -152,6 +153,7 @@ Rules:
 - Allowed statuses, spelled exactly: `In testing`, `For sale`, `Sold out`, `FAILED - Destroyed`, `FAILED - Returned`.
 - Dates are `YYYY-MM-DD`. Lot codes look like `RET-2026-001` and must start with the product's `lotPrefix`.
 - Always exactly 3 samples, never an average. `identity` is `"Detected"` or `"Not detected"`.
+- `verifyUrl` is optional: a link to the same report on the lab's own website, if the lab offers one.
 - **Never delete a lot file.** The Record promises that nothing is removed.
 
 ### The build is the safety check

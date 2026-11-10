@@ -42,6 +42,8 @@ export type Results = {
   publishedDate?: string;
   report: string;
   methods?: string;
+  /** Optional link to this report on the laboratory's own website, so it can be checked at the source. */
+  verifyUrl?: string;
   samples: Sample[];
 };
 

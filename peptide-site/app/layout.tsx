@@ -6,6 +6,7 @@ import { BRAND_NAME, BRAND_TAGLINE, SITE_URL } from "@/site.config";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DemoBanner } from "@/components/DemoBanner";
+import { ResearchGate } from "@/components/ResearchGate";
 import { CartProvider } from "@/components/cart";
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <CartProvider>
+          <ResearchGate />
           <DemoBanner />
           <Header />
           <main id="main" className="flex-1">

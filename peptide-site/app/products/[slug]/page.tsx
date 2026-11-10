@@ -6,6 +6,7 @@ import { ResultsTable } from "@/components/ResultsTable";
 import { StatusBadge } from "@/components/StatusBadge";
 import { LotQr } from "@/components/LotQr";
 import { BuyBox } from "@/components/BuyBox";
+import { Vial } from "@/components/Vial";
 import { RuoNotice } from "@/components/RuoNotice";
 import { lotSummaryText } from "@/components/LotSummaryLine";
 import { getCurrentLot, getLotsForProduct, getProduct, getProducts, isFailed } from "@/lib/data";
@@ -38,9 +39,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <span aria-current="page">{product.name} {product.nominalSize}</span>
       </nav>
 
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-[2.625rem]">
-        {product.name} <span className="font-normal text-muted">{product.nominalSize}</span>
-      </h1>
+      <div className="vial-stage mt-4 flex items-center gap-5 rounded-3xl border border-line p-5 sm:gap-8 sm:p-8">
+        <Vial name={product.name} size={product.nominalSize} lotCode={(current ?? testing)?.code} prefix={product.lotPrefix} status={(current ?? testing)?.status} className="h-44 sm:h-60" />
+        <div className="min-w-0">
+          <p className="eyebrow">Research material</p>
+          <h1 className="headline mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">
+            {product.name} <span className="font-normal">{product.nominalSize}</span>
+          </h1>
+          <p className="mt-3 max-w-md text-muted">
+            The label on your vial carries this lot code. Every number for that lot is below, vial by vial.
+          </p>
+        </div>
+      </div>
       <RuoNotice className="mt-4" />
 
       <dl className="surface mt-6 grid gap-4 rounded-2xl border border-line bg-card p-5 text-sm sm:grid-cols-3 [&_dt]:mb-1">
