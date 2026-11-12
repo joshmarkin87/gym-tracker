@@ -553,6 +553,7 @@ details.why>.hint:first-of-type,details.why>p:first-of-type{margin-top:.1rem}
 .p125 #dlcal .p45dlb{display:flex;flex-wrap:wrap;gap:0 1.1rem;margin-top:.15rem}.p125 #dlcal .p45dlb .edit{padding-left:0}
 .p146 .syr{align-items:flex-start}.p146 .syr .edit{min-height:44px;white-space:nowrap}.p146 ul{margin:.5rem 0 0;padding-left:1.1rem}.p146 li{margin:.25rem 0}
 .p146 .p147u{display:inline;min-height:0;padding:0}.mac.p147n{gap:.4rem;margin-top:.8rem}.p147n>div>small:first-child{display:block;margin-bottom:.2rem}
+#hksync .syr>span{white-space:normal;text-align:right;max-width:45%;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -669,7 +670,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='25d5407e4b',SFB=+'1794250890'||0,sfT0=Date.now();
+const SFV='838fe9c625',SFB=+'1794451281'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -3690,7 +3691,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'25d5407e4b',d:'Nov 9, 2026 at 2:01 PM',b:+'1794250890'||0};
+const APP_V={h:'838fe9c625',d:'Nov 11, 2026 at 9:41 PM',b:+'1794451281'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
@@ -3734,7 +3735,7 @@ return `<h1>Settings</h1><p class="sub">How the app looks, and your backup. Your
 +`<section class="ex" id="setac"><h2>App colour</h2><div class="chips">${ACS.map(([k,l,c])=>`<button class="chip acs" aria-pressed="${((pr.ac||'')===k)}" data-a="acset" data-v="${k}"><i style="background:${c}"></i>${l}</button>`).join('')}</div></section>`
 +setVer()
 +(window.__SA?p145cSet():'')
-+`<section class="ex" id="setsc"><h2>Gym Health shortcut</h2><p class="hint">The iPhone shortcut behind Run Gym Health on the Upload page. You only need these steps to set it up again, for example on a new phone.</p>${hkGuide()}<details class="mf"><summary>Fill in older food days (one time)</summary><ol class="hint"><li>In Shortcuts, open Gym Health and find the <b>Dietary Energy</b> step.</li><li>Change <b>last 3 days</b> to <b>last 28 days</b>.</li><li>Run it, come back here, tap Paste from Health on the Upload page and Save. About four weeks of days are listed.</li><li>Change the step back to <b>3 days</b>.</li></ol><p class="hint">Only that step needs changing. Your older days fill in with their calories, so the Food chip on the Goal card can work out your real maintenance straight away.</p></details></section>`
++p150Set()+`<section class="ex" id="setsc"><h2>Gym Health shortcut</h2><p class="hint">The iPhone shortcut behind Run Gym Health on the Upload page. You only need these steps to set it up again, for example on a new phone.</p>${hkGuide()}<details class="mf"><summary>Fill in older food days (one time)</summary><ol class="hint"><li>In Shortcuts, open Gym Health and find the <b>Dietary Energy</b> step.</li><li>Change <b>last 3 days</b> to <b>last 28 days</b>.</li><li>Run it, come back here, tap Paste from Health on the Upload page and Save. About four weeks of days are listed.</li><li>Change the step back to <b>3 days</b>.</li></ol><p class="hint">Only that step needs changing. Your older days fill in with their calories, so the Food chip on the Goal card can work out your real maintenance straight away.</p></details></section>`
 +(scans().length?'':`<section class="ex" id="about"><h2>About you</h2><p class="hint">Until you upload a DEXA scan, your calories are estimated from your height, age and weight. A scan fills these in from its report, and this section goes away.</p>${selH('pby','Birth year',BYO(),pr.by)}${selH('pht','Height',HTO,pr.ht)}</section>`)+bkSec()}
 function aboutSec(){
 if(!window.__SA)return '';
@@ -4041,6 +4042,64 @@ return null}
 const hkDay=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 // p146a: a nutrient at 0 on a day with 800+ calories is one Lose It didn't write (the shortcut's Fill Missing sends 0)
 function p146Z(x,k){return !!window.__SA&&x.c>=800&&Math.round(+x[k]||0)===0}
+// ===== p150a (standalone, both apps): automatic sync from Apple Health through a private GitHub file =====
+// hkNow: the time the shortcut ran, used by the reader in place of now (null: a paste, now)
+let hkNow=null,hkAuto=0,ghPS=null,ghBusy=false,ghMsg='';
+const p150D=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const GHK='gym-hk-gh';
+function ghCfg(){try{const c=JSON.parse(localStorage.getItem(GHK)||'null');return c&&typeof c==='object'&&c.k&&c.o&&c.r?c:null}catch(e){return null}}
+function ghPut(c){try{if(c)localStorage.setItem(GHK,JSON.stringify(c));else localStorage.removeItem(GHK)}catch(e){}}
+const ghPath=c=>String(c.p||'health.txt').split('/').map(encodeURIComponent).join('/');
+const ghUrl=(c,q)=>`https://api.github.com/repos/${encodeURIComponent(c.o)}/${encodeURIComponent(c.r)}/${q}`;
+const ghH=c=>({Authorization:'Bearer '+c.k,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'});
+function ghDec(b){const x=atob(String(b||'').replace(/\s/g,'')),u=new Uint8Array(x.length);for(let i=0;i<x.length;i++)u[i]=x.charCodeAt(i);return new TextDecoder().decode(u)}
+// when the shortcut wrote the file: a header time if it has one, else the file's last commit
+async function ghWhen(c,txt){const m=/GYM-HEALTH\s*\|\s*(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})/i.exec(txt);if(m){const d=new Date(m[1]+'T'+m[2]+':'+m[3]+':00');if(!isNaN(d))return d}
+try{const r=await fetch(ghUrl(c,'commits?path='+ghPath(c)+'&per_page=1'),{headers:ghH(c),cache:'no-store'});if(r.ok){const j=await r.json(),k=j&&j[0]&&j[0].commit,t=k&&(k.committer||k.author);if(t&&t.date){const d=new Date(t.date);if(!isNaN(d))return d}}}catch(e){}return null}
+const ghTm=ms=>{const d=new Date(ms),t=p150D(d),h=clk(d.getHours(),d.getMinutes(),1);return t===today()?h:t===addD(today(),-1)?'yesterday at '+h:dsh({t})+' at '+h};
+// what it last found ('ok', or the problem), for Settings and the Upload page
+function ghErrT(c){const f=E(c.p||'health.txt'),w=E(c.o+'/'+c.r);return c.e==='key'?'GitHub turned the key down: it may have expired, or it can’t reach this repository. Make a new key (step 3 of the setup) and connect again.':c.e==='file'?`There’s no ${f} in ${w}. Check the names, or do step 2 of the setup.`:c.e==='bad'?'The file on GitHub isn’t the Gym Health shortcut’s text. Check the last four steps of Gym Health Auto (step 4 of the setup).':c.e==='net'?'Couldn’t reach GitHub the last time it checked. It tries again when you open the app.':''}
+// a new version of the file: through the paste's reader, as of when the shortcut ran
+async function ghIngest(c,sha,txt){const w=await ghWhen(c,txt),now=new Date(),at=w&&w<=now?w:now;c.at=+at;
+if(!/^\s*["'“”]?GYM-HEALTH/i.test(txt.split(/\r\n|\r|\n/).filter(x=>x.trim())[0]||'')){c.e='bad';c.sha=sha;return}
+hkNow=at;hkAuto=1;ghPS=sha;try{hkTake(txt)}finally{hkNow=null;hkAuto=0}
+if(hkPend){say('New data from Apple Health needs a look: Health › Upload');return}
+// saved (hkSave took ghPS), or nothing to add yet (only today's food or steps before their time): done with this version
+if(ghPS){c.sha=ghPS;ghPS=null}if(hkErr){hkErr='';render()}}
+async function ghSync(why){const c=ghCfg();if(!window.__SA||!c||ghBusy||!initDone)return 'skip';if(why!=='now'&&Date.now()-(c.ck||0)<45e3)return 'skip';
+if(hkPend||(why!=='now'&&p143fBusy()))return 'skip';ghBusy=true;c.ck=Date.now();let st='ok';
+try{const r=await fetch(ghUrl(c,'contents/'+ghPath(c)),{headers:ghH(c),cache:'no-store'});
+if(r.status===401||r.status===403)st='key';else if(r.status===404)st='file';else if(!r.ok)st='net';
+else{const j=await r.json();c.ok=Date.now();c.e=null;if(j&&j.sha&&j.sha!==c.sha&&typeof j.content==='string')await ghIngest(c,j.sha,ghDec(j.content));if(c.e)st=c.e}}
+catch(e){st='net'}
+finally{ghBusy=false;if(st!=='ok')c.e=st;const n=ghCfg();if(n&&n.k===c.k){Object.assign(n,{ck:c.ck,ok:c.ok,e:c.e||null,at:c.at});if(c.sha)n.sha=c.sha;ghPut(n)}if(day==='set'||day==='hk')render()}
+return st}
+function ghCon(){const v=id=>{const x=document.getElementById(id);return x?x.value.trim():''};let o=v('gho').replace(/^@/,''),r=v('ghr'),p=v('ghp')||'health.txt',k=v('ghk');
+{const m=/github\.com\/([^/\s]+)\/([^/\s?#]+)/i.exec(r)||/^([^/\s]+)\/([^/\s]+)$/.exec(r);if(m){o=o||m[1];r=m[2]}}r=r.replace(/\.git$/,'');
+if(!o||!r||!k){ghMsg='Fill in your GitHub username, the repository and the key.';render();return}
+ghMsg='';ghPut({o,r,p,k});ghSync('now').then(st=>{render();say(st==='ok'?'Connected to GitHub. Your Apple Health data now comes in on its own.':'Couldn’t connect yet: see Settings › Automatic sync.')})}
+// Settings › Automatic sync
+function p150Set(){if(!window.__SA)return '';const c=ghCfg(),f=c?E(c.p||'health.txt'):'health.txt';
+const steps=`<details class="mf"><summary>Setup steps (once per phone, about 10 minutes)</summary><ol class="tl hint">
+<li>On github.com, tap <b>+</b> › <b>New repository</b>. Name it <b>gym-health</b>, choose <b>Private</b>, and create it.</li>
+<li>In the new repository, tap <b>Add file</b> › <b>Create new file</b>. Name it <b>health.txt</b>, type <b>GYM-HEALTH</b> as its only line, and commit it.</li>
+<li>Make a key: your photo › <b>Settings</b> › <b>Developer settings</b> › <b>Personal access tokens</b> › <b>Fine-grained tokens</b> › <b>Generate new token</b>. Name it <b>Gym Health</b>, give it the longest expiration it allows, set <b>Repository access</b> to <b>Only select repositories</b> › <b>gym-health</b>, and under <b>Permissions</b> set <b>Contents</b> to <b>Read and write</b>. Generate it and copy the key (it starts with <b>github_pat_</b>).</li>
+<li>In Shortcuts, long-press <b>Gym Health</b> › <b>Duplicate</b>, and rename the copy <b>Gym Health Auto</b>. In the copy, delete the last step, <b>Copy to Clipboard</b>, and add these four at the end:<br>· <b>Get Contents of URL</b>: <b>https://api.github.com/repos/<i>your username</i>/gym-health/contents/health.txt</b>. Under <b>Headers</b> add <b>Authorization</b> with <b>Bearer</b>, a space and your key, and <b>Accept</b> with <b>application/vnd.github+json</b>.<br>· <b>Get Dictionary Value</b>: <b>Value</b> for <b>sha</b> in <b>Contents of URL</b>.<br>· <b>Encode</b> (Base64 Encode) the <b>Text</b> that starts with GYM-HEALTH, with <b>Line Breaks</b> set to <b>None</b>.<br>· <b>Get Contents of URL</b> again: the same address and two headers, <b>Method PUT</b>, <b>Request Body JSON</b> with three Text fields: <b>message</b> = sync, <b>content</b> = <b>Base64 Encoded</b>, <b>sha</b> = <b>Dictionary Value</b>.</li>
+<li>In Shortcuts › <b>Automation</b>, tap <b>+</b> › <b>App</b> › <b>Lose It</b>, tick <b>Is Closed</b> (untick Is Opened), choose <b>Run Immediately</b>, then pick <b>Gym Health Auto</b>. It runs each time you leave Lose It (your iPhone shows a notification when it does).</li>
+<li>Run <b>Gym Health Auto</b> once from its tile and allow what it asks. Then fill in the boxes below and tap <b>Connect</b>.</li></ol></details>`;
+if(!c)return `<section class="ex" id="setgh"><h2>Automatic sync</h2><p class="hint">Bring in your Apple Health data on its own, with no Run or Paste. A copy of the Gym Health shortcut runs by itself whenever you leave Lose It and saves to a private file on your GitHub, and this app reads that file when you open it.</p>${steps}
+<label class="hint">GitHub username<input class="sel" id="gho" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
+<label class="hint">Repository<input class="sel" id="ghr" value="gym-health" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
+<label class="hint">File<input class="sel" id="ghp" value="health.txt" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
+<label class="hint">Key<input class="sel" id="ghk" type="password" autocomplete="off" spellcheck="false"></label>
+${ghMsg?`<p class="hint dn">${E(ghMsg)}</p>`:''}<button class="fin" data-a="ghcon">Connect</button><p class="hint">The key stays on this phone. It isn’t in your backups, and it’s only ever sent to GitHub.</p></section>`;
+const bad=ghErrT(c);
+return `<section class="ex" id="setgh"><h2>Automatic sync</h2><p class="hint${bad?' dn':''}">${bad||`On: reading ${f} in ${E(c.o+'/'+c.r)}. ${c.at?'Your shortcut last ran '+E(ghTm(c.at))+'.':'Waiting for the shortcut’s first run.'}${c.ok?' Checked '+E(ghTm(c.ok))+'.':''}`}</p>
+<div class="chips"><button class="chip" data-a="ghnow">Check now</button><button class="chip" data-a="ghoff">Turn off</button></div>${steps}<p class="hint">Run Gym Health and Paste from Health still work, if a sync ever doesn’t come through.</p></section>`}
+// the Upload page's line
+function p150Up(){if(!window.__SA)return '';const c=ghCfg();if(!c)return `<p class="hint" style="margin:0 0 .6rem">To skip Run and Paste: <button class="edit" data-a="ghset" style="padding:0">Settings › Automatic sync</button>.</p>`;
+const bad=ghErrT(c);return `<p class="hint${bad?' dn':''}" style="margin:0 0 .6rem">${bad||'Automatic sync is on'+(c.at?': your shortcut last ran '+E(ghTm(c.at)):'')+'.'} <button class="edit" data-a="ghnow" style="padding:0">Check now</button></p>`}
+if(window.__SA){document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')ghSync('show')});addEventListener('pageshow',e=>{if(e.persisted)ghSync('show')});setInterval(()=>{if(document.visibilityState==='visible')ghSync('tick')},6e4);{const w=setInterval(()=>{if(initDone){clearInterval(w);setTimeout(()=>ghSync('now'),300)}},500)}}
 function hkParse(txt){
 let lines=String(txt||'').replace(/\uFEFF/g,'').split(/\r\n|\r|\n/).map(x=>x.trim()).filter(Boolean);
 const h0=lines.findIndex(x=>/^["'“”]?GYM-HEALTH/i.test(x));
@@ -4052,7 +4111,7 @@ let k=HKC[a[0]]?a[0]:null;if(!k){const nm=hkKN(a[0]);for(const[re,kk]of HK_KIND)
 if(!k){unk++;continue}const s=hkDate(a[1]),e=hkDate(a[2])||s;if(!s||isNaN(s)){badDate++;continue}
 rows.push({k,s,e:e<s?s:e,v:a[3],u:(a[4]||'')+' '+a[3],l});seen[k]=(seen[k]||0)+1}
 if(!rows.length)return{err:badDate?'The dates from the shortcut aren’t in a format the app reads. In the shortcut’s Text step, set both dates to the custom format yyyy-MM-dd HH:mm.':'The shortcut didn’t find any Health data for the last 3 days. Check that it’s allowed to read Health (Settings › Health › Data Access & Devices › Shortcuts).'};
-const td=today(),late=new Date().getHours()>=evH(),D={},day=t=>D[t]||(D[t]={t}),WT={};
+const td=hkNow?p150D(hkNow):today(),late=(hkNow||new Date()).getHours()>=evH(),D={},day=t=>D[t]||(D[t]={t}),WT={};
 for(const r of rows){
 if(['st','c','p','cb','f','fb','na','sf','su'].includes(r.k)){let n=r.k==='st'&&/^\d{1,3}(\.\d{3})+$/.test(String(r.v).replace(/[\s\u00a0\u202f]/g,''))?+String(r.v).replace(/\D/g,''):hkNum(r.v);if(n==null||n<0)continue;if(r.k==='c'&&/kj/i.test(r.u)&&!/kcal/i.test(r.u))n/=4.184;if(r.k==='na'&&!/mg/i.test(r.u)&&/(^|[\s\d])g\b/i.test(r.u))n*=1000;if((r.k==='sf'||r.k==='su')&&/mg/i.test(r.u))n/=1000;const t=hkDay(r.s);day(t)[r.k]=(day(t)[r.k]||0)+n}
 else if(r.k==='wt'){let n=hkNum(r.v);if(n==null||n<=0)continue;if(/kg/i.test(r.u))n*=2.20462;if(n<66||n>600)continue;const t=hkDay(r.s);{const am=!window.__SA||r.s.getHours()>=4,c=WT[t];if(!c||(am&&!c.am)||(am===c.am&&r.s<c.s))WT[t]={s:r.s,w:n,am}}}}
@@ -4087,7 +4146,7 @@ for(const t of Object.keys(D).sort().reverse()){if(t>td||t<tMin)continue;const x
 if(okD('wt',t)&&x.wt!=null&&x.wt>=66&&x.wt<=600)o.wt=Math.round(x.wt*10)/10;if(o.wt!=null&&S.wtx&&S.wtx[t]!=null&&Math.abs(S.wtx[t]-o.wt)<.05)delete o.wt;
 if(okD('sl',t)&&x.sl!=null&&x.sl>=30&&x.sl<=960)o.sl=Math.round(x.sl);
 if(o.sl!=null&&x.hr!=null)o.hr=Math.round(x.hr);
-const day0=t===td&&!late,dayF=window.__SA?t===td&&!fdLate():day0;
+const day0=t===td&&!late,dayF=window.__SA?t===td&&!(hkNow?hkNow.getHours()>=FDH:fdLate()):day0;
 if(okD('st',t)&&x.st!=null&&x.st>0&&x.st<=100000){if(day0){skipT=true;skS=true}else o.st=Math.round(x.st)}
 if(okD('c',t)&&x.c!=null&&x.c>0&&x.c<15000){if(dayF){skipT=true;skF=true}else{o.c=Math.round(x.c);for(const k of['p','cb','f'])if(okD(k,t)&&x[k]!=null&&x[k]<2000&&!p146Z(x,k))o[k]=Math.round(x[k]);if(seen.fb&&okD('fb',t)&&(x.fb!=null||!window.__SA)){const fb=x.fb||0;if(fb<500&&!p146Z(x,'fb'))o.fb=Math.round(fb)}for(const[k,mx]of[['na',20000],['sf',400],['su',1000]])if(okD(k,t)&&x[k]!=null&&x[k]<mx&&!p146Z(x,k))o[k]=Math.round(x[k]);if(window.__SA)o.mx=['p','cb','f','na','sf','su'].filter(k=>o[k]==null&&okD(k,t))}}
 if(window.__SA){const z=hkxO()[t];if(z&&typeof z==='object'){if(o.sl!=null&&z.sl!=null&&Math.abs(z.sl-o.sl)<1){delete o.sl;delete o.hr}if(o.st!=null&&z.st!=null&&z.st===o.st)delete o.st;if(o.c!=null&&z.c!=null&&z.c===o.c)for(const k of['c','p','cb','f','fb','na','sf','su','mx'])delete o[k]}}
@@ -4137,7 +4196,7 @@ const clk=(h,m,full)=>(h%12||12)+(full||m?':'+String(m||0).padStart(2,'0'):'')+(
 function syncHtml(){const late=new Date().getHours()>=evH(),ms=hkMiss(),mm=ms.filter(x=>!x.ev).length,me=ms.filter(x=>x.ev).length,row=(lab,sub,ok,tm,wait,mi)=>`<div class="syr"><div><b>${lab}</b><small>${sub}</small></div><span class="${ok&&!mi?'ok':ok?'dn':''}">${ok&&mi?(tm?E(hkTm(tm))+', ':'')+mi+' missing':ok?'✓ '+(tm?E(hkTm(tm)):'Done'):wait?(typeof wait==='string'?wait:'After '+evT()):'Not yet'}</span></div>`;
 // an evening paste before 10 pm brought today's steps; today's food (when it usually comes in) is still to come
 const td0=today(),eT=hkT('e'),eP=!!eT&&eT<'22:00'&&!me&&!fdList().some(x=>x.t===td0&&x.c)&&fdList().some(x=>x.t>=addD(td0,-14)&&x.t<td0&&x.c!=null);
-return `<h1>Upload</h1><p class="sub">Everything that comes into the app comes in here. Apple Health: sync each morning, and again in the evening if you want today’s numbers the same day: steps after ${evT()}, food after 10 pm (when Lose It adds your snacks). DEXA and blood work: upload the report PDF when you get a new one.</p>${hkPend?hkConfirm():''}${suHk()}<section class="ex" id="hksync"><h2>Apple Health today</h2>${row('Morning','Weigh-in, last night’s sleep and resting heart rate, yesterday’s food and steps',hkMorn(),hkT('m'),window.__SA&&hkT('p')?E(hkTm(hkT('p')))+': no weigh-in or sleep yet':false,mm)}${row('Evening','Today’s steps after '+evT()+', food after 10 pm',eP?false:hkEve(),eT,eP?(fdLate()?'Not yet':'Food after 10 pm'):!late,me)}${ms.length&&(hkMorn()||hkEve())?`<p class="hint dn" style="margin:.5rem 0 0">Didn’t come in: ${E(hkMissTxt(ms,'and'))}.${E(hkMissHow(ms))}</p>`:''}</section>${hkCard()}${window.__SA?p146Sec():''}${upReports()}`}
+return `<h1>Upload</h1><p class="sub">Everything that comes into the app comes in here. Apple Health: sync each morning, and again in the evening if you want today’s numbers the same day: steps after ${evT()}, food after 10 pm (when Lose It adds your snacks). DEXA and blood work: upload the report PDF when you get a new one.</p>${hkPend?hkConfirm():''}${suHk()}<section class="ex" id="hksync"><h2>Apple Health today</h2>${p150Up()}${row('Morning','Weigh-in, last night’s sleep and resting heart rate, yesterday’s food and steps',hkMorn(),hkT('m'),window.__SA&&hkT('p')?E(hkTm(hkT('p')))+': no weigh-in or sleep yet':false,mm)}${row('Evening','Today’s steps after '+evT()+', food after 10 pm',eP?false:hkEve(),eT,eP?(fdLate()?'Not yet':'Food after 10 pm'):!late,me)}${ms.length&&(hkMorn()||hkEve())?`<p class="hint dn" style="margin:.5rem 0 0">Didn’t come in: ${E(hkMissTxt(ms,'and'))}.${E(hkMissHow(ms))}</p>`:''}</section>${hkCard()}${window.__SA?p146Sec():''}${upReports()}`}
 // the DEXA and lab uploaders, under Apple Health, each with the latest one on file
 function upReports(){const sc=scans(),c=sc[sc.length-1],L=(S.labs||[]).slice().sort((p,q)=>p.t<q.t?-1:p.t>q.t?1:0),l=L[L.length-1];
 const see=id=>'<button class="edit" data-a="tgo" data-d="p" data-id="'+id+'" style="padding:0">See it in Progress</button>',yr=t=>E(wtLong(t))+', '+t.slice(0,4);
@@ -4146,7 +4205,7 @@ return `<section class="ex" id="updx"><h2>DEXA scan</h2><p class="hint">${c?`Lat
 const upGo=w=>window.__SA?`<p class="hint">${w==='dx'?'New scan?':'New results?'} Upload the PDF on <button class="edit" data-a="tgo" data-d="hk" data-id="${w==='dx'?'updx':'uplb'}" style="padding:0">Health › Upload</button>.</p>`:'';
 // one line on Weight, Food, Sleep and Steps until today's sync is done
 const syncNote=()=>hkMorn()?'':`<p class="hint" style="margin:-.2rem 0 .8rem">${window.__SA&&hkT('p')?`Synced at ${E(hkTm(hkT('p')))}, but today’s weigh-in and last night’s sleep haven’t come in yet, so the morning sync isn’t done.`:'Not synced with Apple Health yet today.'} <button class="edit" data-a="tgo" data-d="hk" style="padding:0">Sync now</button></p>`;
-function hkTake(t){const r=hkParse(t);hkBox=false;if(r.err){hkErr=r.err;hkPend=null;render();return}hkPend=r;hkErr='';
+function hkTake(t){const r=hkParse(t);hkBox=false;if(r.err){hkErr=r.err;hkPend=null;render();return}hkPend=r;if(hkNow)r.asOf=+hkNow;hkErr='';
 // nothing unusual: save straight away. A weight jump, macros that don't add up, or a whole type missing gets the check screen
 const W0=new Map(wtList().map(x=>[x.t,x.w])),H0=new Map(hlList().map(x=>[x.t,x])),wch=r.days.some(d=>d.wt!=null&&W0.has(d.t)&&Math.abs(W0.get(d.t)-d.wt)>=.05)||r.days.some(d=>{const o=H0.get(d.t);return d.sl!=null&&o&&o.sl!=null&&d.sl<o.sl*.6});
 if(!wch&&!/class="hkw"/.test(hkConfirm())&&(window.__SA?hkNeed():['wt','sl','st','c']).every(k=>r.seen[k])){hkSave();return}
@@ -4219,7 +4278,7 @@ const liNow=()=>{const c=S.prof&&S.prof.li;if(c)return c;const f=fdList().filter
 const liOk=L=>{const c=liNow();return !!(c&&L&&L.cal!=null&&Math.abs(c.cal-L.cal)<=25&&!(c.prot&&L.prot!=null&&Math.abs(c.prot-L.prot)>5))};
 function liDone(){const L=Object.assign(planNums(),planT()||{});if(L.cal==null)return;S.prof=Object.assign({},S.prof||{},{li:{cal:L.cal,prot:L.prot,t:today()}});save();render();say('Noted: Lose It set to '+fmt(L.cal)+' cal and '+L.prot+' g protein')}
 function hkSave(){
-const p=hkPend;if(!p)return;
+const p=hkPend;if(!p)return;if(window.__SA&&ghPS&&!hkAuto){const c=ghCfg();if(c){c.sha=ghPS;ghPut(c)}ghPS=null}
 const W=new Map(wtList().map(x=>[x.t,x])),H=new Map(hlList().map(x=>[x.t,x])),F=new Map(fdList().map(x=>[x.t,x])),li=liNow(),fs=[];let nd=0;
 for(const d of p.days){
 if(d.wt!=null)W.set(d.t,{t:d.t,w:d.wt});
@@ -4228,8 +4287,8 @@ if(d.c!=null){const o=Object.assign({},F.get(d.t)||{t:d.t});o.c=d.c;for(const k 
 nd++}
 const srt=a=>a.sort((x,y)=>x.t<y.t?-1:x.t>y.t?1:0);
 S.wt=srt([...W.values()]);S.hl=srt([...H.values()]);S.food=fdPrune(srt([...F.values()]));
-hkPend=null;save();for(const t of fs){const e=S.food.find(x=>x.t===t);if(e)archF(e)}{const nw=new Date(),tm=String(nw.getHours()).padStart(2,'0')+':'+String(nw.getMinutes()).padStart(2,'0'),o=S.hkt&&S.hkt.d===today()?Object.assign({},S.hkt):{d:today()};const mo=!window.__SA||p.days.some(d=>d.t===today()&&(d.wt!=null||d.sl!=null))||!hkNeed().some(k=>k==='wt'||k==='sl');if(nw.getHours()>=evH()){o.e=tm;if(!o.m)o.m=tm}else if(mo)o.m=tm;else o.p=tm;if(p.hro)o.hro=p.hro;else delete o.hro;if(window.__SA)o.h=hkHist(nw.getHours()<evH()&&mo);S.hkt=o;save()}
-render();window.scrollTo(0,0);{const ms=hkMiss();say('Saved '+nd+' day'+(nd===1?'':'s')+' from Health'+(window.__SA&&S.hkt&&!S.hkt.m&&S.hkt.p?'. Today’s weigh-in and last night’s sleep aren’t in yet, so this isn’t your morning sync: sync again once they’re in Apple Health':'')+(ms.length?'. Didn’t come in: '+hkMissTxt(ms,'and'):window.__SA&&p.skF?'. Today’s food comes in after 10 pm.':''));if(window.__SA&&ms.length)hkClr()}}
+hkPend=null;save();for(const t of fs){const e=S.food.find(x=>x.t===t);if(e)archF(e)}if(!p.asOf||p150D(new Date(p.asOf))===today()){const nw=p.asOf?new Date(p.asOf):new Date(),tm=String(nw.getHours()).padStart(2,'0')+':'+String(nw.getMinutes()).padStart(2,'0'),o=S.hkt&&S.hkt.d===today()?Object.assign({},S.hkt):{d:today()};const mo=!window.__SA||p.days.some(d=>d.t===today()&&(d.wt!=null||d.sl!=null))||!hkNeed().some(k=>k==='wt'||k==='sl');if(nw.getHours()>=evH()){o.e=tm;if(!o.m)o.m=tm}else if(mo)o.m=tm;else o.p=tm;if(p.hro)o.hro=p.hro;else delete o.hro;if(window.__SA)o.h=hkHist(nw.getHours()<evH()&&mo);S.hkt=o;save()}
+render();if(!hkAuto)window.scrollTo(0,0);{const ms=hkMiss();say((hkAuto?'Synced ':'Saved ')+nd+' day'+(nd===1?'':'s')+' from '+(hkAuto?'Apple Health':'Health')+(!hkAuto&&window.__SA&&S.hkt&&!S.hkt.m&&S.hkt.p?'. Today’s weigh-in and last night’s sleep aren’t in yet, so this isn’t your morning sync: sync again once they’re in Apple Health':'')+(ms.length?'. Didn’t come in: '+hkMissTxt(ms,'and'):window.__SA&&p.skF?'. Today’s food comes in after 10 pm.':''));if(window.__SA&&ms.length)hkClr()}}
 
 // ===== Standalone: edit the program (add, swap, remove, reorder; sets, reps, rest) =====
 const PTY={big:{l:'Big lift',r:'6-10',rs:'2-3 min'},comp:{l:'Compound or machine',r:'8-12',rs:'2 min'},iso:{l:'Isolation',r:'10-15',rs:'60-90 sec'},small:{l:'Small muscle (raises, calves, hips)',r:'12-20',rs:'60-90 sec'},core:{l:'Core',r:'10-15',rs:'60-90 sec'}};
@@ -5956,9 +6015,9 @@ if(a==='msall'){msAll=!msAll;render();return}
 if(a==='lpm'){lpMode=b.dataset.v||'top';render();return}
 if(a==='clpaste'){clPaste(b.dataset.k);return}
 if(a==='clcp'){clCopy(b.dataset.k);return}
-if(a==='hkpaste'){hkPaste();return}
+if(a==='ghcon'){ghCon();return}if(a==='ghset'){day='set';render();const el=document.getElementById('setgh');if(el&&el.scrollIntoView)el.scrollIntoView();return}if(a==='ghnow'){ghSync('now').then(st=>say(st==='ok'?'Checked GitHub.':st==='skip'?'Save or cancel the Apple Health check on Upload first, then check again.':'Couldn’t check: see Settings › Automatic sync.'));return}if(a==='ghoff'){ghPut(null);render();say('Automatic sync is off on this phone, and its key is removed from it.');return}if(a==='hkpaste'){hkPaste();return}
 if(a==='hkok'){hkSave();return}
-if(a==='hkno'){hkPend=null;hkErr='';render();return}
+if(a==='hkno'){if(window.__SA&&ghPS){const c=ghCfg();if(c){c.sha=ghPS;ghPut(c)}ghPS=null}hkPend=null;hkErr='';render();return}
 if(a==='lidone'){liDone();return}
 if(a==='plcp'){copyFor('pl');return}
 if(a==='rvcp'){copyFor('rv');return}
