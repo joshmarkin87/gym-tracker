@@ -554,6 +554,8 @@ details.why>.hint:first-of-type,details.why>p:first-of-type{margin-top:.1rem}
 .p146 .syr{align-items:flex-start}.p146 .syr .edit{min-height:44px;white-space:nowrap}.p146 ul{margin:.5rem 0 0;padding-left:1.1rem}.p146 li{margin:.25rem 0}
 .p146 .p147u{display:inline;min-height:0;padding:0}.mac.p147n{gap:.4rem;margin-top:.8rem}.p147n>div>small:first-child{display:block;margin-bottom:.2rem}
 #hksync .syr>span{white-space:normal;text-align:right;max-width:45%;flex-shrink:0}
+.p151d .wu[disabled]{opacity:1;cursor:default}
+.p151dh{margin:.35rem 0 .15rem}
 </style>
 </head>
 <body>
@@ -670,7 +672,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='838fe9c625',SFB=+'1794451281'||0,sfT0=Date.now();
+const SFV='809f380ed1',SFB=+'1794517452'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1440,7 +1442,7 @@ p148DxH0=P8?P8.h0:null;p148DxH=P8?P8.h:null;const pr=P8?[P8.a,P8.x]:sc,cmp=cmpHt
 const list=sc.map((s,i)=>`<div class="srow"><span>${E(lab(s))}${window.__SA?`<br><button class="edit${armed==='s'+s.t?' warn':''}" data-a="sdel" data-t="${s.t}" style="padding:0" aria-label="Remove the ${E(lab(s))} scan">${armed==='s'+s.t?'Tap again to remove':'Remove'}</button>`:''}</span><b>${f1(bfp(s))}%</b><i class="hold">${i===0?'Baseline':'Logged'}</i></div>`).join('')+(window.__SA&&/^s\d{4}-/.test(String(armed||''))?'<p class="hint dn">Removing a scan takes it out of your history and your goal, and the plan stops using its resting metabolic rate and lean mass. Changes it already made to your plan stay.</p>':'');
 const form=`<div class="scanform"><input class="sel" id="sd" type="date" value="${today()}" aria-label="Scan date"><input class="sel" id="st" inputmode="decimal" placeholder="Total mass (lb)" aria-label="Total mass in pounds"><input class="sel" id="sf" inputmode="decimal" placeholder="Fat mass (lb)" aria-label="Fat mass in pounds"><input class="sel" id="sl" inputmode="decimal" placeholder="Lean mass (lb)" aria-label="Lean mass in pounds"></div><details class="mf"><summary>More from your report (optional)</summary><div class="scanform"><input class="sel" id="sv" inputmode="decimal" placeholder="Visceral fat (in²)" aria-label="Visceral fat area in square inches"><input class="sel" id="sr" inputmode="decimal" placeholder="RMR (cal/day)" aria-label="Resting metabolic rate"><input class="sel" id="sa" inputmode="decimal" placeholder="Arms lean (lb)" aria-label="Arms lean mass in pounds"><input class="sel" id="sg" inputmode="decimal" placeholder="Legs lean (lb)" aria-label="Legs lean mass in pounds"><input class="sel" id="sk" inputmode="decimal" placeholder="Trunk lean (lb)" aria-label="Trunk lean mass in pounds"><input class="sel" id="sm" inputmode="decimal" placeholder="Muscle index (RSMI)" aria-label="Relative skeletal muscle index"></div></details><button class="add" data-a="scan">Add scan</button>`;
 return `<section class="ex"><h2>Body composition</h2>${rcp}${ph.k==='cut'?`<p><b>${f1(cb)}%</b> body fat on ${E(lab(c))}. Goal: ${B}%.</p>${sc.length>1?`<div class="pb"><i style="width:${pg.toFixed(0)}%"></i></div>`:''}<p class="hint">${sc.length>1?`${pg.toFixed(0)}% of the way from ${f1(bb)}% to ${B}%. `:'Your starting scan. '}${(t=>window.__SA?(p148Gx=t,''):t)(`At the lean mass from that scan, ${B}% is about ${Math.round(goalW0(B))} lb, which meant about ${Math.round(lose)} lb of fat to lose as of that scan.${Math.round(goalW0(B))-Math.round(gw)>=1?` Counting the lean mass your last two scans show you’re losing, your goal weight is about ${Math.round(gw)} lb.`:''} The Weight tab tracks what’s left.`)}</p>`:ph.k==='bulk'?`<p><b>${f1(cb)}%</b> body fat on ${E(lab(c))}. Bulk ceiling: ${B}%.</p><div class="pb"><i style="width:${Math.min(100,cb/B*100).toFixed(0)}%"></i></div><p class="hint">${cb<B?f1(B-cb)+' points under your '+B+'% ceiling':'Over your '+B+'% ceiling, so it may be time to end the '+phN('bulk')}.${window.__SA?'':` Rescan around ${E(lab({t:addD(c.t,84)}))} to check.`}</p>`:FEM&&ph.k==='recomp'?`<p><b>${f1(cb)}%</b> body fat on ${E(lab(c))}.</p>`:`<p><b>${f1(cb)}%</b> body fat on ${E(lab(c))}.</p>${window.__SA?'':`<p class="hint">Maintaining. Rescan around ${E(lab({t:addD(c.t,84)}))} to check your body composition is holding.</p>`}`}${window.__SA?p148Bc(extra,c,ph,P8,cmp,fc,list,sc,upT):extra+cmp+fc+'<p class="hint"><b>Scans</b></p>'+list+upGo('dx')+'<p class="hint">'+upT+'</p>'}</section>`}
-const LGF=[['Iron and blood',['Hemoglobin','Hematocrit','Red blood cells','White blood cells','Platelets','MCV','MCH','MCHC','RDW','MPV','Neutrophils','Lymphocytes','Monocytes','Eosinophils','Basophils','Immature granulocytes','Ferritin','Iron','TIBC','Transferrin saturation','Vitamin B12','Folate','Vitamin D']],['Thyroid',['TSH','Free T4','Free T3','TPO antibodies','Thyroglobulin','Thyroglobulin antibodies']],['Metabolic and heart',['Fasting glucose','Glucose (random)','HbA1c','Fasting insulin','Total cholesterol','LDL','HDL','Non-HDL cholesterol','Cholesterol/HDL ratio','Triglycerides','ApoB','Lp(a)','hs-CRP','Uric acid']],['Liver',['ALT','AST','ALP','GGT','Total bilirubin','Albumin','Total protein']],['Kidney and electrolytes',['Creatinine','eGFR','Cystatin C','Urea (BUN)','Sodium','Potassium','Chloride','Bicarbonate','Anion gap','Calcium','Magnesium']],['Hormones',['Estradiol','Progesterone','LH','FSH','Prolactin','Total testosterone','SHBG']],['Immune and inflammation',['CRP','ESR','ANA','ANA titre','ENA screen','Anti-RNP','Anti-RNP 68','Anti-Sm','Anti-Sm/RNP','Anti-SSA','Anti-SSA 52','Anti-SSA 60','Anti-SSB','Anti-Scl-70','Anti-Jo-1','Anti-CENP-B','Anti-chromatin','Anti-ribosomal P','Anti-dsDNA','Complement C3','Complement C4','Rheumatoid factor','Alpha-1 globulin','Alpha-2 globulin','Beta-1 globulin','Beta-2 globulin','Gamma globulin']],['Muscle',['CK']]];
+const LGF=[['Iron and blood',['Hemoglobin','Hematocrit','Red blood cells','White blood cells','Platelets','MCV','MCH','MCHC','RDW','MPV','Neutrophils','Lymphocytes','Monocytes','Eosinophils','Basophils','Immature granulocytes','Ferritin','Iron','TIBC','Transferrin saturation','Vitamin B12','Folate','Vitamin D']],['Thyroid',['TSH','Free T4','Free T3','TPO antibodies','Thyroglobulin','Thyroglobulin antibodies']],['Metabolic and heart',['Fasting glucose','Glucose (random)','HbA1c','Fasting insulin','Total cholesterol','LDL','HDL','Non-HDL cholesterol','Cholesterol/HDL ratio','Triglycerides','ApoB','Lp(a)','hs-CRP','Uric acid']],['Liver',['ALT','AST','ALP','GGT','Total bilirubin','Albumin','Total protein']],['Kidney and electrolytes',['Creatinine','eGFR','Cystatin C','Urea (BUN)','Sodium','Potassium','Chloride','Bicarbonate','Anion gap','Calcium','Magnesium']],['Hormones',['Estradiol','Progesterone','LH','FSH','Prolactin','Total testosterone','Free testosterone','SHBG']],['Immune and inflammation',['CRP','ESR','ANA','ANA titre','ENA screen','Anti-RNP','Anti-RNP 68','Anti-Sm','Anti-Sm/RNP','Anti-SSA','Anti-SSA 52','Anti-SSA 60','Anti-SSB','Anti-Scl-70','Anti-Jo-1','Anti-CENP-B','Anti-chromatin','Anti-ribosomal P','Anti-dsDNA','Complement C3','Complement C4','Rheumatoid factor','Alpha-1 globulin','Alpha-2 globulin','Beta-1 globulin','Beta-2 globulin','Gamma globulin']],['Muscle',['CK']]];
 const TGF=[
 ['Iron and blood',[['CBC',''],['Ferritin',''],['Iron',''],['TIBC',''],['Transferrin saturation',''],['Vitamin B12',''],['Folate',''],['Vitamin D','']],'Heavy periods are the most common cause of low iron in women, and low iron shows up as fatigue and weaker training. Ferritin alone can mislead because inflammation raises it, so iron, TIBC and transferrin saturation give the clearer picture.'],
 ['Thyroid',[['TSH',''],['Free T4',''],['Free T3','']],'Thyroid problems are more common in women and can look like low energy or stalled fat loss. Long periods of eating less can push T3 low.'],
@@ -1448,7 +1450,7 @@ const TGF=[
 ['Liver',[['ALT',''],['AST',''],['ALP',''],['GGT',''],['Total bilirubin',''],['CK','creatine kinase, a muscle marker: if ALT or AST are high, it shows whether training is the cause']],'ALT and AST should improve as you lose fat; ALP, GGT and bilirubin round out the liver picture.'],
 ['Kidney and electrolytes',[['Creatinine',''],['eGFR','the lab usually calculates it from creatinine'],['Cystatin C','kidney function without the bias from muscle or creatine that creatinine has'],['Urea (BUN)',''],['Sodium',''],['Potassium',''],['Chloride',''],['Calcium',''],['Magnesium','']],'Drinking less or losing fluid can shift your electrolytes, which can show up as cramps, dizziness or fatigue. Creatinine runs higher with more muscle or creatine, so creatinine-based eGFR can read low; cystatin C checks it.'],
 ['Hormones, only if your doctor orders them',[['Estradiol',''],['Progesterone',''],['LH',''],['FSH',''],['Prolactin',''],['Total testosterone',''],['SHBG','']],'Where you are in your cycle changes these a lot, so note your cycle day for the draw. Hormonal birth control changes them too.']];
-const LG=FEM?LGF:[['Hormones',['Total testosterone','Free testosterone','SHBG','LH','FSH','Estradiol','Prolactin','Albumin']],['Thyroid',['TSH','Free T4','Free T3']],['Metabolic',['Fasting glucose','HbA1c','Fasting insulin','Uric acid']],['Lipids and heart risk',['Total cholesterol','LDL','HDL','Triglycerides','ApoB','Lp(a)','hs-CRP']],['Liver',['ALT','AST','ALP','GGT','Total bilirubin']],['Kidney',['Creatinine','eGFR','Cystatin C','Urea (BUN)']],['Muscle',['CK']],['Electrolytes and minerals',['Sodium','Potassium','Chloride','Calcium','Magnesium']],['Blood count',['Hemoglobin','Hematocrit','Red blood cells','White blood cells','Platelets','MCV']],['Iron and vitamins',['Ferritin','Iron','TIBC','Transferrin saturation','Vitamin D','Vitamin B12','Folate']]];
+const LG=FEM?LGF:[['Hormones',['Total testosterone','Free testosterone','SHBG','LH','FSH','Estradiol','Prolactin','Albumin']],['Thyroid',['TSH','Free T4','Free T3']],['Metabolic',['Fasting glucose','Glucose (random)','HbA1c','Fasting insulin','Uric acid']],['Lipids and heart risk',['Total cholesterol','LDL','HDL','Non-HDL cholesterol','Cholesterol/HDL ratio','Triglycerides','ApoB','Lp(a)','hs-CRP','CRP']],['Liver',['ALT','AST','ALP','GGT','Total bilirubin','Total protein']],['Kidney',['Creatinine','eGFR','Cystatin C','Urea (BUN)']],['Muscle',['CK']],['Electrolytes and minerals',['Sodium','Potassium','Chloride','Bicarbonate','Anion gap','Calcium','Magnesium']],['Blood count',['Hemoglobin','Hematocrit','Red blood cells','White blood cells','Platelets','MCV','MCH','MCHC','RDW','MPV','Neutrophils','Lymphocytes','Monocytes','Eosinophils','Basophils','Immature granulocytes']],['Iron and vitamins',['Ferritin','Iron','TIBC','Transferrin saturation','Vitamin D','Vitamin B12','Folate']]];
 const TG=FEM?TGF:[
 ['Hormones',[['Total testosterone',''],['Free testosterone','ask for total T, SHBG and albumin so the lab can calculate it'],['SHBG',''],['Albumin',''],['LH',''],['FSH',''],['Estradiol',''],['Prolactin','']],'LH, FSH and prolactin together help show whether any low T comes from diet-related suppression or something else. Free T is more reliable when the lab calculates it from total T, SHBG and albumin than when it measures it directly.'],
 ['Thyroid',[['TSH',''],['Free T4',''],['Free T3','']],'Long periods of energy restriction can push T3 and testosterone low, so free T3 shows how suppressed you are.'],
@@ -1481,7 +1483,19 @@ const LBN={'WBC':'White blood cells','White Blood Cells':'White blood cells','RB
 'Bilirubin Total':'Total bilirubin','Total Bilirubin':'Total bilirubin','Alkaline Phosphatase':'ALP','Gamma Glutamyl Transferase':'GGT','Alanine Aminotransferase':'ALT','Aspartate Aminotransferase':'AST','Albumin':'Albumin','Protein Total':'Total protein','Total Protein':'Total protein','Creatine Kinase':'CK',
 'Triglyceride':'Triglycerides','Triglycerides':'Triglycerides','Cholesterol':'Total cholesterol','HDL Cholesterol':'HDL','Non HDL Cholesterol':'Non-HDL cholesterol','LDL Cholesterol':'LDL','Cholesterol/HDL Ratio':'Cholesterol/HDL ratio','Apolipoprotein B':'ApoB','Lipoprotein (a)':'Lp(a)','Lipoprotein(a)':'Lp(a)',
 'Thyroid Stimulating Hormone':'TSH','TSH':'TSH','Free T4':'Free T4','Free T3':'Free T3','Testosterone':'Total testosterone','Testosterone Total':'Total testosterone','Free Testosterone':'Free testosterone','Sex Hormone Binding Globulin':'SHBG','SHBG':'SHBG','Estradiol':'Estradiol','Progesterone':'Progesterone','LH':'LH','Luteinizing Hormone':'LH','FSH':'FSH','Follicle Stimulating Hormone':'FSH','Prolactin':'Prolactin',
-'Ferritin':'Ferritin','Iron':'Iron','TIBC':'TIBC','Iron Binding Capacity':'TIBC','Transferrin Saturation':'Transferrin saturation','Vitamin B12':'Vitamin B12','Folate':'Folate','25-Hydroxy Vitamin D':'Vitamin D','Vitamin D 25-Hydroxy':'Vitamin D','25 Hydroxy Vitamin D':'Vitamin D','C-Reactive Protein':'CRP','CRP':'CRP','C-Reactive Protein High Sensitivity':'hs-CRP','hs-CRP':'hs-CRP'};
+'Ferritin':'Ferritin','Iron':'Iron','TIBC':'TIBC','Iron Binding Capacity':'TIBC','Transferrin Saturation':'Transferrin saturation','Vitamin B12':'Vitamin B12','Folate':'Folate','25-Hydroxy Vitamin D':'Vitamin D','Vitamin D 25-Hydroxy':'Vitamin D','25 Hydroxy Vitamin D':'Vitamin D','C-Reactive Protein':'CRP','CRP':'CRP','C-Reactive Protein High Sensitivity':'hs-CRP','hs-CRP':'hs-CRP','Testosterone Free':'Free testosterone','Testosterone Free Calculated':'Free testosterone','Free Testosterone Calculated':'Free testosterone','Calculated Free Testosterone':'Free testosterone','CRP High Sensitivity':'hs-CRP','High Sensitivity CRP':'hs-CRP','High Sensitivity C-Reactive Protein':'hs-CRP','Cystatin C':'Cystatin C'};
+// ===== p151c (standalone, both apps): a report's name -> the app's name, ignoring case, spaces and punctuation
+const lbNorm=x=>String(x==null?'':x).toLowerCase().replace(/[^a-z0-9]/g,'');let lbIx=null;
+function lbKey(nm){if(Object.prototype.hasOwnProperty.call(LBN,nm))return LBN[nm];
+if(!lbIx){lbIx=new Map();const add=(k,v)=>{const q=lbNorm(k);if(q&&!lbIx.has(q))lbIx.set(q,v)};for(const k in LBN)add(k,LBN[k]);for(const k in LBN)add(LBN[k],LBN[k]);for(const g of LG.concat(LGF))for(const v of g[1])add(v,v)}
+return lbIx.get(lbNorm(nm))||nm}
+// results saved under a report's own name move to the app's (where that draw doesn't have the app's name already)
+function lbNameFix(){if(!window.__SA||!Array.isArray(S.labs))return 0;let ch=0;const has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+for(const l of S.labs){if(!l||!l.v||typeof l.v!=='object'||Array.isArray(l.v))continue;let c=0;const nv={};
+for(const k of Object.keys(l.v)){const q=lbKey(k);if(q!==k&&!has(l.v,q)&&!has(nv,q)){nv[q]=l.v[k];c++}else if(!has(nv,k))nv[k]=l.v[k]}
+if(c){l.v=nv;ch+=c}}return ch}
+// a CRP result under 1 mg/L shows the low-risk range, what hs-CRP is for
+const p151Lo=v=>!!(window.__SA&&v&&typeof v.n==='number'&&(v.n<1||(v.n<=1&&v.op==='<')));
 const LB_SKIP=/^(Hours After Meal|Nucleated RBC)$/i;
 function lbParse(L){
 const MON=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
@@ -1506,7 +1520,7 @@ const m=rs.match(NUMR);if(!m&&!/^(negative|positive|not detected|detected|reacti
 const o={};if(m){o.n=+m[2];if(m[1])o.op=op(m[1])}else o.n=rs;
 let k=i+1;if(c[k]&&REF.test(c[k])){ref(o,c[k]);k++}if(c[k]&&!/^#\d+$/.test(c[k]))o.u=c[k];
 if(fl)o.f=/^(HI|H|HH|AH)$/.test(fl)?'H':/^(LO|L|LL|AL)$/.test(fl)?'L':'A';
-const key=LBN[nm]||nm;if(!v[key]){v[key]=o;last=o}}
+const key=window.__SA?lbKey(nm):(LBN[nm]||nm);if(!v[key]){v[key]=o;last=o}}
 const n=Object.keys(v).length;
 if(n<3)return{err:'Couldn’t find the results table in this report.'};
 return{labs:{t,v},n,sex:sexOf((T.match(/\bSex:\s+([A-Za-z]+)/)||[])[1])}}
@@ -1600,9 +1614,9 @@ return h+`<svg class="ch" viewBox="0 0 300 120" width="100%" role="img" aria-lab
 // ---- blood work: each recommended test marked tested (its latest date) or not tested yet. A panel counts when any of
 // its markers is in; a random glucose isn't a fasting one and a standard CRP isn't hs-CRP (said beside them, not counted)
 const TGK={'Lipid panel':['Total cholesterol','LDL','HDL','Triglycerides'],CBC:['Hemoglobin','Hematocrit','Red blood cells','White blood cells','Platelets','MCV']},TGC={'Fasting glucose':['Glucose (random)',t=>`your ${t} glucose was a random one, not fasting`],'hs-CRP':['CRP',t=>`your ${t} CRP was the standard test, not high-sensitivity`]};
-const tgLast=ks=>{let t=null;for(const l of Array.isArray(S.labs)?S.labs:[])if(l&&typeof l.t==='string'&&l.v&&typeof l.v==='object'&&ks.some(k=>l.v[k])&&(!t||l.t>t))t=l.t;return t};
+const tgLast=ks=>{let t=null;for(const l of Array.isArray(S.labs)?S.labs:[])if(l&&typeof l.t==='string'&&l.v&&typeof l.v==='object'&&ks.some(k=>l.v[k]||(k==='hs-CRP'&&p151Lo(l.v.CRP)))&&(!t||l.t>t))t=l.t;return t};
 const tgD=t=>new Date(t+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
-function tgSt(n){const t=tgLast(TGK[n]||[n]);if(t)return ` <span class="tgy">· tested ${E(tgD(t))}</span>`;const c=TGC[n],ct=c&&tgLast([c[0]]);return ` ${window.__SA?'· <span class="tgn">not tested yet</span>':'<span class="tgn">· not tested yet</span>'}${ct?` (${E(c[1](tgD(ct)))})`:''}`}
+function tgSt(n){const t=tgLast(TGK[n]||[n]);if(t)return ` <span class="tgy">· tested ${E(tgD(t))}${n==='hs-CRP'&&!(S.labs||[]).some(l=>l&&l.t===t&&l.v&&l.v['hs-CRP'])?' (the lab’s CRP, under 1 mg/L: the low-risk range)':''}</span>`;const c=TGC[n],ct=c&&tgLast([c[0]]);return ` ${window.__SA?'· <span class="tgn">not tested yet</span>':'<span class="tgn">· not tested yet</span>'}${ct?` (${E(c[1](tgD(ct)))})`:''}`}
 function tgGap(){const all=TG.flatMap(g=>g[1].map(i=>i[0])),no=all.filter(n=>!tgLast(TGK[n]||[n]));return{n:all.length,no}}
 function tgTop(){const g=tgGap();return g.no.length?`<p class="hint"><b>Not tested yet (${g.no.length} of ${g.n}):</b> ${g.no.map(E).join(', ')}. Take this list to your doctor and ask which are worth adding to your next blood test.</p>`:'<p class="hint up">Every test on this list has a result in your blood work.</p>'}
 // p143k: the Goal card's verdict word: Working (on plan) in the app colour; off plan a watch-out (the check-in already
@@ -3262,7 +3276,7 @@ const rcAs=o=>{const m=Object.assign({},o||{});if(window.__SA)for(const n in m){
 let svId=null,svEd=false;
 // standalone: what was saved for this day (finished today, or just now), above next time's workout
 function svBox(TD){if(!window.__SA)return '';const td=today(),e=S.log.find(x=>x.id===svId&&x.day===day)||S.log.find(x=>x.day===day&&x.t===td);if(!e||!e.s)return '';
-const nx=Object.keys(e.s).length,ns=Object.values(e.s).reduce((a,r)=>a+(Array.isArray(r)?r.filter(q=>q[2]!=='w').length:0),0),pr=p143Pr(e),ed=svEd&&e.id===svId;
+const nx=Object.keys(e.s).length,ns=Object.values(e.s).reduce((a,r)=>a+(Array.isArray(r)?r.filter(q=>q[2]!=='w').length:0),0)+p151dCnt(e),pr=p143Pr(e),ed=svEd&&e.id===svId;
 return `<p class="hint up svd">✓ ${ed?'Changes saved to your '+E(wtLong(e.t))+' workout':'Saved'+(e.t===td?' today':' for '+E(wtLong(e.t)))}: ${nx} exercise${nx===1?'':'s'}, ${ns} set${ns===1?'':'s'}${pr?', '+pr+' new best'+(pr>1?'s':''):''}.${TD==='next time'?' Below is next time’s workout.':''} <button class="edit" data-a="edit" data-i="${S.log.indexOf(e)}" style="padding:0">Edit</button></p>`}
 function fillGoal(n){const x=P[day]&&P[day].x.find(q=>nm(q)===n);if(!x)return;const g=goalRows(x,n);if(!g)return;const r=rows(n);let c=0;g.forEach((v,i)=>{if(rowEmpty(r[i])){r[i]=v.slice();c++}});const nx=fTD()==='next time';if(c&&!nx)dStamp(D());if(c){vPin(n);if(window.__SA)swMark(n)}lastEx=n;openEx=null;say(c?'Filled '+c+' set'+(c>1?'s':'')+' with '+(nx?'next time’s goal, ready for your next '+FN[day]+' workout':'today’s goal')+'. Change any that come out different.':'Those sets already have numbers')}
 const exDone=n=>{const r=(D().s||{})[n];return !!(r&&r.length&&r.every(a=>String(a[1]==null?'':a[1]).trim()!==''))};
@@ -3272,7 +3286,8 @@ const exLf=()=>{const d=S.draft[day];return d&&Array.isArray(d.lf)?d.lf:[]};
 const exFold=n=>(exDone(n)||(!!window.__SA&&exSome(n)&&exLf().includes(n)))&&!(window.__SA&&sqAny(n));
 function exMate(a){const xs=(P[day]&&P[day].x)||[],i=xs.findIndex(q=>nm(q)===a);if(i<0)return null;const x=xs[i];if(x.ss===1&&xs[i+1]&&xs[i+1].ss===2)return nm(xs[i+1]);if(x.ss===2&&xs[i-1]&&xs[i-1].ss===1)return nm(xs[i-1]);return null}
 function exLeave(p,n){const d=S.draft[day];if(!window.__SA||!d)return;const l=exLf().filter(x=>x!==n);if(p&&n&&p!==n){const m=exMate(p);if(m!==n)for(const q of [p,m])if(q&&q!==n&&exSome(q)&&!l.includes(q))l.push(q)}if(l.length)d.lf=l;else delete d.lf}
-function exSum(m){const r=(D().s||{})[m]||[],f=r.filter(a=>String(a[1]==null?'':a[1]).trim()!==''),bl=r.length-f.length;return f.map(a=>(a[2]==='w'?'W ':'')+wLb(m,a[0])+'×'+String(a[1]).trim()).join(', ')+(window.__SA&&f.some(a=>parseFloat(a[0])>0)?p3SwSfx(...swB(m)):'')+(window.__SA&&bl?' · '+bl+' set'+(bl>1?'s':'')+' not logged':'')}
+function exSum(m){if(window.__SA){const R=D().dr&&Array.isArray(D().dr[m])?D().dr[m].filter(a=>String(a[1]==null?'':a[1]).trim()!==''):[];if(R.length)return exSum0(m)+' · drop '+R.map(a=>wLb(m,a[0])+'×'+String(a[1]).trim()).join(', ')}return exSum0(m)}
+function exSum0(m){const r=(D().s||{})[m]||[],f=r.filter(a=>String(a[1]==null?'':a[1]).trim()!==''),bl=r.length-f.length;return f.map(a=>(a[2]==='w'?'W ':'')+wLb(m,a[0])+'×'+String(a[1]).trim()).join(', ')+(window.__SA&&f.some(a=>parseFloat(a[0])>0)?p3SwSfx(...swB(m)):'')+(window.__SA&&bl?' · '+bl+' set'+(bl>1?'s':'')+' not logged':'')}
 // p106: done sets lock into one line once you leave them (draft lk); the typo guard (draft tg = answered); effort (draft ef)
 const sRows=n=>{const d=S.draft[day],r=d&&d.s&&d.s[n];return Array.isArray(r)?r:[]};
 const dMap=(k,n)=>{const d=S.draft[day],o=d&&d[k];return o&&typeof o==='object'&&!Array.isArray(o)?o[n]:undefined};
@@ -3429,7 +3444,8 @@ const m={};
 for(const e of S.log){
 const k=logWk(e),w=m[k]||(m[k]={k,n:0,sets:0,vol:0});
 w.n++;
-for(const[n,r]of Object.entries(e.s))for(const a of r){if(a[2]==='w')continue;w.sets++;const x=parseFloat(a[0])||0;w.vol+=(AS.has(n)?Math.max(0,bwAt(e.t)-x):x)*(parseFloat(a[1])||0)}}
+for(const[n,r]of Object.entries(e.s))for(const a of r){if(a[2]==='w')continue;w.sets++;const x=parseFloat(a[0])||0;w.vol+=(AS.has(n)?Math.max(0,bwAt(e.t)-x):x)*(parseFloat(a[1])||0)}
+if(window.__SA&&e.dr&&typeof e.dr==='object')for(const n in e.dr)for(const a of (Array.isArray(e.dr[n])?e.dr[n]:[])){w.sets++;w.vol+=(parseFloat(a[0])||0)*(parseFloat(a[1])||0)}}
 return Object.values(m).sort((a,b)=>a.k<b.k?1:-1)}
 const fmt=n=>Math.round(n).toLocaleString();
 // ===== Health: steps, sleep and resting heart rate from screenshots =====
@@ -3691,7 +3707,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'838fe9c625',d:'Nov 11, 2026 at 9:41 PM',b:+'1794451281'||0};
+const APP_V={h:'809f380ed1',d:'Nov 12, 2026 at 4:04 PM',b:+'1794517452'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
@@ -4045,6 +4061,8 @@ function p146Z(x,k){return !!window.__SA&&x.c>=800&&Math.round(+x[k]||0)===0}
 // ===== p150a (standalone, both apps): automatic sync from Apple Health through a private GitHub file =====
 // hkNow: the time the shortcut ran, used by the reader in place of now (null: a paste, now)
 let hkNow=null,hkAuto=0,ghPS=null,ghBusy=false,ghMsg='';
+// p151b: Settings › Automatic sync's boxes as typed, put back on every redraw until Connect works (memory only)
+let ghDr={};if(window.__SA)document.addEventListener('input',e=>{const t=e.target;if(t&&/^gh[orpk]$/.test(t.id||''))ghDr[t.id]=t.value},true);
 const p150D=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const GHK='gym-hk-gh';
 function ghCfg(){try{const c=JSON.parse(localStorage.getItem(GHK)||'null');return c&&typeof c==='object'&&c.k&&c.o&&c.r?c:null}catch(e){return null}}
@@ -4074,24 +4092,24 @@ else{const j=await r.json();c.ok=Date.now();c.e=null;if(j&&j.sha&&j.sha!==c.sha&
 catch(e){st='net'}
 finally{ghBusy=false;if(st!=='ok')c.e=st;const n=ghCfg();if(n&&n.k===c.k){Object.assign(n,{ck:c.ck,ok:c.ok,e:c.e||null,at:c.at});if(c.sha)n.sha=c.sha;ghPut(n)}if(day==='set'||day==='hk')render()}
 return st}
-function ghCon(){const v=id=>{const x=document.getElementById(id);return x?x.value.trim():''};let o=v('gho').replace(/^@/,''),r=v('ghr'),p=v('ghp')||'health.txt',k=v('ghk');
+function ghCon(){const v=id=>{const x=document.getElementById(id);return x?x.value.trim():''};let o=v('gho').replace(/^@/,''),r=v('ghr'),p=v('ghp')||'health.txt',k=v('ghk').replace(/^Bearer\s+/i,'');
 {const m=/github\.com\/([^/\s]+)\/([^/\s?#]+)/i.exec(r)||/^([^/\s]+)\/([^/\s]+)$/.exec(r);if(m){o=o||m[1];r=m[2]}}r=r.replace(/\.git$/,'');
 if(!o||!r||!k){ghMsg='Fill in your GitHub username, the repository and the key.';render();return}
-ghMsg='';ghPut({o,r,p,k});ghSync('now').then(st=>{render();say(st==='ok'?'Connected to GitHub. Your Apple Health data now comes in on its own.':'Couldn’t connect yet: see Settings › Automatic sync.')})}
+ghMsg='';ghPut({o,r,p,k});ghDr={};ghSync('now').then(st=>{render();say(st==='ok'?'Connected to GitHub. Your Apple Health data now comes in on its own.':'Couldn’t connect yet: see Settings › Automatic sync.')})}
 // Settings › Automatic sync
 function p150Set(){if(!window.__SA)return '';const c=ghCfg(),f=c?E(c.p||'health.txt'):'health.txt';
 const steps=`<details class="mf"><summary>Setup steps (once per phone, about 10 minutes)</summary><ol class="tl hint">
-<li>On github.com, tap <b>+</b> › <b>New repository</b>. Name it <b>gym-health</b>, choose <b>Private</b>, and create it.</li>
+<li>On github.com, tap <b>+</b> › <b>New repository</b>. Name it <b>gym-health</b>, choose <b>Private</b>, turn on <b>Add README</b>, and create it.</li>
 <li>In the new repository, tap <b>Add file</b> › <b>Create new file</b>. Name it <b>health.txt</b>, type <b>GYM-HEALTH</b> as its only line, and commit it.</li>
-<li>Make a key: your photo › <b>Settings</b> › <b>Developer settings</b> › <b>Personal access tokens</b> › <b>Fine-grained tokens</b> › <b>Generate new token</b>. Name it <b>Gym Health</b>, give it the longest expiration it allows, set <b>Repository access</b> to <b>Only select repositories</b> › <b>gym-health</b>, and under <b>Permissions</b> set <b>Contents</b> to <b>Read and write</b>. Generate it and copy the key (it starts with <b>github_pat_</b>).</li>
-<li>In Shortcuts, long-press <b>Gym Health</b> › <b>Duplicate</b>, and rename the copy <b>Gym Health Auto</b>. In the copy, delete the last step, <b>Copy to Clipboard</b>, and add these four at the end:<br>· <b>Get Contents of URL</b>: <b>https://api.github.com/repos/<i>your username</i>/gym-health/contents/health.txt</b>. Under <b>Headers</b> add <b>Authorization</b> with <b>Bearer</b>, a space and your key, and <b>Accept</b> with <b>application/vnd.github+json</b>.<br>· <b>Get Dictionary Value</b>: <b>Value</b> for <b>sha</b> in <b>Contents of URL</b>.<br>· <b>Encode</b> (Base64 Encode) the <b>Text</b> that starts with GYM-HEALTH, with <b>Line Breaks</b> set to <b>None</b>.<br>· <b>Get Contents of URL</b> again: the same address and two headers, <b>Method PUT</b>, <b>Request Body JSON</b> with three Text fields: <b>message</b> = sync, <b>content</b> = <b>Base64 Encoded</b>, <b>sha</b> = <b>Dictionary Value</b>.</li>
-<li>In Shortcuts › <b>Automation</b>, tap <b>+</b> › <b>App</b> › <b>Lose It</b>, tick <b>Is Closed</b> (untick Is Opened), choose <b>Run Immediately</b>, then pick <b>Gym Health Auto</b>. It runs each time you leave Lose It (your iPhone shows a notification when it does).</li>
-<li>Run <b>Gym Health Auto</b> once from its tile and allow what it asks. Then fill in the boxes below and tap <b>Connect</b>.</li></ol></details>`;
+<li>Make a key: your photo › <b>Settings</b> › <b>Developer settings</b> › <b>Personal access tokens</b> › <b>Fine-grained tokens</b> › <b>Generate new token</b>. Name it <b>Gym Health</b>, give it the longest expiration it allows (No expiration is fine: the key can only reach this one private file), set <b>Repository access</b> to <b>Only select repositories</b> › <b>gym-health</b>, and under <b>Permissions</b> add <b>Contents</b> with <b>Read and write</b>. Generate it and copy the key (it starts with <b>github_pat_</b>). GitHub shows it only once, so paste it into a locked note until setup is done.</li>
+<li>In Shortcuts, long-press <b>Gym Health</b> › <b>Duplicate</b>, and rename the copy <b>Gym Health Auto</b>. In the copy, delete the last steps (<b>Copy to Clipboard</b>, and <b>Stop and output</b> if it has one), so it ends with the <b>Text</b> that starts with GYM-HEALTH. Then add these four at the end, in this order:<br>· <b>Base64 Encode</b>: it reads <b>Encode Text with base64</b>. Tap its arrow and set <b>Line Breaks</b> to <b>None</b>.<br>· <b>Get Contents of URL</b>: <b>https://api.github.com/repos/<i>your username</i>/gym-health/contents/health.txt</b> (https, not http; if the box already shows a blue word, clear it first). Under <b>Headers</b> add <b>Authorization</b> with <b>Bearer</b>, a space and your key, and <b>Accept</b> with <b>application/vnd.github+json</b>.<br>· <b>Get Dictionary Value</b>: <b>Value</b> for <b>sha</b> in <b>Contents of URL</b>.<br>· <b>Get Contents of URL</b> again: long-press the first one › <b>Duplicate</b> and drag the copy to the very bottom (it keeps the address and headers). Set <b>Method</b> to <b>PUT</b> and <b>Request Body</b> to <b>JSON</b> with three Text fields: <b>message</b> = sync, <b>content</b> = <b>Base64 Encoded</b>, <b>sha</b> = <b>Dictionary Value</b> (pick them from the bar above the keyboard, or <b>Select Variable</b>). If <b>Contents of URL</b> in the step above turns red, clear it and pick it again.<br>Run it once (▶) and choose <b>Always Allow</b>. Your health.txt on GitHub should then show GYM-HEALTH and your numbers.</li>
+<li>Make it run when you leave Lose It. <b>iOS 26 or earlier:</b> Shortcuts › <b>Automation</b> › <b>+</b> › <b>App</b> › <b>Lose It</b>, tick <b>Is Closed</b> (untick Is Opened), choose <b>Run Immediately</b>, then pick <b>Gym Health Auto</b>. <b>iOS 27:</b> tap <b>+</b> and type <b>When I close the Lose It app, run my Gym Health Auto shortcut immediately, without asking</b>; check that it reads <b>When Lose It! is Closed</b> › <b>Run Gym Health Auto</b>, with <b>Automation</b> on. Either way, run it once (▶) and choose <b>Always Allow</b>, or it stops in the background waiting for that answer. <b>Notify</b> is up to you: on shows a banner each time it runs.</li>
+<li>Fill in the boxes below and tap <b>Connect</b>. They keep what you type if you leave to copy the key. Then close Lose It once: after a few seconds, <b>Your shortcut last ran</b> here shows that time.</li></ol></details>`;
 if(!c)return `<section class="ex" id="setgh"><h2>Automatic sync</h2><p class="hint">Bring in your Apple Health data on its own, with no Run or Paste. A copy of the Gym Health shortcut runs by itself whenever you leave Lose It and saves to a private file on your GitHub, and this app reads that file when you open it.</p>${steps}
-<label class="hint">GitHub username<input class="sel" id="gho" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
-<label class="hint">Repository<input class="sel" id="ghr" value="gym-health" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
-<label class="hint">File<input class="sel" id="ghp" value="health.txt" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
-<label class="hint">Key<input class="sel" id="ghk" type="password" autocomplete="off" spellcheck="false"></label>
+<label class="hint">GitHub username<input class="sel" id="gho" value="${E(ghDr.gho||'')}" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
+<label class="hint">Repository<input class="sel" id="ghr" value="${E(ghDr.ghr!=null?ghDr.ghr:'gym-health')}" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
+<label class="hint">File<input class="sel" id="ghp" value="${E(ghDr.ghp!=null?ghDr.ghp:'health.txt')}" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
+<label class="hint">Key<input class="sel" id="ghk" type="password" value="${E(ghDr.ghk||'')}" autocomplete="off" spellcheck="false"></label>
 ${ghMsg?`<p class="hint dn">${E(ghMsg)}</p>`:''}<button class="fin" data-a="ghcon">Connect</button><p class="hint">The key stays on this phone. It isn’t in your backups, and it’s only ever sent to GitHub.</p></section>`;
 const bad=ghErrT(c);
 return `<section class="ex" id="setgh"><h2>Automatic sync</h2><p class="hint${bad?' dn':''}">${bad||`On: reading ${f} in ${E(c.o+'/'+c.r)}. ${c.at?'Your shortcut last ran '+E(ghTm(c.at))+'.':'Waiting for the shortcut’s first run.'}${c.ok?' Checked '+E(ghTm(c.ok))+'.':''}`}</p>
@@ -4690,6 +4708,7 @@ acApply();
 // standalone: never draw (or run the check-in) under the other program's rules
 if(window.__SA&&feBad()){app.innerHTML=feHtml();if(dbReady||ldN)setTimeout(feMatch,0);return}
 if(window.__SA&&(dbReady||!docRef)&&(wkLock()|phLock()))save();
+if(window.__SA&&(dbReady||!docRef)&&lbNameFix())save();
 if(window.__SA&&dbReady&&coll&&!p3Mig.on&&p3Mig.done!==p3Key()&&!p3Mig.q&&!(S.mig&&S.mig.p123)){p3Mig.q=1;setTimeout(()=>{p3Mig.q=0;p3Mig()},0)}
 if(window.__SA&&FEM&&p139Go()&&!p139Mig.q){p139Mig.q=1;setTimeout(()=>{p139Mig.q=0;p139Mig()},0)}
 if(window.__SA&&!FEM&&p141iGo()&&!p141iMig.q){p141iMig.q=1;setTimeout(()=>{p141iMig.q=0;p141iMig()},0)}
@@ -4722,7 +4741,7 @@ const n=nm(x),r=rows(n),l=last(n);if(window.__SA)P40A.delete(n);
 const chips=Array.isArray(x.o)&&!(window.__SA&&x.of)?`<div class="chips">${x.o.map(o=>`<button class="chip" aria-pressed="${o===n}" data-a="v" data-x="${x.id}" data-o="${E(o)}">${E(o)}</button>`).join('')}</div>`:'';
 const hint=window.__SA&&(x.o==='rest'||x.of)?p3Hint(x,TD):window.__SA&&x.aw&&p3Aw(x)?p3AwHint(x):x.o==='rest'?'<p class="hint">Opposite of your first bench</p>':x.ss===1?'<p class="hint">Superset: go straight to the next exercise, then rest</p>':x.ss===2?'<p class="hint">Superset: rest after this set</p>':'';
 const lnt=FEM?(()=>{for(const e of S.log){if(e.s[n]&&e.s[n].length)return e.nt&&e.nt[n]||'';if(window.__SA&&e.nt&&e.nt[n])return 'Note ('+dsh({t:e.t})+', no sets): '+e.nt[n]}return ''})():'';
-const lt=l?`<p class="last">Last time: ${l.map(a=>E((a[2]==='w'?'W ':'')+wLb(n,a[0])+'×'+a[1])).join(', ')}${E(window.__SA?p3LtSw(n):'')}${E(efLast(n))}${lnt?`<br><span class="lnt">${/^Note \(/.test(lnt)?'':'Note: '}${E(lnt)}</span>`:''}</p>`:'';
+const lt=l?`<p class="last">Last time: ${(q=>q?E(q):l.map(a=>E((a[2]==='w'?'W ':'')+wLb(n,a[0])+'×'+a[1])).join(', ')+E(window.__SA?p3LtSw(n):''))(p151Lt(n,l))}${E(efLast(n))}${lnt?`<br><span class="lnt">${/^Note \(/.test(lnt)?'':'Note: '}${E(lnt)}</span>`:''}</p>`:'';
 const{lw,tp,tg,asx,ws,mw,rc,uq,up,lo,dr,dn,gl}=p145bWith(x,n,l,l=>{const lw=l?l.filter(a=>a[2]!=='w'):null;
 const tp=x.r?+String(x.r).split('-').pop():0;
 const tg=x.r?`<p class="hint">Target: ${x.k||3} × ${E(x.r)} reps${window.__SA?E(p6HoldT(x,n)):''}${(x.rs||RS[x.id])&&x.ss!==1?` · Rest ${x.rs||RS[x.id]}`:''}</p>`:'';
@@ -4741,18 +4760,18 @@ if(window.__SA)return p145aGoal(x,n,l,lw,gR,gW,gs,lgw,lo,up);
 return `<p class="hint goal">Goal ${TD}: ${E(window.__SA&&gR.length>gW.length?p7GlW(n,gR,gs,ws):ws.length===1?gs.map(g=>g[1]).join(', ')+' reps'+(ws[0]>0?' at '+ws[0]+(AS.has(n)?' lb of assistance':' lb'+(window.__SA?p3Bk(n,ws[0]):'')):''):gs.map(g=>(g[0]?g[0]+(AS.has(n)?' assist':''):'BW')+'×'+g[1]).join(', ')+(window.__SA&&!AS.has(n)&&ws.some(v=>v>0)?p3SwSfx(...swB(n)):''))}${E(lgw)}</p>`})();
 return{lw,tp,tg,asx,ws,mw,rc,uq,up,lo,dr,dn,gl}});
 const gq=window.__SA?goalRows(x,n):null,lq=gq||l,lWk=lq?lq.filter(a=>a[2]!=='w'):[],lWu=lq?lq.filter(a=>a[2]==='w'):[];
-const sets=r.map((a,i)=>{
+const sets=p151dWv(n,x,r.map((a,i)=>{
 const ph=window.__SA?(((a[2]==='w')?lWu:lWk)[r.slice(0,i).filter(b=>(b[2]==='w')===(a[2]==='w')).length]||[]):((l&&l[i])||[]);
 if(window.__SA&&lkOf(n).includes(i)&&sDone(n,i))return slkHtml(n,i,a);
-return `<div class="set"><span>${i+1}</span><input inputmode="decimal" placeholder="${E(window.__SA?swPh(n,ph[0]):ph[0]||'lb')}" value="${E(window.__SA?swV(n,a[0]):a[0])}" data-n="${E(n)}" data-i="${i}" data-j="0" aria-label="Set ${i+1} weight in pounds"><input inputmode="numeric" placeholder="${E(ph[1]||'reps')}" value="${E(a[1])}" data-n="${E(n)}" data-i="${i}" data-j="1" aria-label="Set ${i+1} reps"><button class="wu" aria-pressed="${a[2]==='w'}" data-a="wu" data-n="${E(n)}" data-i="${i}" aria-label="Warm-up set ${i+1}">W</button><button class="x${armed==='x'+n+'|'+i?' warn':''}" data-a="del" data-n="${E(n)}" data-i="${i}" aria-label="${armed==='x'+n+'|'+i?'Tap again to remove':'Remove'} set ${i+1}">×</button></div>`}).join('');
+return `<div class="set"><span>${i+1}</span><input inputmode="decimal" placeholder="${E(window.__SA?swPh(n,ph[0]):ph[0]||'lb')}" value="${E(window.__SA?swV(n,a[0]):a[0])}" data-n="${E(n)}" data-i="${i}" data-j="0" aria-label="Set ${i+1} weight in pounds"><input inputmode="numeric" placeholder="${E(ph[1]||'reps')}" value="${E(a[1])}" data-n="${E(n)}" data-i="${i}" data-j="1" aria-label="Set ${i+1} reps"><button class="wu" aria-pressed="${a[2]==='w'}" data-a="wu" data-n="${E(n)}" data-i="${i}" aria-label="Warm-up set ${i+1}">W</button><button class="x${armed==='x'+n+'|'+i?' warn':''}" data-a="del" data-n="${E(n)}" data-i="${i}" aria-label="${armed==='x'+n+'|'+i?'Tap again to remove':'Remove'} set ${i+1}">×</button></div>`}));
 const gr=goalRows(x,n),canFill=!!gr&&gr.some((v,i)=>rowEmpty(r[i])),p6p=window.__SA?prog(n):'';
 const done=exDone(n),fd=exFold(n),fold=fd&&n!==lastEx&&n!==openEx,sum=fd?exSum(n):'';
-return `<section class="ex${window.__SA?' p6c':''}${fold?' col':''}" data-ex="${E(n)}">${fd?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}${window.__SA?p6Head(x,n,lab,chips,hint,lt,gl,up,dn,TD,p6p):`<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${seatLine(n)}${hint}${lt}${gl}${up}${dn}${prog(n)}`}<div class="sets">${window.__SA&&r.length?setHead(n):''}${sets}</div>${window.__SA?`<div class="sq">${sqHtml(n)}</div>`:''}<div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill ${TD==='next time'?'next time’s':'today’s'} goal</button>`:''}${FEM&&!(D().nt&&n in D().nt)?`<button class="add" data-a="ntadd" data-n="${E(n)}">Add note</button>`:''}</div>${FEM&&D().nt&&n in D().nt?`<input class="sel ntin" maxlength="200" data-nt="${E(n)}" value="${E(D().nt[n]||'')}" placeholder="Note for ${E(n)} (optional)" aria-label="Note for ${E(n)}">`:''}${window.__SA?`<div class="efw">${efHtml(n)}</div>`+p6More(n,p6p):''}</section>`}).join('');
+return `<section class="ex${window.__SA?' p6c':''}${fold?' col':''}" data-ex="${E(n)}">${fd?`<button class="exsum" data-a="exopen" data-n="${E(n)}" aria-label="${E(n)}, done: ${E(sum)}. Tap to edit"><span class="no">${lab}</span><b>${E(n)} <i>✓</i></b><span class="ss">${E(sum)}</span><span class="ed">Edit</span></button>`:''}${window.__SA?p6Head(x,n,lab,chips,hint,lt,gl,up,dn,TD,p6p):`<header><span class="no">${lab}</span><h2>${E(n)}</h2></header>${chips}${tg}${seatLine(n)}${hint}${lt}${gl}${up}${dn}${prog(n)}`}<div class="sets">${window.__SA&&r.length?setHead(n):''}${sets}</div>${window.__SA?p151dRows(x,n):''}${window.__SA?`<div class="sq">${sqHtml(n)}</div>`:''}<div class="live" data-live="${E(n)}">${liveMsg(x,n)}</div><div class="addrow"><button class="add" data-a="add" data-n="${E(n)}">Add set</button>${window.__SA&&p151dOk(n,x)&&p151dCan(n)?`<button class="add" data-a="dradd" data-n="${E(n)}">Add drop set</button>`:''}${canFill?`<button class="add fill" data-a="fill" data-n="${E(n)}">Fill ${TD==='next time'?'next time’s':'today’s'} goal</button>`:''}${FEM&&!(D().nt&&n in D().nt)?`<button class="add" data-a="ntadd" data-n="${E(n)}">Add note</button>`:''}</div>${FEM&&D().nt&&n in D().nt?`<input class="sel ntin" maxlength="200" data-nt="${E(n)}" value="${E(D().nt[n]||'')}" placeholder="Note for ${E(n)} (optional)" aria-label="Note for ${E(n)}">`:''}${window.__SA?`<div class="efw">${efHtml(n)}</div>`+p6More(n,p6p):''}</section>`}).join('');
 const hist=S.log.slice(0,window.__SA?(rwAll?S.log.length:8):6).map((e,i)=>{
 const ds=new Date(e.t+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
-const ex=Object.keys(e.s).length,st=Object.values(e.s).reduce((a,r)=>a+r.filter(q=>q[2]!=='w').length,0);
+const ex=Object.keys(e.s).length,st=Object.values(e.s).reduce((a,r)=>a+r.filter(q=>q[2]!=='w').length,0)+(window.__SA?p151dCnt(e):0);
 const op=window.__SA&&wkView===e.id,pv=window.__SA?` class="wkp${op?' on':''}"`:'',vw=window.__SA?` type="button" class="wkb" data-a="wkview" data-id="${E(e.id)}" aria-expanded="${op}"`:'';
-const det=op?`<div class="wkd">${window.__SA?p3BestH(e)+p132BelowH(e):''}${Object.entries(e.s).map(([n,r])=>`<p><b>${E(n)}</b><span>${E(r.map(a=>(a[2]==='w'?'W ':'')+wLb(n,a[0])+'×'+a[1]).join(', ')+(window.__SA?p3SwE(e,n):''))}</span></p>${efLn(e,n)}${e.nt&&e.nt[n]?`<p class="lnt">${E(e.nt[n])}</p>`:''}`).join('')}${window.__SA&&e.nt?Object.keys(e.nt).filter(n=>!e.s[n]&&e.nt[n]).map(n=>`<p><b>${E(n)}</b><span>no sets</span></p><p class="lnt">${E(e.nt[n])}</p>`).join(''):''}</div>`:'';
+const det=op?`<div class="wkd">${window.__SA?p3BestH(e)+p132BelowH(e):''}${Object.entries(e.s).map(([n,r])=>`<p><b>${E(n)}</b><span>${E(r.map(a=>(a[2]==='w'?'W ':'')+wLb(n,a[0])+'×'+a[1]).join(', ')+(window.__SA?p3SwE(e,n):'')+(window.__SA&&e.dr&&Array.isArray(e.dr[n])&&e.dr[n].length?' · drop '+e.dr[n].map(a=>wLb(n,a[0])+'×'+a[1]).join(', '):''))}</span></p>${efLn(e,n)}${e.nt&&e.nt[n]?`<p class="lnt">${E(e.nt[n])}</p>`:''}`).join('')}${window.__SA&&e.nt?Object.keys(e.nt).filter(n=>!e.s[n]&&e.nt[n]).map(n=>`<p><b>${E(n)}</b><span>no sets</span></p><p class="lnt">${E(e.nt[n])}</p>`).join(''):''}</div>`:'';
 return `<p${pv}>${window.__SA?`<button${vw}>`:''}<b>${E(ds)}</b><span>${E(P[e.day]?P[e.day].t:'Workout')}: ${ex} exercise${ex===1&&window.__SA?'':'s'}, ${st} set${st===1&&window.__SA?'':'s'}${(q=>q?` · ${q} new best${q>1?'s':''}`:'')(p143Pr(e))}</span>${window.__SA?'</button>':''}<button class="edit" data-a="edit" data-i="${i}">Edit</button><button class="edit${armed===e?' warn':''}" data-a="rm" data-i="${i}">${armed===e?(window.__SA?'Tap again':'Tap again to delete'):(window.__SA?'Remove':'Delete')}</button></p>${det}`}).join('');
 // standalone: the cards after Finish come from S.fa until Got it, or the next day
 if(window.__SA){if(S.fa&&S.fa.t!==today())S.fa=null;const fa=S.fa&&(S.fa.d==null||S.fa.d===day)?S.fa:null;prAlert=fa&&fa.pr||[];upAlert=fa&&fa.up||[];dnAlert=fa&&fa.dn||[];wkAlert=fa&&fa.wk?recapHtml(fa.wk,'Week complete'):'';ltAlert=fa&&Array.isArray(fa.lt)?fa.lt:[]}
@@ -4996,6 +5015,23 @@ function swV(n,v){const b=swB(n)[0],x=p3Num(v);return b>0&&x!=null&&!(window.__S
 function swPh(n,v){const b=swB(n)[0],x=p3Num(v);return b>0&&x!=null?tgNum(Math.max(0,x-b)):(v||'lb')}
 function p3Bk(n,v){const[b,k]=swB(n),x=+v;return b>0&&!AS.has(n)&&x>=b?' ('+tgNum(x-b)+' + '+tgNum(b)+' '+(window.__SA?'start':k)+')':''}
 function p3SwL(n,w){const[b,k]=swB(n),x=p3Num(w);return b>0&&x>0&&x>=b&&!AS.has(n)?tgNum(x)+' lb ('+tgNum(x-b)+' + '+tgNum(b)+' '+(window.__SA?'start':k)+')':''}
+// ===== p151a (standalone, both apps): on a lift with a starting weight, the goal, Last time and the next-set tip lead
+// with what you add (what the boxes take), the total in brackets
+function p151L(a){return a.length>1?a.slice(0,-1).join(', ')+' and '+a[a.length-1]:a[0]}
+// rows [[total, reps, warm-up]] at start b: null when there's no start or a total sits under it (the old words stay)
+function p151Fmt(b,rows,lead,list){if(!(b>0)||!rows.length||rows.some(a=>!(a[0]>=b)))return null;
+const add=rows.map(a=>tgNum(Math.round((a[0]-b)*100)/100)),tot=rows.map(a=>tgNum(a[0])),B=tgNum(b);
+if(!list&&!rows.some(a=>a[2])&&new Set(rows.map(a=>a[0])).size===1)return rows.map(a=>a[1]).join(', ')+' reps: add '+add[0]+' lb (+\u00a0'+B+'\u00a0lb start)';
+return lead+rows.map((a,i)=>(a[2]?'W ':'')+add[i]+'×'+a[1]).join(', ')+' (+\u00a0'+B+'\u00a0lb start)'}
+// the goal (gR the goal rows with warm-ups, gs the working sets [weight, reps])
+function p151G(n,gR,gs){if(!window.__SA||AS.has(n))return null;const b=swB(n)[0];if(!(b>0))return null;
+const wu=gR.filter(a=>a[2]==='w').map(a=>[parseFloat(a[0]),a[1],1]);if(wu.some(a=>isNaN(a[0])))return null;
+return p151Fmt(b,wu.concat(gs.map(g=>[+g[0],g[1],0])),'add ')}
+// Last time (rows l), in the start that workout used
+function p151Lt(n,l){if(!window.__SA||AS.has(n)||!l||!l.length)return null;const ed=new Set(Object.values(S.draft||{}).filter(d=>d&&d.ed&&d.id).map(d=>d.id));
+let e=null;for(const x of S.log){if(ed.has(x.id))continue;const r=x.s&&x.s[n];if(r&&r.length){e=x;break}}
+const q=e&&e.sw&&e.sw[n],b=Array.isArray(q)?+q[0]:0;if(!(b>0))return null;
+const rows=l.map(a=>[parseFloat(a[0]),a[1],a[2]==='w'?1:0]);if(rows.some(a=>isNaN(a[0])))return null;return p151Fmt(b,rows,'added ',1)}
 function p3SwSfx(b,k,s1){return b>0?(window.__SA&&!s1?' (totals, including the ':' (with the ')+tgNum(b)+' lb '+(window.__SA?'start':(k||'bar'))+')':''}
 function p3SwE(e,n){const q=e&&e.sw&&e.sw[n];return Array.isArray(q)&&+q[0]>0?p3SwSfx(+q[0],q[1]):''}
 function p3LtSw(n){const ed=new Set(Object.values(S.draft||{}).filter(d=>d&&d.ed&&d.id).map(d=>d.id));for(const e of S.log){if(ed.has(e.id))continue;const r=e.s&&e.s[n];if(r&&r.length)return p3SwE(e,n)}return ''}
@@ -5084,7 +5120,7 @@ if(a==='p3altx'){p3Alt=null;render();return true}
 return false}
 // ---- 3. the one-time split of past workouts (S.mig.p123)
 // the archive record of a workout (what arch keeps, plus its starting weights)
-function p3Rec(e){return JSON.parse(JSON.stringify({id:e.id,t:e.t,day:e.day,s:e.s,nt:e.nt,cd:e.cd,cp:e.cp,ef:e.ef,fd:e.fd,b1:e.b1,sw:e.sw}))}
+function p3Rec(e){return JSON.parse(JSON.stringify({id:e.id,t:e.t,day:e.day,s:e.s,nt:e.nt,cd:e.cd,cp:e.cp,ef:e.ef,fd:e.fd,b1:e.b1,sw:e.sw,dr:e.dr}))}
 // (an empty entry already under a new name, like a card's blank rows, gives way to what moves there)
 function p3Ren(o,mv){if(!o||typeof o!=='object'||Array.isArray(o))return o;const m=new Map(mv.filter(([a])=>Object.prototype.hasOwnProperty.call(o,a))),to=new Set(m.values()),r={};for(const k of Object.keys(o)){if(m.has(k))r[m.get(k)]=o[k];else if(!to.has(k))r[k]=o[k]}return r}
 function p3Apply(e,mv){for(const k of ['s','ef','nt','sw','tg','lk'])if(e[k]&&typeof e[k]==='object'&&!Array.isArray(e[k]))e[k]=p3Ren(e[k],mv);if(Array.isArray(e.lf)){const m=new Map(mv);e.lf=e.lf.map(n=>m.has(n)?m.get(n):n)}}
@@ -5436,6 +5472,7 @@ const sl=a=>a.length>1?'sets '+a.slice(0,-1).join(', ')+' and '+a[a.length-1]:'s
 const r=String(lgw||'').match(/^ \(((?:last )?sets? [^:]*): ([^)]*)\)$/),why=r?r[1].charAt(0).toUpperCase()+r[1].slice(1)+': '+r[2]+'.':'';
 const k=P40A.get(n)||{};k.ch=ch;k.why=why;P40A.set(n,k);
 const ws=[...new Set(gs.map(g=>g[0]))];
+{const q=p151G(n,gR,gs);if(q)return E(q)}
 return E(wu.length?p7GlW(n,gR,gs,ws):ws.length===1?gs.map(g=>g[1]).join(', ')+' reps'+(ws[0]>0?' at '+ws[0]+(as?' lb of assistance':' lb'+p3Bk(n,ws[0])):''):gs.map(g=>(g[0]?g[0]+(as?' assist':''):'BW')+'×'+g[1]).join(', ')+(!as&&ws.some(v=>v>0)?p3SwSfx(...swB(n)):''))}
 // the card's Go heavier / add reps first / Ease off lines, as drawn, kept for More (nothing stays under the Today line)
 function p40aKeep(n,up,dn){if(!window.__SA)return (up||'')+(dn||'');const k=P40A.get(n)||{};k.up=up||'';k.dn=dn||'';P40A.set(n,k);return ''}
@@ -5881,10 +5918,49 @@ if(dd&&Object.values(dd.s).some(r=>r.some(a=>a[0]!==''||a[1]!==''))){say('Finish
 const v={};
 for(const x of (P[e.day]?P[e.day].x:[]))if(Array.isArray(x.o)){const f=(x.id==='b1'&&e.b1)||x.o.find(o=>e.s[o]);if(f)v[x.id]=f}
 if(!window.__SA)S.log.splice(i,1);
-S.draft[e.day]={v,s:JSON.parse(JSON.stringify(e.s)),t:e.t,id:e.id};if(window.__SA)S.draft[e.day].ed=today();if((FEM||window.__SA)){S.draft[e.day].o=JSON.parse(JSON.stringify(e));if(e.nt)S.draft[e.day].nt=Object.assign({},e.nt);if(window.__SA){const dd=S.draft[e.day];if(e.ef&&typeof e.ef==='object')dd.ef=Object.assign({},e.ef);
+S.draft[e.day]={v,s:JSON.parse(JSON.stringify(e.s)),t:e.t,id:e.id};if(window.__SA&&e.dr&&typeof e.dr==='object')S.draft[e.day].dr=JSON.parse(JSON.stringify(e.dr));if(window.__SA)S.draft[e.day].ed=today();if((FEM||window.__SA)){S.draft[e.day].o=JSON.parse(JSON.stringify(e));if(e.nt)S.draft[e.day].nt=Object.assign({},e.nt);if(window.__SA){const dd=S.draft[e.day];if(e.ef&&typeof e.ef==='object')dd.ef=Object.assign({},e.ef);
 // what was saved counts as answered: only a changed number can ask again
 const tg={};for(const n in e.s)if(Array.isArray(e.s[n]))for(const a of e.s[n]){if(!Array.isArray(a)||a[2]==='w')continue;const k=[],w=parseFloat(a[0]),r=parseFloat(a[1]);if(w>0)k.push('w'+tgNum(w));if(r>0)k.push('r'+r);if(k.length)tg[n]=[...new Set((tg[n]||[]).concat(k))]}if(Object.keys(tg).length)dd.tg=tg;const wq={};for(const n in e.s)if(Array.isArray(e.s[n]))for(const a of e.s[n]){if(!Array.isArray(a)||a[2]!=='w')continue;const w=parseFloat(a[0]);if(w>0)wq[n]=[...new Set((wq[n]||[]).concat('w'+tgNum(w)))]}if(Object.keys(wq).length)dd.wq=wq}}lastEx=null;openEx=null;
 day=e.day;save();render();window.scrollTo(0,0);say('Editing saved workout. Tap Finish when done')}
+// ===== p151d (standalone, both apps): drop sets, apart from the sets (d.dr / e.dr = {name: [[total, reps]]})
+function p151dOk(n,x){if(!window.__SA||AS.has(n))return false;if(x&&(x.hr||x.er||x.nn))return false;return true}
+function p151dR(n){const d=D();if(!d.dr||typeof d.dr!=='object'||Array.isArray(d.dr))d.dr={};if(!Array.isArray(d.dr[n]))d.dr[n]=[];return d.dr[n]}
+// the button shows once a working set has its reps (a drop set follows a set), or a drop is already there
+function p151dCan(n){const d=D();if(d.dr&&Array.isArray(d.dr[n])&&d.dr[n].length)return true;return ((d.s||{})[n]||[]).some(a=>a[2]!=='w'&&/^\d+$/.test(String(a[1]==null?'':a[1]).trim())&&+String(a[1]).trim()>0)}
+function p151dCnt(e){let k=0;if(e&&e.dr&&typeof e.dr==='object')for(const n in e.dr)if(Array.isArray(e.dr[n]))k+=e.dr[n].length;return k}
+// the latest saved workout with n (not one open for editing), and its drops for n
+function p151dLE(n){const ed=new Set(Object.values(S.draft||{}).filter(d=>d&&d.ed&&d.id).map(d=>d.id));for(const e of S.log){if(ed.has(e.id))continue;if(e.s&&Array.isArray(e.s[n])&&e.s[n].length)return e}return null}
+function p151dLast(n){const e=p151dLE(n);return e&&e.dr&&Array.isArray(e.dr[n])?e.dr[n]:[]}
+// each drop keeps the set it followed (a row index, its third item): a new one follows the last set with its reps
+// (not a warm-up), so you never pick: it goes under the set you just did
+function p151dAfter(n){const r=(D().s||{})[n]||[];for(let i=r.length-1;i>=0;i--){const a=r[i];if(a&&a[2]!=='w'&&/^\d+$/.test(String(a[1]==null?'':a[1]).trim())&&+String(a[1]).trim()>0)return i}return Math.max(0,r.length-1)}
+const p151dAi=(a,nr)=>{const k=a&&a[2]!=null&&a[2]!==''?+a[2]:NaN;return Number.isInteger(k)&&k>=0&&k<nr?k:nr-1};
+// a set removed above a drop: the drop stays under the same set (or the one before a removed one)
+function p151dDel(n,i){const d=D();if(!d.dr||!Array.isArray(d.dr[n]))return;for(const a of d.dr[n]){const k=a[2]!=null&&a[2]!==''?+a[2]:NaN;if(Number.isInteger(k)&&k>=i&&k>0)a[2]=String(k-1)}}
+// the grey weight of drop i: last time's, else about a quarter lighter than what came before it (an earlier drop after
+// the same set, else that set)
+function p151dSug(n,i){const L=p151dLast(n);if(L[i]&&parseFloat(L[i][0])>0)return parseFloat(L[i][0]);
+const R=p151dR(n),r=(D().s||{})[n]||[],k=p151dAi(R[i],r.length);let base=NaN;for(let j=i-1;j>=0;j--)if(p151dAi(R[j],r.length)===k){base=parseFloat(R[j][0]);break}
+if(!(base>0)&&r[k]&&r[k][2]!=='w')base=parseFloat(r[k][0]);if(!(base>0)){const w=r.filter(a=>a[2]!=='w'&&parseFloat(a[0])>0);base=w.length?parseFloat(w[w.length-1][0]):NaN}
+if(!(base>0))return null;const st=stepOf(n)||(base>=50?5:2.5),b=swB(n)[0];let v=Math.round(base*.75/st)*st;if(v>=base)v=base-st;if(b>0&&v<b)v=b;return v>0&&v<base?v:null}
+// a list of drops for display ("70×10, 50×8"; in what you add on a lift with a start, as p151a says it)
+function p151dTx(n,rows){return (rows||[]).map(a=>wLb(n,a[0])+'×'+a[1]).join(', ')}
+function p151dRow(n,i,a,L){const sg=p151dSug(n,i),lr=L[i]?L[i][1]:'';return `<div class="set p151d"><span>↳</span><input inputmode="decimal" placeholder="${E(sg!=null?swPh(n,tgNum(sg)):'lb')}" value="${E(swV(n,a[0]))}" data-dn="${E(n)}" data-di="${i}" data-dj="0" aria-label="Drop set ${i+1} weight in pounds"><input inputmode="numeric" placeholder="${E(lr||'reps')}" value="${E(a[1])}" data-dn="${E(n)}" data-di="${i}" data-dj="1" aria-label="Drop set ${i+1} reps"><button class="wu" aria-pressed="true" tabindex="-1" disabled aria-label="Drop set">D</button><button class="x" data-a="drdel" data-n="${E(n)}" data-i="${i}" aria-label="Remove drop set ${i+1}">×</button></div>`}
+// the card's set rows (H, one string a row) with each drop right under the set it followed
+function p151dWv(n,x,H){if(!window.__SA||!p151dOk(n,x))return H.join('');const d=D(),R=d.dr&&Array.isArray(d.dr[n])?d.dr[n]:[];if(!R.length)return H.join('');
+const L=p151dLast(n),by=H.map(()=>[]);R.forEach((a,i)=>{const k=p151dAi(a,H.length);if(by[k])by[k].push(i)});let o='';H.forEach((h,k)=>{o+=h;for(const i of by[k])o+=p151dRow(n,i,R[i],L)});if(!H.length)R.forEach((a,i)=>{o+=p151dRow(n,i,a,L)});return o}
+// next time, under the sets: last time's drops ("after set 2" only when one didn't follow the last set; numbered as
+// the card numbers its rows, warm-ups included)
+function p151dRows(x,n){if(!p151dOk(n,x))return '';const d=D();if(d.dr&&Array.isArray(d.dr[n])&&d.dr[n].length)return '';const e=p151dLE(n),L=e&&e.dr&&Array.isArray(e.dr[n])?e.dr[n]:[];if(!L.length)return '';
+const r=e.s[n];let lk=r.length-1;for(let i=r.length-1;i>=0;i--)if(r[i][2]!=='w'){lk=i;break}const plain=L.every(a=>p151dAi(a,r.length)===lk);
+return `<p class="hint p151dh">Drop set${L.length>1?'s':''} last time: ${E(L.map(a=>wLb(n,a[0])+'×'+a[1]+(plain?'':' after set '+(p151dAi(a,r.length)+1))).join(', '))}</p>`}
+// typing in a drop row (weights as the sets take them: what you add on a lift with a start; the total is kept)
+function p151dIn(t){const n=t.dataset.dn,i=+t.dataset.di,j=t.dataset.dj,R=p151dR(n);if(!R[i])return;
+if(j==='0'){const v=t.value.replace(/,/g,'.').replace(/[^\d.]/g,'').replace(/(\..*)\./g,'$1').slice(0,6);if(v!==t.value)t.value=v;R[i][0]=swIn(n,v)}else{const v=t.value.replace(/\D/g,'').slice(0,3);if(v!==t.value)t.value=v;R[i][1]=v}save()}
+// Finish: the drops with reps, for exercises it saves
+function p151dEnt(d,s){if(!d||!d.dr||typeof d.dr!=='object'||Array.isArray(d.dr))return null;const o={};
+for(const n in d.dr){if(!s[n]||!Array.isArray(d.dr[n]))continue;const dr0=(d.s||{})[n]||[],kept=[];let c=-1;dr0.forEach((a,i)=>{const rp=String(a&&a[1]!=null?a[1]:'').trim();if(rp!==''&&!/^0+$/.test(rp))c++;kept[i]=Math.max(0,c)});const f=d.dr[n].filter(a=>{const rp=String(a[1]==null?'':a[1]).trim(),w=String(a[0]==null?'':a[0]).trim();return /^\d{1,3}$/.test(rp)&&+rp>0&&(w===''||/^\d{0,4}(\.\d{1,2})?$/.test(w)&&w!=='.'&&+w<=2000)}).map(a=>{const q=[String(a[0]==null?'':a[0]).trim().replace(/^(\d+)\.$/,'$1').replace(/^\./,'0.'),String(+String(a[1]).trim())],k=a[2]!=null&&a[2]!==''?+a[2]:NaN;if(Number.isInteger(k)&&k>=0&&k<kept.length)q.push(String(Math.min(kept[k],s[n].length-1)));return q});if(f.length)o[n]=f}
+return Object.keys(o).length?o:null}
 function finish(){
 const d=D(),s={};let c=0;
 // standalone: only the exercises on the day's cards are saved; an edited saved workout also keeps what it had that isn't on one
@@ -5915,7 +5991,7 @@ for(const e of S.log){if(d.id&&e.id===d.id)continue;if(e.t<lrsAt(n))continue;if(
 if(pb&&better(nt,pb))prs.push({n,nt:bsx(nt),pb:bsx(pb)})}
 if(d.ed&&d.id)S.log=S.log.filter(e=>e.id!==d.id);
 let nid=d.id;if(!nid||S.log.some(e=>e.id===nid)){do{nid=Date.now().toString(36)+Math.random().toString(36).slice(2,6)}while(S.log.some(e=>e.id===nid))}
-const ent={id:nid,t:d.t||today(),day,s,pr:prs.length};if(window.__SA)p3SwEnt(ent,d,s);if(window.__SA)p141Gl(ent,d,s);
+const ent={id:nid,t:d.t||today(),day,s,pr:prs.length};if(window.__SA){const dr=p151dEnt(d,s);if(dr)ent.dr=dr}if(window.__SA)p3SwEnt(ent,d,s);if(window.__SA)p141Gl(ent,d,s);
 // p106: reps left on each exercise's last set (optional), for exercises saved with working sets; the hint is shown until now
 if(window.__SA){const ef={},o=d.ef&&typeof d.ef==='object'&&!Array.isArray(d.ef)?d.ef:{};for(const k in o)if(efV(o[k])&&Array.isArray(s[k])&&s[k].some(a=>a[2]!=='w'))ef[k]=o[k];if(Object.keys(ef).length)ent.ef=ef;
 if(!(S.prof&&S.prof.efh)&&Object.values(s).some(r=>r.some(a=>a[2]!=='w')))S.prof=Object.assign({},S.prof||{},{efh:ent.t})}if(window.__SA&&d.o&&d.o.t===ent.t){const f=d.o.fd||(+d.o.day!==day?logFor(d.o):null);if(f)ent.fd=f}if((FEM||window.__SA)&&d.nt){const nt={};for(const k in d.nt){const v=String(d.nt[k]||'').trim();if((s[k]||(window.__SA&&((P[day]?P[day].x:[]).some(x=>nm(x)===k)||(d.o&&d.o.nt&&d.o.nt[k]))))&&v)nt[k]=v.slice(0,200)}if(Object.keys(nt).length)ent.nt=nt}if(FEM){const ca=cyAt(ent.t);if(ca){ent.cd=ca.day;if(ca.ph)ent.cp=ca.ph}}{const bx=window.__SA?(P[day]&&P[day].x.find(q=>q.id==='b1')):(day===4?P[4].x[0]:null);if(bx){const b=nm(bx);if(!window.__SA||s[b])ent.b1=b;else if(Array.isArray(bx.o)){const o=bx.o.filter(q=>s[q]);if(o.length===1)ent.b1=o[0]}}}S.log.unshift(ent);S.log.sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0);if(!window.__SA&&S.log.length>120){const x=S.log.slice(120),gone=x.filter(e=>e.a&&coll);if(gone.length){recFold(gone);S.log=S.log.slice(0,120).concat(x.filter(e=>!(e.a&&coll)))}}arch(ent);delete S.draft[day];
@@ -6098,15 +6174,16 @@ const pe=lastEx;
 if(a==='tab'){pgEd=null;pgPick=null;pgOpen=null;const d=b.dataset.d;day=d==='gym'?(inGym(day)?day:gymLast):d==='h'?(inHl(day)?day:(window.__SA?(hkMorn()?(hlLast||'w'):'hk'):(hlLast||(new Date().getHours()<15?'sl':'st')))):['p','w','f','g','pl','sl','st','set'].includes(d)||inHl(d)?d:+d;if(inGym(day))gymLast=day;if(inHl(d))hlLast=d;wtDate=null;window.scrollTo(0,0)}
 else if(a==='v'){if(window.__SA)vSwitch(b.dataset.x,b.dataset.o);else D().v[b.dataset.x]=b.dataset.o}
 else if(a==='add'){rows(b.dataset.n).push(['','']);lastEx=b.dataset.n;openEx=null}
-else if(a==='fill')fillGoal(b.dataset.n);
+else if(a==='dradd'&&window.__SA){p151dR(b.dataset.n).push(['','',String(p151dAfter(b.dataset.n))]);lastEx=b.dataset.n;openEx=null} else if(a==='drdel'&&window.__SA){p151dR(b.dataset.n).splice(+b.dataset.i,1);lastEx=b.dataset.n} else if(a==='fill')fillGoal(b.dataset.n);
 else if(a==='exopen'){openEx=b.dataset.n;lastEx=b.dataset.n}
-else if(a==='del'){const n=b.dataset.n,i=+b.dataset.i,k='x'+n+'|'+i;if(!rowEmpty(rows(n)[i])&&armed!==k){armed=k;lastEx=n;openEx=null;render();say('Tap the red × again to remove set '+(i+1));return}armed=null;rows(n).splice(i,1);if(window.__SA)lkDel(n,i);lastEx=n}
+else if(a==='del'){const n=b.dataset.n,i=+b.dataset.i,k='x'+n+'|'+i;if(!rowEmpty(rows(n)[i])&&armed!==k){armed=k;lastEx=n;openEx=null;render();say('Tap the red × again to remove set '+(i+1));return}armed=null;rows(n).splice(i,1);if(window.__SA)lkDel(n,i);if(window.__SA)p151dDel(n,i);lastEx=n}
 else if(a==='wu'){const R=rows(b.dataset.n),q=R[+b.dataset.i];q[2]=q[2]==='w'?'':'w';lastEx=b.dataset.n;if(window.__SA&&q[2]==='w'){const k=setN(b.dataset.n);if(k&&R.filter(z=>Array.isArray(z)&&z[2]!=='w').length<k)R.push(['',''])}}
 else if(a==='ef'&&window.__SA){const n=b.dataset.n,v=+b.dataset.v,d=D();if(!d.ef||typeof d.ef!=='object'||Array.isArray(d.ef))d.ef={};if(d.ef[n]===v)delete d.ef[n];else if(efV(v))d.ef[n]=v;if(!Object.keys(d.ef).length)delete d.ef;lastEx=n;openEx=null}
 if(lastEx!==pe&&a!=='tab')exLeave(pe,lastEx);
 save();render()};
 app.oninput=e=>{
 const t=e.target,n=t.dataset.n;
+if(window.__SA&&t.dataset&&t.dataset.dn!==undefined){p151dIn(t);return}
 if(t.id==='stp'){const l=app.querySelector('#stv');if(l)l.textContent=stLbl(+t.value);return}
 if(t.id==='gwr'){const l=app.querySelector('#gwv');if(l)l.textContent=t.value+' lb';return}
 if(t.id==='pgq'){if(pgPick){pgPick.q=t.value.slice(0,40);const r=app.querySelector('#pgres');if(r)r.innerHTML=pgList()}return}
