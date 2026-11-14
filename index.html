@@ -672,7 +672,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='6475024ff2',SFB=+'1794672362'||0,sfT0=Date.now();
+const SFV='4d384ca207',SFB=+'1794677429'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -1732,7 +1732,7 @@ const inp=app.querySelector('#wsin'),dEl=app.querySelector('#wsd'),td=today(),sd
 if(!/^\d{4}-\d{2}-\d{2}$/.test(sd)||sd>td||sd<'2020-01-01'){say('Pick a date from 2020 up to today');return}
 const raw=String(inp?inp.value:'').trim().replace(',','.'),v=/^\d{1,3}(\.\d{0,2})?$/.test(raw)?parseFloat(raw):NaN;
 // p101: "38." saves as 38; "38.755" gets its own message
-if(window.__SA&&/^\d{1,3}\.\d{3,}$/.test(raw)){say('Use up to 2 decimals for your waist (like 38.75)');return}
+if(window.__SA&&/^\d{1,3}\.\d{3,}$/.test(raw)){say('Use up to 2 decimals for your waist (like 32.25)');return}
 if(!(v>=20&&v<=70)){say('Enter your waist in inches (20 to 70)');return}
 const L=wsList(),prev=L.filter(x=>x.t<sd).pop(),next=L.find(x=>x.t>sd),ref=prev||next,key=sd+'|'+v;
 if(wsArm!==key&&ref&&Math.abs(v-ref.v)>1.5){wsArm=key;say('That is '+inF(Math.abs(v-ref.v))+' in '+(v>ref.v?'above':'below')+' your '+(prev?'previous':'next')+' measurement ('+dsh(ref)+'). Tap again to confirm.');return}
@@ -2108,7 +2108,7 @@ return{inP,lc,elig,use,a:sxx>0?(window.__SA?Math.round(sxy/sxx*1e4)/1e4:sxy/sxx)
 // p136: 1% (was 1.25%): Helms 2014 (0.5-1% a week), Garthe 2011 (0.7% kept more lean than 1.4% in lean athletes)
 const CI_CAP=.01,ciCap=(a,cx)=>!!(window.__SA&&cx&&cx.wk>=4&&cx.bw>0&&-a>CI_CAP*cx.bw);
 // p136: the ceiling in pounds next to a shown trend t ("losing 2.071 lb a week"): rounded down to t's decimals (2 or
-// more), so it always reads under the trend it is compared with (rounded half up, 2.0751 showed as 2.08 next to 2.08)
+// more), so it always reads under the trend it is compared with (rounded half up, a cap of 1.0751 showed as 1.08 next to a trend of 1.08)
 const ciCapS=(bw,t)=>{const m=String(t||'').match(/\d+\.(\d+)/),d=Math.max(2,m?m[1].length:2),k=10**d;return (Math.floor(CI_CAP*bw*k+1e-9)/k).toFixed(d)};
 function ciDir(a,e,k,sl,cx){if(k==='cut'){const r=a/e;return r<.75?'less':(r>1.5||(sl&&r>1.2)||ciCap(a,cx))&&!flGd(a,cx)?'more':null}if(k==='bulk'){const r=a/e;return r<(FEM?.6:.7)?'more':r>(FEM?1.6:1.5)?'less':null}return a<-.3?'more':a>.3?'less':null}
 // p96: the check-in's trend and plan rate as shown: one decimal for the trend (the plan's rate as rSg) unless the numbers
@@ -3774,7 +3774,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'6475024ff2',d:'Nov 14, 2026 at 11:06 AM',b:+'1794672362'||0};
+const APP_V={h:'4d384ca207',d:'Nov 14, 2026 at 12:30 PM',b:+'1794677429'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
