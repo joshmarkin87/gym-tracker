@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/* Design tokens. Clean, light and quiet: white paper, near-black ink, hairline rules,
+   a serif display face, and one restrained deep-green accent.
+   Every text/background pair below meets WCAG AA (4.5:1) or better. */
+@theme {
+  --color-paper: #fafaf8;
+  --color-card: #ffffff;
+  --color-ink: #0c1116;
+  --color-muted: #55606b;      /* 6.4:1 on paper */
+  --color-line: #e5e7e4;
+  --color-accent: #0f4c3a;     /* 9.6:1 on white */
+  --color-accent-dark: #0a3528;
+  --color-accent-soft: #eef4f1;
+  --color-on-accent: #ffffff;
+  --color-pass: #1a6b3c;       /* 6.3:1 on white */
+  --color-pass-soft: #edf6f0;
+  --color-fail: #b3261e;       /* 6.5:1 on white */
+  --color-fail-soft: #fcefed;
+  --color-wait: #855000;       /* 6.0:1 on white */
+  --color-wait-soft: #fdf5e6;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-display: var(--font-instrument-serif), "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
+
+:root {
+  color-scheme: light;
+  --shadow-soft: 0 1px 2px rgb(12 17 22 / 0.04);
+  --shadow-lift: 0 1px 2px rgb(12 17 22 / 0.05), 0 16px 32px -20px rgb(12 17 22 / 0.18);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headlines are set in the serif display face, regular weight. */
+h1, h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+h1 { line-height: 1.05; }
+h2 { font-size: 2rem; line-height: 1.12; }
+@media (min-width: 640px) { h2 { font-size: 2.375rem; } }
+h1.lot-code, h2.lot-code { font-family: var(--font-mono); font-weight: 600; letter-spacing: 0; font-size: inherit; }
+h1.lot-code { font-size: 2rem; }
+@media (min-width: 640px) { h1.lot-code { font-size: 2.75rem; } }
+.surface h2, article h2, dialog h2, [role="dialog"] h2, details h2 { font-size: 1.5rem; }
+.prose-page h2 { font-size: 1.625rem; }
+::selection { background: var(--color-accent); color: #fff; }
+
+/* Visible keyboard focus everywhere. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.num { font-variant-numeric: tabular-nums; }
+.lot-code { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.headline { letter-spacing: -0.02em; }
+.tagline { font-family: var(--font-display); font-style: italic; font-weight: 400; letter-spacing: 0; font-size: 1.75rem; }
+.stat { font-family: var(--font-display); font-weight: 400; }
+
+select, input, textarea { color: var(--color-ink); }
+
+/* Quiet stage behind product vials. */
+.vial-stage { background: linear-gradient(180deg, #f3f4f1 0%, #eceeea 100%); }
+.vial-float { filter: drop-shadow(0 14px 18px rgb(12 17 22 / 0.14)); }
+
+@layer components {
+  .eyebrow, .label {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  .eyebrow { color: var(--color-accent); }
+  .label { font-size: 0.6875rem; letter-spacing: 0.1em; }
+
+  .surface { box-shadow: var(--shadow-soft); }
+  a.surface, .surface-link { transition: box-shadow 0.2s ease, border-color 0.2s ease; }
+  a.surface:hover, .surface-link:hover { box-shadow: var(--shadow-lift); }
+  .glass { background: var(--color-card); box-shadow: var(--shadow-lift); }
+
+  .btn-primary { transition: background-color 0.15s ease; }
+  .field { background-color: var(--color-card); transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+  .field:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgb(15 76 58 / 0.12); }
+
+  .grid-field { background: var(--color-card); }
+  .halo { position: relative; }
+
+  /* Status dots. Always paired with a text label, never colour alone. */
+  .led {
+    position: relative;
+    display: inline-block;
+    flex: none;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: currentColor;
+  }
+  .led-live::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    animation: led-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  .scan { position: relative; }
+
+  /* Readout strip: stat cells split by hairlines. */
+  .readout > * + * { border-left: 1px solid var(--color-line); }
+}
+
+@keyframes led-ping {
+  0% { transform: scale(1); opacity: 0.6; }
+  75%, 100% { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .led-live::after { animation: none; display: none; }
+  a.surface, .surface-link, .btn-primary, .field { transition: none; }
+}
+
+/* Long-form copy pages */
+.prose-page h2 { margin-top: 2.75rem; margin-bottom: 0.75rem; }
+.prose-page h3 { font-size: 1.125rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; }
+.prose-page p { margin-bottom: 1rem; }
+.prose-page ul, .prose-page ol { margin: 0 0 1rem 1.25rem; }
+.prose-page ul { list-style: disc; }
+.prose-page ol { list-style: decimal; }
+.prose-page li { margin-bottom: 0.4rem; padding-left: 0.25rem; }
+.prose-page a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
+.prose-page a:hover { color: var(--color-accent-dark); }
+.prose-page strong { font-weight: 600; }

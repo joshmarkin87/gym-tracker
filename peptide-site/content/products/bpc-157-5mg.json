@@ -1,0 +1,11 @@
+{
+  "demo": true,
+  "slug": "bpc-157-5mg",
+  "name": "BPC-157",
+  "nominalSize": "5 mg",
+  "nominalMg": 5,
+  "lotPrefix": "BPC",
+  "form": "Lyophilized powder, single sealed vial",
+  "storage": "Store sealed vials at -20 °C, protected from light. Keep dry. Allow to reach room temperature before opening.",
+  "priceCad": 69
+}

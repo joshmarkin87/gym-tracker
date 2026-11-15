@@ -1,0 +1,25 @@
+{
+  "demo": true,
+  "code": "BPC-2026-001",
+  "product": "bpc-157-5mg",
+  "arrivalDate": "2026-10-20",
+  "status": "FAILED - Destroyed",
+  "samplesPulled": 3,
+  "retainVials": 2,
+  "results": {
+    "lab": "Independent third-party laboratory (DEMO name)",
+    "analysisDate": "2026-11-02",
+    "publishedDate": "2026-11-03",
+    "report": "/reports/BPC-2026-001.pdf",
+    "methods": "Identity by LC-MS. Net content and purity by HPLC-UV.",
+    "samples": [
+      { "id": "A", "identity": "Detected", "netContentMg": 1.9, "purityPct": 96.8 },
+      { "id": "B", "identity": "Detected", "netContentMg": 2.4, "purityPct": 97.4 },
+      { "id": "C", "identity": "Detected", "netContentMg": 2.1, "purityPct": 97.1 }
+    ]
+  },
+  "disposition": {
+    "date": "2026-11-05",
+    "note": "Net content in all three samples was well under half the 5 mg label claim, and purity was below 98%. No vial from this lot was sold. All stock, including the two retain vials, was destroyed by a licensed disposal service."
+  }
+}
