@@ -672,7 +672,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // The app counts quick restarts. If it keeps closing within seconds of opening, the next start shows a rescue screen
 // instead (save a backup, get the latest version, or open it anyway) with the last start-up step it reached and any
 // error, so a screenshot says what went wrong. Errors after start show in a small bar instead of failing silently.
-const SFV='89b5bf2d7f',SFB=+'1795103631'||0,sfT0=Date.now();
+const SFV='2f84fe1f8a',SFB=+'1795288762'||0,sfT0=Date.now();
 const sfGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}},sfSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const sfPrev=sfGet('gym-sa-step'),sfB=sfGet('gym-sa-boot');
 let sfGo=false;try{sfGo=sessionStorage.getItem('gym-sa-go')==='1';sessionStorage.removeItem('gym-sa-go')}catch(e){}
@@ -3320,7 +3320,7 @@ else if(!x.nn&&lo&&(!window.__SA||lw.length===1)&&F(lw[0][1])<lo&&weak2(n,lo,1)&
 // standalone (p143c): the last working set under the range in the last two workouts, not improving, gets a lighter goal;
 // earlier sets keep their weight (+1 rep), so following the goal doesn't move the best set into another rep bracket
 if(window.__SA&&!x.nn&&lo){for(const q of easeAt(x,n,lw,(prevSets(n)||[]).filter(a=>a[2]!=='w')))if(out[q.i][0]===S2(F(lw[q.i][0])))out[q.i]=[S2(q.g),String(mid)]}
-if(window.__SA&&!p156dOff&&!x.nn&&lo&&tp&&lw.length>=2)out=p156dUp(n,lw,out,lo,tp);
+if(window.__SA&&!p156dOff&&!x.nn&&lo&&tp&&lw.length>=2)out=p156dUp(n,lw,out,lo,tp,hk);
 return window.__SA?p145aFl(x,n,p143gFloor(n,wu.concat(out))):wu.concat(out)}
 // p156d: a lighter working set last time over the top of the range (or at the top before the heavier weight, when every
 // lighter set before it got to the top) moves up to
@@ -3328,12 +3328,16 @@ return window.__SA?p145aFl(x,n,p143gFloor(n,wu.concat(out))):wu.concat(out)}
 // aiming for the most reps the goal asks at that weight, else the fewest done there + 1 (at most the top); sets another
 // rule already changed are left as that rule set them
 var p156dOff=0;// tests comparing with builds before p156d switch it off (as p145bIn)
-function p156dUp(n,lw,out,lo,tp){const F=a=>parseFloat(a)||0,S2=v=>v?String(v):'',as=AS.has(n),hv=(a,b)=>as?a<b:a>b;let t=null;
+function p156dUp(n,lw,out,lo,tp,hk){const F=a=>parseFloat(a)||0,S2=v=>v?String(v):'',as=AS.has(n),hv=(a,b)=>as?a<b:a>b;let t=null;
 for(const w of new Set(lw.map(a=>F(a[0]))))if(w>0&&lw.filter(a=>F(a[0])===w).every(a=>F(a[1])>=lo)&&(t==null||hv(w,t)))t=w;if(t==null)return out;
 const j0=lw.findIndex(a=>F(a[0])===t),gt=out.filter((o,i)=>F(lw[i][0])===t&&o&&o[0]===S2(t)).map(o=>F(o[1]));
-const r=String(Math.min(tp,gt.length?Math.max(...gt):Math.min(...lw.filter(a=>F(a[0])===t).map(a=>F(a[1])))+1));
+// p156f: while the weight is held to add reps first, a moved set aims for the held sets' reps (above the top)
+const ws=lw.map(a=>F(a[0])).filter(w=>w>0),mw=ws.length?(as?Math.min(...ws):Math.max(...ws)):null;
+const r=String(gt.length?(hk&&t===mw?Math.max(...gt):Math.min(tp,Math.max(...gt))):Math.min(tp,Math.min(...lw.filter(a=>F(a[0])===t).map(a=>F(a[1])))+1));
 const blk=lw.slice(0,j0).every(a=>!hv(t,F(a[0]))||F(a[1])>=tp);
-return out.map((o,i)=>{const w=F(lw[i][0]),q=F(lw[i][1]);return w>0&&hv(t,w)&&(q>tp||(i<j0&&blk&&q>=tp))&&o&&o[0]===S2(w)?[S2(t),r]:o})}
+// p156f: or a later set at a heavier weight got at least as many reps (so this one stopped well short of failure)
+const later=i=>lw.some((a,j)=>j>i&&F(a[0])>0&&hv(F(a[0]),F(lw[i][0]))&&F(a[1])>=F(lw[i][1]));
+return out.map((o,i)=>{const w=F(lw[i][0]),q=F(lw[i][1]);return w>0&&hv(t,w)&&(q>tp||(i<j0&&blk&&q>=tp)||later(i))&&o&&o[0]===S2(w)?[S2(t),r]:o})}
 // the lighter weight next time's goal gives a set under the range (more assistance on an assisted lift); null if none
 function p143gEw0(x,n,w,r){const lo=+String(x.r).split('-')[0],tp=+String(x.r).split('-').pop();return AS.has(n)?sugA(w,r,lo,tp,-1,bwAt(today()),stepOf(n)):(x.hr||x.er||!(w>0))?null:sug(w,r,lo,tp,-1,stepOf(n))}
 // standalone (p143g): never under the lift's starting weight (none when the start leaves no lighter weight)
@@ -3816,7 +3820,7 @@ try{await flush()}catch(e){}
 if((su.sex==='f')!==FEM){lsSet(LK,S);location.reload();return}
 render();window.scrollTo(0,0);say(window.__SA?'All set. Sync with Apple Health to bring in today’s weigh-in.':'All set. Log today’s weight to get started.')}
 // ===== Standalone: app version, updates, evening sync time =====
-const APP_V={h:'89b5bf2d7f',d:'Nov 19, 2026 at 10:53 AM',b:+'1795103631'||0};
+const APP_V={h:'2f84fe1f8a',d:'Nov 21, 2026 at 2:19 PM',b:+'1795288762'||0};
 let updAvail=null,updMsg='',updBusy=false;
 const evH=()=>{const v=+(S.prof&&S.prof.ev);return [18,19,20,21].includes(v)?v:20},evT=()=>(evH()-12)+' pm';
 // standalone: today's food only after 10 pm (Lose It files snacks at 10 pm); hkFdIn: an evening paste after then
